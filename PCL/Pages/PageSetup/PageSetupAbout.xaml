@@ -29,18 +29,18 @@
                                       Margin="-5,0,15,0"
                                       Info="当前版本: %VERSION% (%BRANCH%, %VERSIONCODE%, %COMMIT_HASH%)" Grid.Row="2"
                                       Grid.Column="1" x:Name="ItemAboutPcl" />
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/Logo-CE.png" Grid.Row="2" Margin="3"
+                    <Image Source="/PCL;component/Images/Heads/Logo-CE.png" Grid.Row="2" Margin="3"
                            x:Name="ImgPCLLogo" MouseLeftButtonDown="ImgPCLLogo_Click">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/LTCat.jpg" Grid.Row="0" Margin="3">
+                    <Image Source="/PCL;component/Images/Heads/LTCat.jpg" Grid.Row="0" Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/PCL-Community.png" Grid.Row="1"
+                    <Image Source="/PCL;component/Images/Heads/PCL-Community.png" Grid.Row="1"
                            Margin="3" x:Name="ImgPCLCommunity" MouseLeftButtonDown="ImgPCLCommunity_Click" />
                     <local:MyButton Text="赞助原作者" Grid.Column="2" Grid.Row="0" Height="35" EventType="打开网页"
                                     EventData="https://afdian.com/a/LTCat" />
@@ -103,58 +103,58 @@
                                       Info="虽然已经关站了，但感谢此前提供了 MCBBS 镜像源……" Grid.Row="9" Grid.Column="1" />
                     <local:MyListItem Title="PCL 内群的各位" Margin="-5,0,0,0" IsHitTestVisible="False" Grid.ColumnSpan="2"
                                       Info="感谢内群的沙雕网友们这么久以来对龙猫和 PCL 的支持与鼓励！" Grid.Row="10" Grid.Column="1" />
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/bangbang93.png" Grid.Row="0"
+                    <Image Source="/PCL;component/Images/Heads/bangbang93.png" Grid.Row="0"
                            Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/wiki.png" Grid.Row="1" Margin="3">
+                    <Image Source="/PCL;component/Images/Heads/wiki.png" Grid.Row="1" Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/Pysio.jpg" Grid.Row="2" Margin="3">
+                    <Image Source="/PCL;component/Images/Heads/Pysio.jpg" Grid.Row="2" Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/Yunmoan.jpg" Grid.Row="3" Margin="3">
+                    <Image Source="/PCL;component/Images/Heads/Yunmoan.jpg" Grid.Row="3" Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/EasyTier.png" Grid.Row="4" Margin="3">
+                    <Image Source="/PCL;component/Images/Heads/EasyTier.png" Grid.Row="4" Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/z0z0r4.png" Grid.Row="5" Margin="3">
+                    <Image Source="/PCL;component/Images/Heads/z0z0r4.png" Grid.Row="5" Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/00ll00.png" Grid.Row="6" Margin="3">
+                    <Image Source="/PCL;component/Images/Heads/00ll00.png" Grid.Row="6" Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/Patrick.png" Grid.Row="7" Margin="3">
+                    <Image Source="/PCL;component/Images/Heads/Patrick.png" Grid.Row="7" Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/Hao_Tian.jpg" Grid.Row="8" Margin="3">
+                    <Image Source="/PCL;component/Images/Heads/Hao_Tian.jpg" Grid.Row="8" Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/MCBBS.png" Grid.Row="9" Margin="3">
+                    <Image Source="/PCL;component/Images/Heads/MCBBS.png" Grid.Row="9" Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>
                     </Image>
-                    <Image Source="/Plain Craft Launcher 2;component/Images/Heads/PCL2.png" Grid.Row="10" Margin="3">
+                    <Image Source="/PCL;component/Images/Heads/PCL2.png" Grid.Row="10" Margin="3">
                         <Image.Clip>
                             <EllipseGeometry Center="17 17" RadiusX="17" RadiusY="17" />
                         </Image.Clip>

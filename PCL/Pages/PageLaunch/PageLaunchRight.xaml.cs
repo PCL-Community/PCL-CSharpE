@@ -268,7 +268,7 @@ public partial class PageLaunchRight : IRefreshable
         {
             using (var reader = new StreamReader(System.Windows.Application
                        .GetResourceStream(new Uri(
-                           "pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints.txt",
+                           "pack://application:,,,/PCL;component/Resources/hints.txt",
                            UriKind.Absolute)).Stream))
             {
                 var lines = reader.ReadToEnd()
@@ -422,7 +422,7 @@ public partial class PageLaunchRight : IRefreshable
                 while (Content.Contains("xmlns"))
                     Content = Content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");
                 Content =
-                    "<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=Plain Craft Launcher 2\">" +
+                    "<StackPanel xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" xmlns:sys=\"clr-namespace:System;assembly=System.Runtime\" xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" xmlns:local=\"clr-namespace:PCL;assembly=PCL\">" +
                     Content + "</StackPanel>";
                 ModBase.Log($"[Page] 实例化：加载主页 UI 开始，最终内容长度：{Content.Count()}");
                 PanCustom.Children.Add((UIElement)ModBase.GetObjectFromXML(Content));
