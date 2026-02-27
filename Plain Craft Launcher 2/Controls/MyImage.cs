@@ -1,12 +1,12 @@
-using Microsoft.VisualBasic.CompilerServices;
-using PCL.Core.IO.Net.Http.Client;
-using PCL.Core.Utils;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Microsoft.VisualBasic.CompilerServices;
+using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.Utils;
 
 namespace PCL;
 
