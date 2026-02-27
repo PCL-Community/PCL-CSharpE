@@ -1,12 +1,11 @@
-﻿using System.IO;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils;
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace PCL;
 
@@ -43,21 +42,21 @@ public partial class PageSetupUI
             switch (ModSecret.ThemeDontClick)
             {
                 case 1:
-                {
-                    NewText = "眼瞎白";
-                    break;
-                }
+                    {
+                        NewText = "眼瞎白";
+                        break;
+                    }
                 case 2:
-                {
-                    NewText = "真·滑稽彩";
-                    break;
-                }
+                    {
+                        NewText = "真·滑稽彩";
+                        break;
+                    }
 
                 default:
-                {
-                    NewText = "？？？";
-                    break;
-                }
+                    {
+                        NewText = "？？？";
+                        break;
+                    }
             }
 
             foreach (var Control in PanLauncherTheme.Children)
@@ -487,7 +486,7 @@ public partial class PageSetupUI
     {
         if (!(ModAnimation.AniControlEnabled == 0 && e.RaiseByMouse))
             return;
-        Refresh: ;
+    Refresh:;
 
         // 已有图片则不再选择
         if (File.Exists(ModBase.ExePath + @"PCL\Logo.png"))

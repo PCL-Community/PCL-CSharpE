@@ -1,3 +1,6 @@
+using Microsoft.VisualBasic.CompilerServices;
+using Newtonsoft.Json.Linq;
+using PCL.Core.UI;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -5,9 +8,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.VisualBasic.CompilerServices;
-using Newtonsoft.Json.Linq;
-using PCL.Core.UI;
 
 namespace PCL;
 
@@ -174,27 +174,28 @@ public partial class MySkin
 
             ImgBack.Tag = Address;
             // 大小检查
-            var Scale = (int)Math.Round(Image.Pic.Width / 64d);
-            if (Image.Pic.Width < 32 || Image.Pic.Height < 32)
+            var Scale = (int)Math.Round(Image.Picture.Width / 64d);
+            if (Image.Picture.Width < 32 || Image.Picture.Height < 32)
             {
                 ImgFore.Source = null;
                 ImgBack.Source = null;
-                throw new Exception("图片大小不足，长为 " + Image.Pic.Height + "，宽为 " + Image.Pic.Width);
+                throw new Exception("图片大小不足，长为 " + Image.Picture.Height + "，宽为 " + Image.Picture.Width);
             }
 
             MyBitmap SkinHead = null;
             // 头发层（附加层）
-            if (Image.Pic.Width >= 64 && Image.Pic.Height >= 32)
+            if (Image.Picture.Width >= 64 && Image.Picture.Height >= 32)
             {
-                if (Image.Pic.GetPixel(1, 1).A == 0 ||
-                    Image.Pic.GetPixel(Image.Pic.Width - 1, Image.Pic.Height - 1).A == 0 ||
-                    Image.Pic.GetPixel(Image.Pic.Width - 2, (int)Math.Round(Image.Pic.Height / 2d - 2d)).A == 0 ||
-                    (Image.Pic.GetPixel(1, 1) != Image.Pic.GetPixel(Scale * 41, Scale * 9) &&
-                     Image.Pic.GetPixel(Image.Pic.Width - 1, Image.Pic.Height - 1) !=
-                     Image.Pic.GetPixel(Scale * 41, Scale * 9) &&
-                     Image.Pic.GetPixel(Image.Pic.Width - 2, (int)Math.Round(Image.Pic.Height / 2d - 2d)) !=
-                     Image.Pic.GetPixel(Scale * 41, Scale * 9))) // 如果图片中有任何透明像素（避免纯色白底）
-                    // 或是头部颜色和透明区均不一样
+                if (Image.Picture.GetPixel(1, 1).A == 0 ||
+                    Image.Picture.GetPixel(Image.Picture.Width - 1, Image.Picture.Height - 1).A == 0 ||
+                    Image.Picture.GetPixel(Image.Picture.Width - 2, (int)Math.Round(Image.Picture.Height / 2d - 2d))
+                        .A == 0 ||
+                    (Image.Picture.GetPixel(1, 1) != Image.Picture.GetPixel(Scale * 41, Scale * 9) &&
+                     Image.Picture.GetPixel(Image.Picture.Width - 1, Image.Picture.Height - 1) !=
+                     Image.Picture.GetPixel(Scale * 41, Scale * 9) &&
+                     Image.Picture.GetPixel(Image.Picture.Width - 2, (int)Math.Round(Image.Picture.Height / 2d - 2d)) !=
+                     Image.Picture.GetPixel(Scale * 41, Scale * 9))) // 如果图片中有任何透明像素（避免纯色白底）
+                                                                     // 或是头部颜色和透明区均不一样
                 {
                     ImgFore.Source = Image.Clip(Scale * 40, Scale * 8, Scale * 8, Scale * 8);
                     SkinHead = Image.Clip(Scale * 40, Scale * 8, Scale * 8, Scale * 8);

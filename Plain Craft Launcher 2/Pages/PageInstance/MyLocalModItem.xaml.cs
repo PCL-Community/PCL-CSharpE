@@ -1,12 +1,12 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace PCL;
 
@@ -64,23 +64,23 @@ public partial class MyLocalCompItem
                 switch (Entry.State)
                 {
                     case ModLocalComp.LocalCompFile.LocalFileStatus.Fine:
-                    {
-                        DescFileName = ModBase.GetFileNameWithoutExtentionFromPath(Entry.Path);
-                        break;
-                    }
+                        {
+                            DescFileName = ModBase.GetFileNameWithoutExtentionFromPath(Entry.Path);
+                            break;
+                        }
                     case ModLocalComp.LocalCompFile.LocalFileStatus.Disabled:
-                    {
-                        DescFileName =
-                            ModBase.GetFileNameWithoutExtentionFromPath(Entry.Path.Replace(".disabled", "")
-                                .Replace(".old", "")); // McMod.McModState.Unavailable
-                        break;
-                    }
+                        {
+                            DescFileName =
+                                ModBase.GetFileNameWithoutExtentionFromPath(Entry.Path.Replace(".disabled", "")
+                                    .Replace(".old", "")); // McMod.McModState.Unavailable
+                            break;
+                        }
 
                     default:
-                    {
-                        DescFileName = ModBase.GetFileNameFromPath(Entry.Path);
-                        break;
-                    }
+                        {
+                            DescFileName = ModBase.GetFileNameFromPath(Entry.Path);
+                            break;
+                        }
                 }
 
             string NewDescription;
@@ -303,42 +303,42 @@ public partial class MyLocalCompItem
                     "更新", "查看更新日志", "取消"))
         {
             case 1: // 更新
-            {
-                switch (Entry.Comp.Type)
                 {
-                    case ModComp.CompType.Mod:
+                    switch (Entry.Comp.Type)
                     {
-                        ModMain.FrmInstanceMod.UpdateResource(new[] { Entry });
-                        break;
+                        case ModComp.CompType.Mod:
+                            {
+                                ModMain.FrmInstanceMod.UpdateResource(new[] { Entry });
+                                break;
+                            }
+                        case ModComp.CompType.ResourcePack:
+                            {
+                                ModMain.FrmInstanceResourcePack.UpdateResource(new[] { Entry });
+                                break;
+                            }
+                        case ModComp.CompType.Shader:
+                            {
+                                ModMain.FrmInstanceShader.UpdateResource(new[] { Entry });
+                                break;
+                            }
+                        case ModComp.CompType.DataPack:
+                            {
+                                ModMain.FrmInstanceSavesDatapack.UpdateResource(new[] { Entry });
+                                break;
+                            }
                     }
-                    case ModComp.CompType.ResourcePack:
-                    {
-                        ModMain.FrmInstanceResourcePack.UpdateResource(new[] { Entry });
-                        break;
-                    }
-                    case ModComp.CompType.Shader:
-                    {
-                        ModMain.FrmInstanceShader.UpdateResource(new[] { Entry });
-                        break;
-                    }
-                    case ModComp.CompType.DataPack:
-                    {
-                        ModMain.FrmInstanceSavesDatapack.UpdateResource(new[] { Entry });
-                        break;
-                    }
-                }
 
-                break;
-            }
+                    break;
+                }
             case 2: // 查看更新日志
-            {
-                ShowUpdateLog();
-                break;
-            }
+                {
+                    ShowUpdateLog();
+                    break;
+                }
             case 3: // 取消
-            {
-                break;
-            }
+                {
+                    break;
+                }
         }
     }
 
@@ -354,62 +354,62 @@ public partial class MyLocalCompItem
         switch (CurrentCompressLevel)
         {
             case 0:
-            {
-                if (ColumnExtend.ActualWidth < 0.5d)
-                    NewCompressLevel = LabSubtitle.Visibility == Visibility.Collapsed ? 2 : 1;
-                else
-                    return;
+                {
+                    if (ColumnExtend.ActualWidth < 0.5d)
+                        NewCompressLevel = LabSubtitle.Visibility == Visibility.Collapsed ? 2 : 1;
+                    else
+                        return;
 
-                break;
-            }
+                    break;
+                }
             case 1:
-            {
-                if (ColumnSubtitle.ActualWidth < 0.5d)
-                    NewCompressLevel = 2;
-                else if (!LabSubtitle.IsTextTrimmed())
-                    NewCompressLevel = 0;
-                else
-                    return;
+                {
+                    if (ColumnSubtitle.ActualWidth < 0.5d)
+                        NewCompressLevel = 2;
+                    else if (!LabSubtitle.IsTextTrimmed())
+                        NewCompressLevel = 0;
+                    else
+                        return;
 
-                break;
-            }
+                    break;
+                }
             case 2:
-            {
-                if (!LabTitle.IsTextTrimmed())
-                    NewCompressLevel = LabSubtitle.Visibility == Visibility.Collapsed ? 0 : 1;
-                else
-                    return;
+                {
+                    if (!LabTitle.IsTextTrimmed())
+                        NewCompressLevel = LabSubtitle.Visibility == Visibility.Collapsed ? 0 : 1;
+                    else
+                        return;
 
-                break;
-            }
+                    break;
+                }
         }
 
         switch (NewCompressLevel)
         {
             case 0:
-            {
-                // 全部舒展：Auto - Auto - (Auto) - 1*
-                ColumnTitle.Width = GridLength.Auto;
-                ColumnSubtitle.Width = GridLength.Auto;
-                ColumnExtend.Width = new GridLength(1d, GridUnitType.Star);
-                break;
-            }
+                {
+                    // 全部舒展：Auto - Auto - (Auto) - 1*
+                    ColumnTitle.Width = GridLength.Auto;
+                    ColumnSubtitle.Width = GridLength.Auto;
+                    ColumnExtend.Width = new GridLength(1d, GridUnitType.Star);
+                    break;
+                }
             case 1:
-            {
-                // 压缩 Subtitle：Auto - 1* - (Auto) - 0
-                ColumnTitle.Width = GridLength.Auto;
-                ColumnSubtitle.Width = new GridLength(1d, GridUnitType.Star);
-                ColumnExtend.Width = new GridLength(0d, GridUnitType.Pixel);
-                break;
-            }
+                {
+                    // 压缩 Subtitle：Auto - 1* - (Auto) - 0
+                    ColumnTitle.Width = GridLength.Auto;
+                    ColumnSubtitle.Width = new GridLength(1d, GridUnitType.Star);
+                    ColumnExtend.Width = new GridLength(0d, GridUnitType.Pixel);
+                    break;
+                }
             case 2:
-            {
-                // 继续压缩 Title：1* - 0 - (Auto) - 0
-                ColumnTitle.Width = new GridLength(1d, GridUnitType.Star);
-                ColumnSubtitle.Width = new GridLength(0d, GridUnitType.Pixel);
-                ColumnExtend.Width = new GridLength(0d, GridUnitType.Pixel);
-                break;
-            }
+                {
+                    // 继续压缩 Title：1* - 0 - (Auto) - 0
+                    ColumnTitle.Width = new GridLength(1d, GridUnitType.Star);
+                    ColumnSubtitle.Width = new GridLength(0d, GridUnitType.Pixel);
+                    ColumnExtend.Width = new GridLength(0d, GridUnitType.Pixel);
+                    break;
+                }
         }
     }
 
@@ -436,21 +436,21 @@ public partial class MyLocalCompItem
             switch (Entry.State)
             {
                 case ModLocalComp.LocalCompFile.LocalFileStatus.Fine:
-                {
-                    LabTitle.TextDecorations = null;
-                    break;
-                }
+                    {
+                        LabTitle.TextDecorations = null;
+                        break;
+                    }
                 case ModLocalComp.LocalCompFile.LocalFileStatus.Disabled:
-                {
-                    LabTitle.TextDecorations = TextDecorations.Strikethrough;
-                    break;
-                }
+                    {
+                        LabTitle.TextDecorations = TextDecorations.Strikethrough;
+                        break;
+                    }
                 case ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable:
-                {
-                    LabTitle.TextDecorations = TextDecorations.Strikethrough;
-                    value += " [错误]";
-                    break;
-                }
+                    {
+                        LabTitle.TextDecorations = TextDecorations.Strikethrough;
+                        value += " [错误]";
+                        break;
+                    }
             }
 
             if ((LabTitle.Text ?? "") == (value ?? ""))
