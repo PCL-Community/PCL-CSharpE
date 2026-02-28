@@ -763,7 +763,7 @@ public partial class PageInstanceSetup
                 {
                     Content = curJava.ToString(),
                     ToolTip =
-                        $"路径: {((dynamic)curJava).Installation.JavaExePath}{"\r\n"}版本: {((dynamic)curJava).Installation.Version}{"\r\n"}来源: {((dynamic)curJava).Source}",
+                        $"路径: {curJava.Installation.JavaExePath}\r\n版本: {curJava.Installation.Version}\r\n来源: {curJava.Source}",
                     Tag = curJava
                 };
                 ToolTipService.SetInitialShowDelay(item, 300);
@@ -983,7 +983,7 @@ public partial class PageInstanceSetup
             if (ModMain.MyMsgBox("修改此项会严重影响游戏的稳定性与性能。如果你不知道你在做什么，不要修改此选项！" + "\r\n" + "你确定要继续修改吗？", "警告",
                     "我知道我在做什么", "取消", IsWarn: true) == 2)
             {
-                ComboAdvanceRenderer.SelectedItem = ((dynamic)e).RemovedItems(0);
+                ComboAdvanceRenderer.SelectedItem = ((SelectionChangedEventArgs)e).RemovedItems[0];
             }
             else
             {

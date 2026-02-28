@@ -6,9 +6,11 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using FluentValidation;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
+using PCL.Core.Utils.Validate;
 
 namespace PCL;
 
@@ -110,8 +112,7 @@ public partial class PageDownloadInstall
         ModDownload.DlLegacyFabricListLoader.Start();
 
         // 重载预览
-        TextSelectName.ValidateRules = new Collection<ValidateType>
-            { new ValidateFolderName(ModMinecraft.McFolderSelected + "versions") };
+        TextSelectName.ValidateRules = [new FolderNameValidator(ModMinecraft.McFolderSelected + "versions")];
         TextSelectName.Validate();
         ReloadSelected();
 

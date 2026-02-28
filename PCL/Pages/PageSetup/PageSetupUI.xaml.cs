@@ -251,37 +251,37 @@ public partial class PageSetupUI
     // 将控件改变路由到设置改变
     private void SliderChange(object senderRaw, bool user)
     {
-        dynamic sender = senderRaw;
+        var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag, sender.Value);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag, sender.SelectedIndex);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyCheckBox)senderRaw;
         // 仅在动画未运行或初始化完成时保存设置，防止初始化时的触发导致重复写入
-        if (ModAnimation.AniControlEnabled == 0) ModBase.Setup.Set(sender.Tag, sender.Checked);
+        if (ModAnimation.AniControlEnabled == 0) ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag, sender.Text);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
     }
 
     private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
     {
-        dynamic sender = senderRaw;
-        var gotCfg = sender.Tag.ToString().Split("/");
-        if (ModAnimation.AniControlEnabled == 0)
+        var sender = (MyRadioBox)senderRaw;
+        var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
+        if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
             ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
@@ -677,8 +677,8 @@ public partial class PageSetupUI
     // 主题
     private void ThemeColor_Change(object senderRaw, SelectionChangedEventArgs e)
     {
-        dynamic sender = senderRaw;
-        ModBase.Setup.Set(sender.Tag, sender.SelectedIndex);
+        var sender = (MyComboBox)senderRaw;
+        ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
         ModSecret.ThemeRefresh();
     }
 
@@ -1017,7 +1017,7 @@ public partial class PageSetupUI
     // 警告提示
     private void HiddenHint(object sender, bool user)
     {
-        if (Conversions.ToBoolean(ModAnimation.AniControlEnabled == 0 && ((dynamic)sender).Checked))
+        if (ModAnimation.AniControlEnabled == 0 && sender is MyCheckBox checkBox && checkBox.Checked == true)
             ModMain.Hint("按 F12 即可暂时关闭功能隐藏设置。千万别忘了，要不然设置就改不回来了……");
     }
 

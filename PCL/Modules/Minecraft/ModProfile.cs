@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using FluentValidation;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
@@ -12,6 +13,7 @@ using PCL.Core.App;
 using PCL.Core.IO.Net;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Secret;
+using PCL.Core.Utils.Validate;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace PCL;
@@ -500,7 +502,7 @@ public static class ModProfile
             string newUsername = null;
             ModBase.RunInUiWait(() => newUsername = ModMain.MyMsgBoxInput("输入新的玩家 ID", "玩家 ID 只能每 30 天更改一次名称，请谨慎考虑！",
                 SelectedProfile.Username,
-                new Collection<ValidateType> { new ValidateLength(3, 16), new ValidateRegex("([A-z]|[0-9]|_)+") },
+                [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
                 "3 - 16 个字符，只可以包含大小写字母、数字、下划线", "确认"));
             if (string.IsNullOrEmpty(newUsername))
                 return;
@@ -572,8 +574,7 @@ public static class ModProfile
             string newUsername = null;
             ModBase.RunInUiWait(() => newUsername = ModMain.MyMsgBoxInput("输入新的玩家 ID",
                 DefaultInput: SelectedProfile.Username,
-                ValidateRules: new Collection<ValidateType>
-                    { new ValidateLength(3, 16), new ValidateRegex("([A-z]|[0-9]|_)+") },
+                ValidateRules: [new StringLengthValidator(3, 16), new RegexValidator("([A-z]|[0-9]|_)+")],
                 HintText: "3 - 16 个字符，只可以包含大小写字母、数字、下划线", Button1: "确认", Button2: "取消"));
             if (string.IsNullOrEmpty(newUsername))
                 return;
@@ -616,8 +617,8 @@ public static class ModProfile
         else
             newUuid = ModMain.MyMsgBoxInput($"更改档案 {profile.Username} 的 UUID", DefaultInput: profile.Uuid,
                 HintText: "32 位，不含连字符",
-                ValidateRules: new Collection<ValidateType>
-                    { new ValidateLength(32, 32), new ValidateRegex("([A-z]|[0-9]){32}", "UUID 只应该包括英文字母和数字！") },
+                ValidateRules:
+                [new StringLengthValidator(32, 32), new RegexValidator("([A-z]|[0-9]){32}", "UUID 只应该包括英文字母和数字！")],
                 Button1: "继续", Button2: "取消");
         if (string.IsNullOrEmpty(newUuid))
             return;

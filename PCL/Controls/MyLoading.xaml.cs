@@ -104,7 +104,7 @@ public partial class MyLoading
             {
                 if (TextErrorInherit && State.IsLoader)
                 {
-                    var Ex = (Exception)((dynamic)State).Error;
+                    var Ex = State.Error;
                     if (Ex is null)
                     {
                         LabText.Text = "未知错误";
@@ -115,8 +115,8 @@ public partial class MyLoading
                         LabText.Text = Conversions.ToString(ModBase.StrTrim(Ex.Message));
                         if (new[]
                             {
-                                "远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝", "操作已超时", "操作超时", "服务器超时", "连接超时"
-                            }.Any(s => LabText.Text.Contains(s))) LabText.Text = "网络环境不佳，请稍后重试，或使用 VPN 以改善网络环境";
+                            "远程主机强迫关闭了", "远程方已关闭传输流", "未能解析此远程名称", "由于目标计算机积极拒绝", "操作已超时", "操作超时", "服务器超时", "连接超时"
+                        }.Any(s => LabText.Text.Contains(s))) LabText.Text = "网络环境不佳，请稍后重试，或使用 VPN 以改善网络环境";
                     }
                 }
                 else
@@ -126,9 +126,7 @@ public partial class MyLoading
             }
             else if (ShowProgress && State.IsLoader)
             {
-                LabText.Text = Conversions.ToString(Operators.ConcatenateObject(
-                    Operators.ConcatenateObject(Text + " - ",
-                        Math.Floor(Operators.MultiplyObject(((dynamic)State).Progress, 100))), "%"));
+                LabText.Text = Text + " - " + Math.Floor(State.Progress * 100) + "%";
             }
             else
             {
@@ -369,6 +367,10 @@ public interface ILoadingTrigger
     delegate void ProgressChangedEventHandler(double NewProgress, double OldProgress);
 
     bool IsLoader { get; }
+
+    double Progress { get; }
+    Exception? Error { get; }
+
     MyLoadingState LoadingState { get; set; }
     event LoadingStateChangedEventHandler? LoadingStateChanged;
     event ProgressChangedEventHandler? ProgressChanged;
@@ -392,6 +394,9 @@ public class MyLoadingStateSimulator : ILoadingTrigger
     }
 
     public bool IsLoader { get; } = false;
+
+    public double Progress => 0;
+    public Exception? Error => null;
 
     public event ILoadingTrigger.LoadingStateChangedEventHandler? LoadingStateChanged;
     public event ILoadingTrigger.ProgressChangedEventHandler? ProgressChanged;

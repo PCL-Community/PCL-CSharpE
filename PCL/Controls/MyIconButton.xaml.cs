@@ -3,6 +3,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Microsoft.VisualBasic.CompilerServices;
+using System.Windows.Controls;
 
 namespace PCL;
 
@@ -341,7 +342,7 @@ public static partial class ModAnimation
             AaCode(() =>
             {
                 if (RemoveFromChildren)
-                    ((dynamic)Control.Parent).Children.Remove(Control);
+                    ((Panel)Control.Parent).Children.Remove(Control);
                 else
                     Control.Visibility = Visibility.Collapsed;
                 if (CallBack is not null)

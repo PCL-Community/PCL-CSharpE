@@ -26,7 +26,7 @@ public partial class MyCheckBox
     public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register("Checked", typeof(bool?),
         typeof(MyCheckBox), new PropertyMetadata(false, (d, e) =>
         {
-            dynamic obj = d;
+            var obj = (MyCheckBox)d;
             if (!obj.IsLoaded) obj.SyncUI();
         }));
 

@@ -5,6 +5,7 @@ using System.Windows.Markup;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.UI.Theme;
+using System.Windows.Controls;
 
 namespace PCL;
 
@@ -31,7 +32,7 @@ public partial class MyHint
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyHint), new PropertyMetadata("", (d, e) =>
         {
-            dynamic f = d;
+            var f = (MyHint)d;
             f.LabText.Text = Conversions.ToString(e.NewValue);
         }));
 
@@ -262,7 +263,7 @@ public static partial class ModAnimation
             AaCode(() =>
             {
                 if (RemoveFromChildren)
-                    ((dynamic)Control.Parent).Children.Remove(Control);
+                    ((Panel)Control.Parent).Children.Remove(Control);
                 else
                     Control.Visibility = Visibility.Collapsed;
                 if (CallBack is not null)

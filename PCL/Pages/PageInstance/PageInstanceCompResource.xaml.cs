@@ -1577,7 +1577,7 @@ public partial class PageInstanceCompResource : IRefreshable
                     : ModLocalComp.CompResourceListLoader.Output ?? new List<ModLocalComp.LocalCompFile>();
                 return ItemSource is not null && ItemSource.Where(m =>
                     CheckingMod.Comp is not null && m.Comp is not null &&
-                    (CheckingMod.Comp.Id ?? "") == (m.Comp.Id ?? "")).Any();
+                    (CheckingMod.Comp.Id ?? "") == (m.Comp.Id ?? "")).Skip(1).Any();
             }
 
             default:

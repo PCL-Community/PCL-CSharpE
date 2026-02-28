@@ -17,6 +17,7 @@ public partial class PageLaunchLeft
     private int BtnLaunchState;
     private ModMinecraft.McInstance BtnLaunchVersion;
     private bool IsHeightAnimating;
+    public interface ILoginPage { void Reload(); }
 
     // 加载当前实例
     private bool IsLoad;
@@ -602,7 +603,7 @@ public partial class PageLaunchLeft
     /// </summary>
     public void PageChangeToLogin()
     {
-        ((dynamic)PageGet(PageCurrent)).Reload();
+        if (PageGet(PageCurrent) is ILoginPage loginPage) loginPage.Reload();
         PanInput.IsHitTestVisible = false;
         PanLaunching.IsHitTestVisible = false;
         LoadLaunching.State.LoadingState = MyLoading.MyLoadingState.Stop;
@@ -704,8 +705,10 @@ public partial class PageLaunchLeft
 
             ModAnimation.AniStop("FrmLogin PageChange");
             // 清除页面关联性
-            if (!(PageNew == null) && !(((dynamic)PageNew).Parent == null))
-                ((dynamic)PageNew).SetValue(ContentPresenter.ContentProperty, (object)null);
+            if (PageNew is FrameworkElement element && element.Parent != null)
+            {
+                element.SetValue(ContentPresenter.ContentProperty, null);
+            }
             if (Anim)
             {
                 // 动画

@@ -154,7 +154,7 @@ public class MyCard : AnimatedBackgroundGrid
         if (IsSwapped && SwapControl is not null)
         {
             MainSwap.RenderTransform = new RotateTransform(SwapLogoRight ? 270 : 0);
-            ((dynamic)SwapControl).Visibility = Visibility.Collapsed;
+            SwapControl.Visibility = Visibility.Collapsed;
             // 取消由于高度变化被迫触发的高度动画
             var RawUseAnimation = UseAnimation;
             UseAnimation = false;
@@ -315,7 +315,7 @@ public class MyCard : AnimatedBackgroundGrid
             IsHeightAnimating = false;
             Height = ActualUsedHeight;
             if (IsSwapped && SwapControl is not null)
-                ((dynamic)SwapControl).Visibility = Visibility.Collapsed;
+                SwapControl.Visibility = Visibility.Collapsed;
         }, After: true));
         ModAnimation.AniStart(AnimList, "MyCard Height " + Uuid);
         IsHeightAnimating = true;
@@ -339,7 +339,7 @@ public class MyCard : AnimatedBackgroundGrid
 
     // 若设置了 CanSwap，或 SwapControl 不为空，则判定为会进行折叠
     // 这是因为不能直接在 XAML 中设置 SwapControl
-    public object SwapControl;
+    public UIElement SwapControl;
     public bool CanSwap { get; set; } = false;
 
     /// <summary>
@@ -376,7 +376,7 @@ public class MyCard : AnimatedBackgroundGrid
                 return;
 
             // 更新控件的可见性和高度
-            ((dynamic)SwapControl).Visibility = Visibility.Visible;
+            SwapControl.Visibility = Visibility.Visible;
             TriggerForceResize();
 
             // 根据折叠状态旋转箭头图标

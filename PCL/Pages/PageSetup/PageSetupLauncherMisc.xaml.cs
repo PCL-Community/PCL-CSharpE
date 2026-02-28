@@ -85,31 +85,31 @@ public partial class PageSetupLauncherMisc
     // 将控件改变路由到设置改变
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag, sender.SelectedIndex);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
     {
-        dynamic sender = senderRaw;
-        var gotCfg = sender.Tag.ToString().Split("/");
-        if (ModAnimation.AniControlEnabled == 0)
+        var sender = (MyRadioBox)senderRaw;
+        var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
+        if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
             ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag, sender.Checked);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
-        dynamic sender = senderRaw;
+        var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag, sender.Value);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
     }
 
     // 网络

@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using FluentValidation;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.VisualBasic.FileIO;
@@ -12,6 +13,7 @@ using PCL.Core.App.Configuration;
 using PCL.Core.App.Configuration.Storage;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
+using PCL.Core.Utils.Validate;
 using FileSystem = Microsoft.VisualBasic.FileIO.FileSystem;
 
 namespace PCL;
@@ -292,7 +294,7 @@ public partial class PageInstanceOverall
         {
             var OldInfo = Config.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance];
             var NewInfo = ModMain.MyMsgBoxInput("更改描述", "修改实例的描述文本，留空则使用 PCL 的默认描述。", OldInfo,
-                new Collection<ValidateType>(), "默认描述");
+                [], "默认描述");
             if (NewInfo is not null && (OldInfo ?? "") != (NewInfo ?? ""))
                 Config.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance] = NewInfo;
             PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();
@@ -316,8 +318,7 @@ public partial class PageInstanceOverall
             var OldPath = PageInstanceLeft.Instance.PathInstance;
             // 修改此部分的同时修改快速安装的实例名检测*
             var NewName = ModMain.MyMsgBoxInput("重命名实例", "", OldName,
-                new Collection<ValidateType>
-                    { new ValidateFolderName(ModMinecraft.McFolderSelected + "versions", IgnoreCase: false) });
+                [new FolderNameValidator(ModMinecraft.McFolderSelected + "versions", ignoreCase: false)]);
             if (string.IsNullOrWhiteSpace(NewName))
                 return;
             var NewPath = ModMinecraft.McFolderSelected + @"versions\" + NewName + @"\";
@@ -439,7 +440,7 @@ public partial class PageInstanceOverall
         // 进行更改
         try
         {
-            string NewLogo = Conversions.ToString(((dynamic)ComboDisplayLogo.SelectedItem).Tag);
+            string NewLogo = Conversions.ToString(((MyComboBoxItem)ComboDisplayLogo.SelectedItem).Tag);
             Config.Instance.LogoPath[PageInstanceLeft.Instance.PathInstance] = NewLogo;
             Config.Instance.IsLogoCustom[PageInstanceLeft.Instance.PathInstance] = !string.IsNullOrEmpty(NewLogo);
             // 刷新显示

@@ -1447,7 +1447,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     {
         try
         {
-            var DatapackEntry = ((MyLocalCompItem)(sender is MyIconButton ? ((dynamic)sender).Tag : sender)).Entry;
+            var DatapackEntry = ((MyLocalCompItem)(sender is MyIconButton iconBtn ? iconBtn.Tag : sender)).Entry;
 
             // 加载失败信息
             if (DatapackEntry.State == ModLocalComp.LocalCompFile.LocalFileStatus.Unavailable)

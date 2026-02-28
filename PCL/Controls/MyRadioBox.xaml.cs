@@ -26,7 +26,7 @@ public partial class MyRadioBox : IMyRadio
     public static readonly DependencyProperty CheckedProperty = DependencyProperty.Register("Checked", typeof(bool),
         typeof(MyRadioBox), new PropertyMetadata(false, (dRaw, e) =>
         {
-            dynamic d = dRaw;
+            var d = (MyRadioBox)dRaw;
             if (!d.IsLoaded) d.SyncUI();
         }));
 
@@ -113,11 +113,11 @@ public partial class MyRadioBox : IMyRadio
                 return;
             var RadioboxList = new List<MyRadioBox>();
             var CheckedCount = 0;
-            foreach (var Control in (IEnumerable)((dynamic)Parent).Children) // 收集控件列表与选中个数
-                if (Control is MyRadioBox)
+            foreach (var Control in ((Panel)Parent).Children) // 收集控件列表与选中个数
+                if (Control is MyRadioBox radioBox)
                 {
-                    RadioboxList.Add((MyRadioBox)Control);
-                    if (Conversions.ToBoolean(((dynamic)Control).Checked))
+                    RadioboxList.Add(radioBox);
+                    if (radioBox.Checked)
                         CheckedCount += 1;
                 }
 

@@ -133,7 +133,7 @@ public class MyComboBox : ComboBox
         if (IsEnabled)
         {
             if (Conversions.ToBoolean(IsMouseDown || IsDropDownOpen ||
-                                      (IsEditable && ((dynamic)Template.FindName("PART_EditableTextBox", this))
+                                      (IsEditable && ((MyTextBox)Template.FindName("PART_EditableTextBox", this))
                                           .IsFocused)))
             {
                 ForeColorName = "ColorBrush3";

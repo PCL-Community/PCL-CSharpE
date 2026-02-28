@@ -2,10 +2,12 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using FluentValidation;
 using fNbt;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
+using PCL.Core.Utils.Validate;
 
 namespace PCL;
 
@@ -40,7 +42,7 @@ public partial class PageInstanceServer : MyPageRight
         {
             var serverCard = new ServerCard();
             serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (dynamic)b);
+            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(server);
             ServerCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
@@ -213,7 +215,7 @@ public partial class PageInstanceServer : MyPageRight
 
             var serverCard = new ServerCard();
             serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (dynamic)b);
+            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(newServer);
             ServerCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);
@@ -222,7 +224,7 @@ public partial class PageInstanceServer : MyPageRight
 
             var serversDatPath = Path.Combine(PageInstanceLeft.Instance.PathIndie, "servers.dat");
 
-            object nbtData;
+            NbtList nbtData;
             if (!File.Exists(serversDatPath))
             {
                 nbtData = new NbtList("servers", NbtTagType.Compound);
@@ -238,8 +240,8 @@ public partial class PageInstanceServer : MyPageRight
                 var server = new NbtCompound();
                 server["name"] = new NbtString("name", result.Name);
                 server["ip"] = new NbtString("ip", result.Address);
-                ((dynamic)nbtData).Add(server);
-                var clonedNbtData = (NbtList)((dynamic)nbtData).Clone();
+                nbtData.Add(server);
+                var clonedNbtData = (NbtList)nbtData.Clone();
                 await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData, serversDatPath);
             }
         }
@@ -248,12 +250,12 @@ public partial class PageInstanceServer : MyPageRight
     public static (string Name, string Address, bool Success) GetServerInfo(MinecraftServerInfo server)
     {
         var newName = ModMain.MyMsgBoxInput("编辑服务器信息", "请输入新的服务器名称：", server.Name,
-            new Collection<ValidateType> { new ValidateNullOrWhiteSpace() });
+            [new NullOrWhiteSpaceValidator()]);
 
         if (string.IsNullOrEmpty(newName)) return (string.Empty, string.Empty, false);
 
         var newAddress = ModMain.MyMsgBoxInput("编辑服务器信息", "请输入新的服务器地址：", server.Address,
-            new Collection<ValidateType> { new ValidateNullOrWhiteSpace() });
+            [new NullOrWhiteSpaceValidator()]);
         if (string.IsNullOrEmpty(newAddress)) return (string.Empty, string.Empty, false);
         return (newName, newAddress, true);
     }
@@ -335,7 +337,7 @@ public partial class PageInstanceServer : MyPageRight
         {
             var serverCard = new ServerCard();
             serverCard.RemoveServer += RemoveServerEvent;
-            serverCard.EditServer += (a, b) => this.EditServer(a, (dynamic)b);
+            serverCard.EditServer += (a, b) => this.EditServer(a, (ServerCard.ResultEventArgs)b);
             serverCard.UpdateServerInfo(server);
             ServerCardList.Add(serverCard);
             PanServers.Children.Add(serverCard);

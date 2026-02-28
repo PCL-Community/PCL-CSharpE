@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
+using FluentValidation;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
@@ -14,6 +15,7 @@ using PCL.Core.Link.Natayark;
 using PCL.Core.Link.Scaffolding.Client.Models;
 using PCL.Core.Link.Scaffolding.EasyTier;
 using PCL.Core.Logging;
+using PCL.Core.Utils.Validate;
 
 namespace PCL;
 
@@ -733,7 +735,7 @@ public partial class PageToolsGameLink
             BtnInputPort.IsEnabled = false;
             if (!ModLink.LobbyPrecheck()) return;
             var input = ModMain.MyMsgBoxInput("请输入端口",
-                ValidateRules: new Collection<ValidateType> { new ValidateInteger(1024, 65535) });
+                ValidateRules: [new IntValidator(1024, 65535)]);
             int port;
             if (int.TryParse(input, out port))
                 using (var ping = McPingServiceFactory.CreateService("127.0.0.1", port, 5000))
@@ -768,7 +770,7 @@ public partial class PageToolsGameLink
             return;
         }
 
-        int port = Conversions.ToInteger(((dynamic)ComboWorldList.SelectedItem).Tag);
+        int port = Conversions.ToInteger(((MyComboBoxItem)ComboWorldList.SelectedItem).Tag);
         await CreateLobby(port);
     }
 

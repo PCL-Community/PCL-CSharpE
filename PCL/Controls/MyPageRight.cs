@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using static PCL.ModLoader;
 
 namespace PCL;
 
@@ -22,8 +23,8 @@ public class MyPageRight : AdornerDecorator
         PageExit // 切换页面导致的全部退出动画
     }
 
-    private static readonly object PanScrollProperty =
-        DependencyProperty.Register("PanScroll", typeof(MyScrollViewer), typeof(MyPageRight));
+    private static readonly DependencyProperty PanScrollProperty =
+    DependencyProperty.Register("PanScroll", typeof(MyScrollViewer), typeof(MyPageRight));
 
     private PageStates _PageState = PageStates.Empty;
 
@@ -45,7 +46,7 @@ public class MyPageRight : AdornerDecorator
 
             return (MyScrollViewer)res;
         }
-        set => SetValue((dynamic)PanScrollProperty, value);
+        set => SetValue(PanScrollProperty, value);
     }
 
     public PageStates PageState
@@ -141,7 +142,7 @@ public class MyPageRight : AdornerDecorator
             return;
         if (PageLoader.GetType().Name.StartsWithF("LoaderTask"))
         {
-            PageLoader.Start(((dynamic)PageLoader).StartGetInputNoType(Input, PageLoaderInputInvoke), IsForceRestart);
+            PageLoader.Start(((LoaderTask)PageLoader).StartGetInputNoType(Input, PageLoaderInputInvoke), IsForceRestart);
         }
         else
         {

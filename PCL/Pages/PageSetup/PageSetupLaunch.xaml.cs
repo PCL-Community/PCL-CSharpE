@@ -123,45 +123,45 @@ public partial class PageSetupLaunch
     // 将控件改变路由到设置改变
     private void RadioBoxChange(object senderRaw, ModBase.RouteEventArgs e)
     {
-        dynamic sender = senderRaw;
-        var gotCfg = sender.Tag.ToString().Split("/");
-        if (ModAnimation.AniControlEnabled == 0)
+        var sender = (MyRadioBox)senderRaw;
+        var gotCfg = sender.Tag?.ToString()?.Split("/") ?? Array.Empty<string>();
+        if (ModAnimation.AniControlEnabled == 0 && gotCfg.Length >= 2)
             ModBase.Setup.Set(gotCfg[0], int.Parse(gotCfg[1]));
     }
 
     private void TextBoxChange(object senderRaw, RoutedEventArgs e)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
     }
 
     private void TextArgumentTitle_OnTextChanged(object senderRaw, TextChangedEventArgs e)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
-        dynamic sender = senderRaw;
+        var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Value);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Checked);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
     }
 
     // 切换到实例独立设置
@@ -523,7 +523,7 @@ public partial class PageSetupLaunch
             if (ModMain.MyMsgBox(
                     "若在游戏启动后立即关闭启动器，崩溃检测、更改游戏标题等功能将失效。" + "\r\n" + "如果想保留这些功能，可以选择让启动器在游戏启动后隐藏，游戏退出后自动关闭。",
                     "提醒", "继续", "取消") == 2)
-                ComboArgumentVisibie.SelectedItem = ((dynamic)sender).RemovedItems[0];
+                ComboArgumentVisibie.SelectedItem = sizeChangedEventArgs.RemovedItems[0];
     }
 
     // 开启自动内存优化的警告

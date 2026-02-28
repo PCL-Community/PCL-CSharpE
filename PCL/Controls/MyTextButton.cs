@@ -21,10 +21,10 @@ public class MyTextButton : Label
                 ModAnimation.AniStart(
                     new[]
                     {
-                        ModAnimation.AaOpacity(sender, -((dynamic)sender).Opacity, 50),
-                        ModAnimation.AaCode(() => ((dynamic)sender).Content = e.NewValue, After: true),
+                        ModAnimation.AaOpacity(sender, -((MyTextButton)sender).Opacity, 50),
+                        ModAnimation.AaCode(() => ((MyTextButton)sender).Content = e.NewValue, After: true),
                         ModAnimation.AaOpacity(sender, 1d, 170)
-                    }, "MyTextButton Text " + ((dynamic)sender).Uuid);
+                    }, "MyTextButton Text " + ((MyTextButton)sender).Uuid);
         }));
 
     public static readonly DependencyProperty EventTypeProperty =

@@ -4,11 +4,13 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
+using FluentValidation;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.UI;
+using PCL.Core.Utils.Validate;
 using static PCL.ModLoader;
 
 namespace PCL;
@@ -358,11 +360,11 @@ public static class ModModpack
         if (InstanceName is null)
         {
             InstanceName = (string)(Json["name"] ?? "");
-            var Validate = new ValidateFolderName(ModMinecraft.McFolderSelected + "versions");
-            if (!string.IsNullOrEmpty(Validate.Validate(InstanceName)))
+            var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
+            if (!Validate.Validate(InstanceName).IsValid)
                 InstanceName = "";
             if (string.IsNullOrEmpty(InstanceName))
-                InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", new Collection<ValidateType> { Validate });
+                InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", [Validate]);
             if (string.IsNullOrEmpty(InstanceName))
                 throw new ModBase.CancelledException();
         }
@@ -716,11 +718,11 @@ public static class ModModpack
         if (InstanceName is null)
         {
             InstanceName = (string)(Json["name"] ?? "");
-            var Validate = new ValidateFolderName(ModMinecraft.McFolderSelected + "versions");
-            if (!string.IsNullOrEmpty(Validate.Validate(InstanceName)))
+            var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
+            if (!Validate.Validate(InstanceName).IsValid)
                 InstanceName = "";
             if (string.IsNullOrEmpty(InstanceName))
-                InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", new Collection<ValidateType> { Validate });
+                InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", [Validate]);
             if (string.IsNullOrEmpty(InstanceName))
                 throw new ModBase.CancelledException();
         }
@@ -893,11 +895,11 @@ public static class ModModpack
 
         // 获取实例名
         var InstanceName = (string)(Json["name"] ?? "");
-        var Validate = new ValidateFolderName(ModMinecraft.McFolderSelected + "versions");
-        if (!string.IsNullOrEmpty(Validate.Validate(InstanceName)))
+        var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
+        if (!Validate.Validate(InstanceName).IsValid)
             InstanceName = "";
         if (string.IsNullOrEmpty(InstanceName))
-            InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", new Collection<ValidateType> { Validate });
+            InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", [Validate]);
         if (string.IsNullOrEmpty(InstanceName))
             throw new ModBase.CancelledException();
         // 解压
@@ -976,9 +978,9 @@ public static class ModModpack
         if (InstanceName == null)
         {
             InstanceName = Json["name"]?.ToString() ?? "";
-            var Validate = new ValidateFolderName(ModMinecraft.McFolderSelected + "versions");
+            var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
 
-            if (!string.IsNullOrEmpty(Validate.Validate(InstanceName))) InstanceName = "";
+            if (!Validate.Validate(InstanceName).IsValid) InstanceName = "";
 
             if (string.IsNullOrEmpty(InstanceName))
                 InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", [Validate]);
@@ -1503,11 +1505,11 @@ public static class ModModpack
 
         // 获取实例名
         var InstanceName = PackInstance.RegexSeek(@"(?<=\nname\=)[^\n]+") ?? "";
-        var Validate = new ValidateFolderName(ModMinecraft.McFolderSelected + "versions");
-        if (!string.IsNullOrEmpty(Validate.Validate(InstanceName)))
+        var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
+        if (!Validate.Validate(InstanceName).IsValid)
             InstanceName = "";
         if (string.IsNullOrEmpty(InstanceName))
-            InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", new Collection<ValidateType> { Validate });
+            InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", "", [Validate]);
         if (string.IsNullOrEmpty(InstanceName))
             throw new ModBase.CancelledException();
         // 解压

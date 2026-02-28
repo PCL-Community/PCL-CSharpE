@@ -131,7 +131,7 @@ public partial class PageInstanceSavesLeft : IRefreshable
 
     public void RefreshButton_Click(object sender, EventArgs e) // 由边栏按钮匿名调用
     {
-        Refresh((FormMain.PageSubType)ModBase.Val(((dynamic)sender).Tag));
+        Refresh((FormMain.PageSubType)ModBase.Val(((MyIconButton)sender).Tag));
     }
 
     public void Refresh()

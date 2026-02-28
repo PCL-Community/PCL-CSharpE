@@ -78,23 +78,23 @@ public partial class PageSetupGameManage
     // 将控件改变路由到设置改变
     private void CheckBoxChange(object senderRaw, bool user)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag, sender.Checked);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void SliderChange(object senderRaw, bool user)
     {
-        dynamic sender = senderRaw;
+        var sender = (MySlider)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag, sender.Value);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Value);
     }
 
     private void ComboChange(object senderRaw, SelectionChangedEventArgs e)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyComboBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag, sender.SelectedIndex);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     // 滑动条

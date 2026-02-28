@@ -608,7 +608,7 @@ public partial class MyListItem : IMyRadio
                     if (IsLogoDown)
                     {
                         IsLogoDown = false;
-                        LogoClick?.Invoke(((dynamic)sender).Tag, e);
+                        LogoClick?.Invoke(((FrameworkElement)sender).Tag, e);
                     }
                 };
             }
@@ -783,13 +783,13 @@ public partial class MyListItem : IMyRadio
                 var RadioboxList = new List<MyListItem>();
                 var CheckedCount = 0;
                 // 收集控件列表与选中个数
-                foreach (var ControlRaw in (IEnumerable)((dynamic)Parent).Children)
+                foreach (var ControlRaw in ((Panel)Parent).Children)
                 {
                     var Control = MyVirtualizingElement.TryInit((FrameworkElement)ControlRaw);
-                    if (Control is MyListItem && ((MyListItem)Control).Type == CheckType.RadioBox)
+                    if (Control is MyListItem listItem && listItem.Type == CheckType.RadioBox)
                     {
-                        RadioboxList.Add((MyListItem)Control);
-                        if (Conversions.ToBoolean(((dynamic)Control).Checked))
+                        RadioboxList.Add(listItem);
+                        if (listItem.Checked)
                             CheckedCount += 1;
                     }
                 }

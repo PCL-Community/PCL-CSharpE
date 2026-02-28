@@ -32,7 +32,7 @@ public class MyScrollViewer : ScrollViewer
             return;
 
         var src = e.Source;
-        if (((dynamic)Content).TemplatedParent is null)
+        if (Content is FrameworkElement element && element.TemplatedParent is null)
         {
             if (src is ComboBox)
             {

@@ -76,8 +76,10 @@ public class MyVirtualizingElement : FrameworkElement
     public static FrameworkElement TryInit(FrameworkElement element)
     {
         if (typeof(MyVirtualizingElement<>).IsInstanceOfGenericType(element))
-            return (FrameworkElement)((dynamic)element).Init();
-
+        {
+            var method = element.GetType().GetMethod("Init", Type.EmptyTypes);
+            return (FrameworkElement)method.Invoke(element, null);
+        }
         return element is MyVirtualizingElement ? ((MyVirtualizingElement)element).Init() : element;
     }
 }

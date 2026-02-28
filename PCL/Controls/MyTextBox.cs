@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using FluentValidation;
 using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
@@ -27,8 +28,9 @@ public class MyTextBox : TextBox
     public static readonly DependencyProperty HintTextProperty = DependencyProperty.Register("HintText", typeof(string),
         typeof(MyTextBox), new PropertyMetadata("", (t, e) =>
         {
-            if (((dynamic)t).labHint is not null)
-                ((dynamic)t).labHint.Text = string.IsNullOrEmpty(((dynamic)t).Text) ? ((dynamic)t).HintText : "";
+            var textBox = (MyTextBox)t;
+            if (textBox._labHint is not null)
+                textBox._labHint.Text = string.IsNullOrEmpty(textBox.Text) ? textBox.HintText : "";
         }));
 
     private TextBlock _labHint;
@@ -36,7 +38,7 @@ public class MyTextBox : TextBox
     // 额外控件初始化
 
     private TextBlock _labWrong;
-    private Collection<ValidateType> _ValidateRules = new();
+    private Collection<IValidator<string>> _ValidateRules = new();
     public List<RoutedEventHandler> ChangedEventList = new();
 
     // 提示文本
@@ -55,7 +57,7 @@ public class MyTextBox : TextBox
     public MyTextBox()
     {
         Loaded += (_, __) => Validate();
-        TextChanged += (a, b) => MyTextBox_TextChanged((dynamic)a, b);
+        TextChanged += (a, b) => MyTextBox_TextChanged((MyTextBox)a, b);
         IsEnabledChanged += (_, __) => RefreshColor();
         MouseEnter += (_, __) => RefreshColor();
         MouseLeave += (_, __) => RefreshColor();
@@ -122,7 +124,7 @@ public class MyTextBox : TextBox
     /// <summary>
     ///     输入验证的规则。
     /// </summary>
-    public Collection<ValidateType> ValidateRules
+    public Collection<IValidator<string>> ValidateRules
     {
         get => _ValidateRules;
         set
@@ -166,8 +168,15 @@ public class MyTextBox : TextBox
     /// </summary>
     public void Validate()
     {
+        var stringResult = string.Empty;
         // 执行输入验证
-        ValidateResult = ModValidate.Validate(Text, ValidateRules);
+        foreach (var rule in ValidateRules)
+        {
+            var isValid = rule.Validate(Text).IsValid;
+            stringResult = isValid ? "" : rule.Validate(Text).Errors[0].ErrorMessage;
+        }
+
+        ValidateResult = stringResult;
         // 根据结果改变样式
         if (ShownValidateResult != (IsValidated ? ValidateState.Success : ValidateState.FailedAndShowDetail))
         {

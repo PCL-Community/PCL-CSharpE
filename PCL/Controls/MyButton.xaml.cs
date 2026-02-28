@@ -33,7 +33,7 @@ public partial class MyButton
     public new static readonly DependencyProperty PaddingProperty = DependencyProperty.Register("Padding",
         typeof(Thickness), typeof(MyButton), new PropertyMetadata((sender, e) =>
         {
-            if (sender is not null) ((dynamic)sender).PanFore.Padding = (Thickness)e.NewValue;
+            if (sender is not null) ((MyButton)sender).PanFore.Padding = (Thickness)e.NewValue;
         }));
 
     public static readonly DependencyProperty EventTypeProperty =

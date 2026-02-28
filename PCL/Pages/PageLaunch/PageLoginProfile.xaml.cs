@@ -165,9 +165,9 @@ public partial class PageLoginProfile
     // 编辑验证服务器名称
     private void EditProfileServer(object sender, EventArgs e)
     {
-        string name = ModMain.MyMsgBoxInput("修改验证服务器名称", "请输入新的验证服务器名称",
-            Conversions.ToString(((dynamic)sender).Tag.ServerName));
-        if (name is not null) ModProfile.EditAuthServerName((ModProfile.McProfile)((dynamic)sender).Tag, name);
+        var profile = (ModProfile.McProfile)((MyIconButton)sender).Tag;
+        string name = ModMain.MyMsgBoxInput("修改验证服务器名称", "请输入新的验证服务器名称", profile.ServerName);
+        if (name is not null) ModProfile.EditAuthServerName(profile, name);
     }
 
     // 删除档案
@@ -176,7 +176,7 @@ public partial class PageLoginProfile
         if (ModMain.MyMsgBox($"你正在选择删除此档案，该操作无法撤销。{"\r\n"}确定继续？", "删除档案确认", "继续", "取消", IsWarn: true,
                 ForceWait: true) == 2)
             return;
-        ModProfile.RemoveProfile((ModProfile.McProfile)((dynamic)sender).Tag);
+        ModProfile.RemoveProfile((ModProfile.McProfile)((MyIconButton)sender).Tag);
         ModBase.RunInUi(() => RefreshProfileList());
     }
 

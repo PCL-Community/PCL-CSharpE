@@ -91,9 +91,9 @@ public partial class PageSetupGameLink
     // 将控件改变路由到设置改变
     private void TextBoxChange(object senderRaw, TextChangedEventArgs e) // , TextLinkRelay.ValidatedTextChanged
     {
-        dynamic sender = senderRaw;
+        var sender = (MyTextBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Text);
     }
 
     private static void
@@ -101,14 +101,14 @@ public partial class PageSetupGameLink
             object e) // Handles ComboRelayType.SelectionChanged, ComboServerType.SelectionChanged
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.SelectedIndex);
     }
 
     private void CheckBoxChange(object senderRaw, bool user)
     {
-        dynamic sender = senderRaw;
+        var sender = (MyCheckBox)senderRaw;
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(sender.Tag, sender.Checked);
+            ModBase.Setup.Set(sender.Tag?.ToString(), sender.Checked);
     }
 
     private void LinkProtocolPerferenceChange(object sender, SelectionChangedEventArgs e)

@@ -4,9 +4,11 @@ using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using FluentValidation;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.UI;
+using PCL.Core.Utils.Validate;
 using Control = System.Windows.Forms.Control;
 
 namespace PCL;
@@ -59,10 +61,10 @@ public partial class PageDownloadCompDetail
             var PackName = _project.TranslatedName.Replace(".zip", "").Replace(".rar", "").Replace(".mrpack", "")
                 .Replace(@"\", "＼").Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜")
                 .Replace(">", "＞").Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
-            var Validate = new ValidateFolderName(ModMinecraft.McFolderSelected + "versions");
-            if (!string.IsNullOrEmpty(Validate.Validate(PackName)))
+            var Validate = new FolderNameValidator(ModMinecraft.McFolderSelected + "versions");
+            if (!Validate.Validate(PackName).IsValid)
                 PackName = "";
-            var InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", PackName, new Collection<ValidateType> { Validate });
+            var InstanceName = ModMain.MyMsgBoxInput("输入实例名称", "", PackName, [Validate]);
             if (string.IsNullOrEmpty(InstanceName))
                 return;
 
