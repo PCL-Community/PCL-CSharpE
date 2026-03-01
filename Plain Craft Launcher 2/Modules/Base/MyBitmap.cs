@@ -1,3 +1,4 @@
+using PCL.Core.UI.Media;
 using System.Collections.Concurrent;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -5,229 +6,277 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using PCL.Core.UI.Media;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
-// 一个万能的自动图片类型转换工具类
 
 namespace PCL;
 
+/// <summary>
+/// 一个万能的自动图片类型转换工具类
+/// </summary>
 public class MyBitmap
 {
-    // 使用缓存
-    private readonly ConcurrentDictionary<string, MyBitmap> _Cache = new();
+    private static readonly ConcurrentDictionary<string, MyBitmap> Cache = [];
 
     /// <summary>
-    ///     存储的图片
+    /// 存储的图片
     /// </summary>
-    public Bitmap Pic;
+    public readonly Bitmap Picture;
 
-    // 构造函数
-    public MyBitmap()
-    {
-    }
+    #region Constructor
 
-    public MyBitmap(string FilePathOrResourceName)
+    /// <summary>
+    /// Contructe <see cref="MyBitmap"/> with <see cref="filePathOrResName"/> argument
+    /// </summary>
+    /// <param name="filePathOrResName">The file path or resource name that used to contruct <see cref="MyBitmap"/></param>
+    /// <exception cref="Exception">Throws when failed to load <see cref="MyBitmap"/>.</exception>
+    /// <exception cref="InvalidDataException">Throws when image type is not supported or image is broken.</exception>
+    public MyBitmap(string filePathOrResName)
     {
-        do
+        try
         {
-            try
+            filePathOrResName = filePathOrResName.Replace("pack://application:,,,/images/", ModBase.PathImage);
+            if (filePathOrResName.StartsWithF(ModBase.PathImage))
             {
-                FilePathOrResourceName =
-                    FilePathOrResourceName.Replace("pack://application:,,,/images/", ModBase.PathImage);
-                if (FilePathOrResourceName.StartsWithF(ModBase.PathImage))
+                if (Cache.TryGetValue(filePathOrResName, out var value))
                 {
-                    if (_Cache.ContainsKey(FilePathOrResourceName))
-                    {
-                        Pic = _Cache[FilePathOrResourceName].Pic;
-                    }
-                    else
-                    {
-                        Pic = new MyBitmap(
-                            (ImageSource)new ImageSourceConverter().ConvertFromString(FilePathOrResourceName));
-                        _Cache.TryAdd(FilePathOrResourceName, Pic);
-                    }
+                    Picture = value.Picture;
                 }
                 else
                 {
-                    // 使用这种自己接管 FileStream 的方法加载才能解除文件占用
-                    using (var picStream = new FileStream(FilePathOrResourceName, FileMode.Open))
+                    var conterted = ConvertToImageSource(filePathOrResName);
+
+                    if (conterted is null)
                     {
-                        if (picStream.Length > 2L && picStream.ReadByte() == 82 && picStream.ReadByte() == 73)
-                        {
-                            picStream.Seek(0L, SeekOrigin.Begin);
-                            // 调用 WIC 转换，需要系统内置 WebP 组件，专治各种精简系统
-                            using (var ms = picStream.FromWebpToPng())
-                            {
-                                Pic = new Bitmap(ms);
-                            }
-                        }
-                        else
-                        {
-                            Pic = new Bitmap(picStream);
-                        }
+                        throw new InvalidDataException("Cannot convert resource path to ImageSource");
                     }
+
+                    Picture = new MyBitmap(conterted).Picture;
+                    Cache.TryAdd(filePathOrResName, Picture);
                 }
             }
-            catch (Exception ex)
+            else
             {
-                Pic = (Bitmap)System.Windows.Application.Current.TryFindResource(FilePathOrResourceName);
-                if (Pic is null)
+                // 使用这种自己接管 FileStream 的方法加载才能解除文件占用
+                using var picStream = new FileStream(filePathOrResName, FileMode.Open);
+                if (picStream.Length > 2L && picStream.ReadByte() == 82 && picStream.ReadByte() == 73)
                 {
-                    Pic = new Bitmap(1, 1);
-                    if (ex is ArgumentException) throw new Exception($"图片格式不支持，或图片文件损坏（{FilePathOrResourceName}）", ex);
-
-                    throw new Exception($"加载 MyBitmap 意外失败（{FilePathOrResourceName}）", ex);
+                    picStream.Seek(0L, SeekOrigin.Begin);
+                    // 调用 WIC 转换，需要系统内置 WebP 组件，专治各种精简系统
+                    using var ms = picStream.FromWebpToPng();
+                    Picture = new Bitmap(ms);
+                }
+                else
+                {
+                    Picture = new Bitmap(picStream);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Picture = (Bitmap)System.Windows.Application.Current.TryFindResource(filePathOrResName);
+            if (Picture is null)
+            {
+                Picture = new Bitmap(1, 1);
+                if (ex is ArgumentException)
+                {
+                    throw new InvalidDataException($"图片格式不支持，或图片文件损坏（{filePathOrResName}）", ex);
                 }
 
-                ModBase.Log(ex, $"指定类型有误的 MyBitmap 加载（{FilePathOrResourceName}）", ModBase.LogLevel.Developer);
-                break;
+                throw new Exception($"加载 MyBitmap 意外失败（{filePathOrResName}）", ex);
             }
-        } while (false);
-    }
 
-    public MyBitmap(ImageSource Image)
-    {
-        using (var MS = new MemoryStream())
-        {
-            var Encoder = new PngBitmapEncoder();
-            Encoder.Frames.Add(BitmapFrame.Create((BitmapSource)Image));
-            Encoder.Save(MS);
-            Pic = new Bitmap(MS);
+            ModBase.Log(ex, $"指定类型有误的 MyBitmap 加载（{filePathOrResName}）", ModBase.LogLevel.Developer);
         }
     }
 
-    public MyBitmap(Image Image)
+    /// <summary>
+    /// Contruct <see cref="MyBitmap"/> from <see cref="ImageSource"/>
+    /// </summary>
+    public MyBitmap(ImageSource image)
     {
-        Pic = (Bitmap)Image;
+        using var ms = new MemoryStream();
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image));
+        encoder.Save(ms);
+        Picture = new Bitmap(ms);
     }
 
-    public MyBitmap(Bitmap Image)
+    /// <summary>
+    /// Construct <see cref="MyBitmap"/> from <see cref="Image"/>
+    /// </summary>
+    public MyBitmap(Image image)
     {
-        Pic = Image;
+        Picture = (Bitmap)image;
     }
 
-    public MyBitmap(ImageBrush Image)
+    /// <summary>
+    /// Construct <see cref="MyBitmap"/> from <see cref="Bitmap"/>
+    /// </summary>
+    public MyBitmap(Bitmap image)
     {
-        using (var MS = new MemoryStream())
-        {
-            var Encoder = new BmpBitmapEncoder();
-            Encoder.Frames.Add(BitmapFrame.Create((BitmapSource)Image.ImageSource));
-            Encoder.Save(MS);
-            Pic = new Bitmap(MS);
-        }
+        Picture = image;
     }
 
-    // 自动类型转换
-    // 支持的类：Image，ImageSource，Bitmap，ImageBrush，BitmapSource
-    public static implicit operator MyBitmap(Image Image)
+    /// <summary>
+    /// Construct <see cref="MyBitmap"/> from <see cref="ImageBrush"/>
+    /// </summary>
+    public MyBitmap(ImageBrush image)
     {
-        if (Image is null)
-            return null;
-        return new MyBitmap(Image);
+        using var ms = new MemoryStream();
+        var encoder = new BmpBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create((BitmapSource)image.ImageSource));
+        encoder.Save(ms);
+        Picture = new Bitmap(ms);
     }
 
-    public static implicit operator Image(MyBitmap Image)
+    #endregion
+
+    #region Implicit Converter
+
+    /// <summary>
+    /// Convert <see cref="Image"/> to <see cref="MyBitmap"/>
+    /// </summary>
+    public static implicit operator MyBitmap(Image? image)
     {
-        if (Image is null)
-            return null;
-        return Image.Pic;
+        ArgumentNullException.ThrowIfNull(image);
+        return new MyBitmap(image);
     }
 
-    public static implicit operator MyBitmap(ImageSource Image)
+    /// <summary>
+    /// Convert <see cref="MyBitmap"/> to <see cref="Image"/>
+    /// </summary>
+    public static implicit operator Image(MyBitmap? image)
     {
-        if (Image is null)
-            return null;
-        return new MyBitmap(Image);
+        ArgumentNullException.ThrowIfNull(image);
+        return image.Picture;
     }
 
-    public static implicit operator ImageSource(MyBitmap Image)
+    /// <summary>
+    /// Convert <see cref="ImageSource"/> to <see cref="MyBitmap"/>
+    /// </summary>
+    public static implicit operator MyBitmap(ImageSource? image)
     {
-        if (Image is null)
-            return null;
-        var BitmapPic = Image.Pic;
-        var rect = new Rectangle(0, 0, BitmapPic.Width, BitmapPic.Height);
-        var bitmapData = BitmapPic.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        ArgumentNullException.ThrowIfNull(image);
+        return new MyBitmap(image);
+    }
+
+    /// <summary>
+    /// Convert <see cref="MyBitmap"/> to <see cref="ImageSource"/>
+    /// </summary>
+    public static implicit operator ImageSource(MyBitmap? image)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+
+        var bitmapPic = image.Picture;
+        var rect = new Rectangle(0, 0, bitmapPic.Width, bitmapPic.Height);
+        var bitmapData = bitmapPic.LockBits(rect, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
         try
         {
-            var Result = BitmapSource.Create(BitmapPic.Width, BitmapPic.Height, BitmapPic.HorizontalResolution,
-                BitmapPic.VerticalResolution, PixelFormats.Bgra32, null, bitmapData.Scan0, rect.Width * rect.Height * 4,
+            var result = BitmapSource.Create(bitmapPic.Width,
+                bitmapPic.Height,
+                bitmapPic.HorizontalResolution,
+                bitmapPic.VerticalResolution,
+                PixelFormats.Bgra32,
+                null,
+                bitmapData.Scan0,
+                rect.Width * rect.Height * 4,
                 bitmapData.Stride);
-            Result.Freeze();
-            return Result;
+
+            result.Freeze();
+            return result;
         }
         finally
         {
-            BitmapPic.UnlockBits(bitmapData);
+            bitmapPic.UnlockBits(bitmapData);
         }
     }
 
-    public static implicit operator MyBitmap(Bitmap Image)
+    /// <summary>
+    /// Convert <see cref="Bitmap"/> to <see cref="MyBitmap"/>
+    /// </summary>
+    public static implicit operator MyBitmap(Bitmap? image)
     {
-        if (Image is null)
-            return null;
-        return new MyBitmap(Image);
-    }
-
-    public static implicit operator Bitmap(MyBitmap Image)
-    {
-        if (Image is null)
-            return null;
-        return Image.Pic;
-    }
-
-    public static implicit operator MyBitmap(ImageBrush Image)
-    {
-        if (Image is null)
-            return null;
-        return new MyBitmap(Image);
-    }
-
-    public static implicit operator ImageBrush(MyBitmap Image)
-    {
-        if (Image is null)
-            return null;
-        return new ImageBrush(new MyBitmap(Image.Pic));
+        ArgumentNullException.ThrowIfNull(image);
+        return new MyBitmap(image);
     }
 
     /// <summary>
-    ///     获取裁切的图片，这个方法不会导致原对象改变且会返回一个新的对象。
+    /// Convert <see cref="MyBitmap"/> to <see cref="Bitmap"/>
     /// </summary>
-    public MyBitmap Clip(int X, int Y, int Width, int Height)
+    public static implicit operator Bitmap(MyBitmap? image)
     {
-        var bmp = new Bitmap(Width, Height, Pic.PixelFormat);
-        bmp.SetResolution(Pic.HorizontalResolution, Pic.VerticalResolution);
-        using (var g = Graphics.FromImage(bmp))
-        {
-            g.InterpolationMode = InterpolationMode.NearestNeighbor;
-            g.TranslateTransform(-X, -Y);
-            g.DrawImage(Pic, new Rectangle(0, 0, Pic.Width, Pic.Height));
-        }
-
-        return bmp;
+        ArgumentNullException.ThrowIfNull(image);
+        return image.Picture;
     }
 
     /// <summary>
-    ///     获取旋转或翻转后的图片，这个方法不会导致原对象改变且会返回一个新的对象。
+    /// Convert <see cref="ImageBrush"/> to <see cref="MyBitmap"/>
     /// </summary>
-    public MyBitmap RotateFlip(RotateFlipType Type)
+    public static implicit operator MyBitmap(ImageBrush? image)
     {
-        var bmp = new Bitmap(Pic);
-        bmp.SetResolution(Pic.HorizontalResolution, Pic.VerticalResolution);
-        bmp.RotateFlip(Type);
-        return bmp;
+        ArgumentNullException.ThrowIfNull(image);
+        return new MyBitmap(image);
     }
 
     /// <summary>
-    ///     将图像保存到文件。
+    /// Convert <see cref="MyBitmap"/> to <see cref="ImageBrush"/>
     /// </summary>
-    public void Save(string FilePath)
+    public static implicit operator ImageBrush(MyBitmap? image)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+        return new ImageBrush(new MyBitmap(image.Picture));
+    }
+
+    #endregion
+
+    /// <summary>
+    /// 获取裁切的图片
+    /// </summary>
+    /// <remarks>
+    /// 这个方法不会导致原对象改变，而是会返回一个新的对象。
+    /// </remarks>
+    public MyBitmap Clip(int x, int y, int width, int height)
+    {
+        var bitmap = new Bitmap(width, height, Picture.PixelFormat);
+        bitmap.SetResolution(Picture.HorizontalResolution, Picture.VerticalResolution);
+        using var graph = Graphics.FromImage(bitmap);
+        graph.InterpolationMode = InterpolationMode.NearestNeighbor;
+        graph.TranslateTransform(-x, -y);
+        graph.DrawImage(Picture, new Rectangle(0, 0, Picture.Width, Picture.Height));
+
+        return bitmap;
+    }
+
+    /// <summary>
+    /// 获取旋转或翻转后的图片
+    /// </summary>
+    /// <remarks>
+    /// 这个方法不会导致原对象改变，而是会返回一个新的对象。
+    /// </remarks>
+    public MyBitmap RotateFlip(RotateFlipType type)
+    {
+        var bitmap = new Bitmap(Picture);
+        bitmap.SetResolution(Picture.HorizontalResolution, Picture.VerticalResolution);
+        bitmap.RotateFlip(type);
+        return bitmap;
+    }
+
+    /// <summary>
+    /// 将图像保存到文件。
+    /// </summary>
+    public void Save(string filePath)
     {
         BitmapEncoder encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create((BitmapSource)this));
-        using (var fileStream = new FileStream(FilePath, FileMode.Create))
-        {
-            encoder.Save(fileStream);
-        }
+        using var fileStream = new FileStream(filePath, FileMode.Create);
+        encoder.Save(fileStream);
+    }
+
+    private static readonly ImageSourceConverter ImageSourceConverter = new();
+
+    private ImageSource? ConvertToImageSource(string val)
+    {
+        return ImageSourceConverter.ConvertFromString(val) as ImageSource;
     }
 }
