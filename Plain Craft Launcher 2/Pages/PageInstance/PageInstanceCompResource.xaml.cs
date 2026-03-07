@@ -2322,7 +2322,7 @@ public partial class PageInstanceCompResource : IRefreshable
     {
         try
         {
-            var ModEntry = ((MyLocalCompItem)(sender is MyIconButton ? ((dynamic)sender).Tag : sender)).Entry;
+            var ModEntry = ((MyLocalCompItem)(sender is MyIconButton iconButton ? iconButton.Tag : sender)).Entry;
             // 判断该 LabyMod 是否支持安装 Fabric Mod
             var ModdedLabyMod = PageInstanceLeft.Instance.Info.HasLabyMod && PageInstanceLeft.Instance.Modable;
             // 加载失败信息

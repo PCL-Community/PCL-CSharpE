@@ -313,9 +313,9 @@ public partial class PageInstanceExport : IRefreshable
     {
         foreach (var Element in PanOptions.Children)
         {
-            if (!IncludeHidden &&
-                Conversions.ToBoolean(Operators.ConditionalCompareObjectNotEqual(((dynamic)Element).Visibility,
-                    Visibility.Visible, false)))
+            if (!IncludeHidden && 
+                Conversions.ToBoolean(Operators.ConditionalCompareObjectNotEqual(((UIElement)Element).Visibility, 
+                Visibility.Visible, false)))
                 continue;
             if (Element is MyCheckBox)
                 yield return (MyCheckBox)Element;
@@ -323,8 +323,8 @@ public partial class PageInstanceExport : IRefreshable
                 foreach (var SubElement in ((StackPanel)Element).Children)
                 {
                     if (!IncludeHidden && Conversions.ToBoolean(
-                            Operators.ConditionalCompareObjectNotEqual(((dynamic)SubElement).Visibility,
-                                Visibility.Visible, false)))
+                        Operators.ConditionalCompareObjectNotEqual(((UIElement)SubElement).Visibility, 
+                        Visibility.Visible, false)))
                         continue;
                     if (SubElement is MyCheckBox)
                         yield return (MyCheckBox)SubElement;

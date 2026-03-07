@@ -335,10 +335,10 @@ public partial class PageComp
         var ModLoader = ModComp.CompLoaderType.Any;
         if (PageType == ModComp.CompType.Mod || PageType == ModComp.CompType.ModPack) // 只有 Mod 考虑加载器
         {
-            ModLoader = (ModComp.CompLoaderType)ModBase.Val(((dynamic)ComboSearchLoader.SelectedItem).Tag);
+            ModLoader = (ModComp.CompLoaderType)ModBase.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag);
             if (GameVersion is not null && GameVersion.Contains(".") && ModBase.Val(GameVersion.Split(".")[1]) < 14d &&
                 ModLoader == ModComp.CompLoaderType.Forge) // 1.14-
-                // 选择了 Forge
+                                                           // 选择了 Forge
                 ModLoader = ModComp.CompLoaderType.Any; // 此时，视作没有筛选 Mod Loader（因为部分老 Mod 没有设置自己支持的加载器）
         }
 
@@ -354,10 +354,10 @@ public partial class PageComp
             : selectedTag;
         Request.ModLoader =
             (ModComp.CompLoaderType)(PageType == ModComp.CompType.Mod || PageType == ModComp.CompType.ModPack
-                ? ModBase.Val(((dynamic)ComboSearchLoader.SelectedItem).Tag)
+                ? ModBase.Val(((MyComboBoxItem)ComboSearchLoader.SelectedItem).Tag)
                 : (double)ModComp.CompLoaderType.Any);
-        Request.Source = (ModComp.CompSourceType)ModBase.Val(((dynamic)ComboSearchSource.SelectedItem).Tag);
-        Request.Sort = (ModComp.CompSortType)ModBase.Val(((dynamic)ComboSearchSort.SelectedItem).Tag);
+        Request.Source = (ModComp.CompSourceType)ModBase.Val(((MyComboBoxItem)ComboSearchSource.SelectedItem).Tag);
+        Request.Sort = (ModComp.CompSortType)ModBase.Val(((MyComboBoxItem)ComboSearchSort.SelectedItem).Tag);
         return Request;
     }
 

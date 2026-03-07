@@ -628,7 +628,7 @@ public partial class PageDownloadCompFavorites
                     SelectedVersion = ModMain.MyMsgBoxSelect(Selection, "选择期望的游戏版本", Button2: "取消");
                     if (SelectedVersion is null) Ts.Abort();
                 });
-                string SelectedVersionStr = SuitVersion[(dynamic)SelectedVersion];
+                string SelectedVersionStr = SuitVersion[(int)SelectedVersion];
                 ModMain.Hint($"已选择 {SelectedVersionStr} 版本，下面请选择保存位置");
                 var SaveFolder = SystemDialogs.SelectFolder();
                 if (string.IsNullOrWhiteSpace(SaveFolder))
@@ -694,7 +694,7 @@ public partial class PageDownloadCompFavorites
                 SelectedItemList.Remove(Item);
             if (SearchResult.Contains(Item))
                 SearchResult.Remove(Item);
-            CurrentFavTarget.Favs.Remove(Conversions.ToString(((dynamic)Item.Tag).Id));
+            CurrentFavTarget.Favs.Remove(Conversions.ToString(((ModComp.CompProject)Item.Tag).Id));
             ModComp.CompFavorites.Save();
             if (!CompItemList.Any())
                 ModMain.FrmDownloadCompFavorites.PageLoaderRestart();

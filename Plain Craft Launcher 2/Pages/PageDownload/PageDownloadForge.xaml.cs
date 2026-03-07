@@ -95,8 +95,8 @@ public partial class PageDownloadForge
         var Card = (MyCard)((FrameworkElement)sender.Parent).Parent;
         var Loader = (ModLoader.LoaderTask<string, List<ModDownload.DlForgeVersionEntry>>)sender.State;
         // 载入列表
-        ((dynamic)Card.SwapControl).Children.Clear();
-        ((dynamic)Card.SwapControl).Tag = Loader.Output;
+        ((StackPanel)Card.SwapControl).Children.Clear();
+        ((StackPanel)Card.SwapControl).Tag = Loader.Output;
         Card.InstallMethod = Stack =>
         {
             Stack.Tag = ((List<ModDownload.DlForgeVersionEntry>)Stack.Tag).Sort((a, b) => a.Version > b.Version);

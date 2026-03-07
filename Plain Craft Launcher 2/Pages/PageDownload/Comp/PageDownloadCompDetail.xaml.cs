@@ -241,7 +241,12 @@ public partial class PageDownloadCompDetail
         };
 
         // 安全地访问 Tag 并转换
-        var File = (ModComp.CompFile)(target as dynamic)?.Tag;
+        var File = sender switch
+        {
+            MyListItem item => item.Tag as ModComp.CompFile,
+            Control ctrl => (ctrl.Parent as Control)?.Tag as ModComp.CompFile,
+            _ => null
+        };
 
         ModBase.RunInNewThread(() =>
         {

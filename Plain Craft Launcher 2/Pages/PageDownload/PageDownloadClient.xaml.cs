@@ -207,7 +207,7 @@ public partial class PageDownloadClient
     public void DownloadStart(MyListItem sender, object e)
     {
         ModDownloadLib.McDownloadClient(ModNet.NetPreDownloadBehaviour.HintWhileExists, sender.Title,
-            ((dynamic)sender.Tag)["url"].ToString());
+            ((JObject)sender.Tag)["url"].ToString());
     }
 
     // '介绍栏
