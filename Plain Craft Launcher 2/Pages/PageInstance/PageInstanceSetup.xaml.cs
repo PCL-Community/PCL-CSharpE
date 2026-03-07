@@ -20,9 +20,15 @@ public partial class PageInstanceSetup
     private new bool IsLoaded;
 
     public PageInstanceSetup()
-    {
-        InitializeComponent();
+    {     
         Loaded += PageSetupSystem_Loaded;
+        InitializeComponent();
+        CheckAdvanceRunWait.Change += CheckBoxChange;
+        CheckAdvanceJava.Change += CheckBoxChange;
+        CheckAdvanceAssetsV2.Change += CheckBoxChange;
+        CheckAdvanceUseProxyV2.Change += CheckBoxChange;
+        CheckAdvanceDisableJLW.Change += CheckBoxChange;
+        CheckArgumentTitleEmpty.Change += CheckBoxChange;
     }
 
     private void PageSetupSystem_Loaded(object sender, RoutedEventArgs e)
@@ -202,10 +208,13 @@ public partial class PageInstanceSetup
                 instance: PageInstanceLeft.Instance);
     }
 
-    private static void CheckBoxChange(MyCheckBox sender, object e)
+    private static void CheckBoxChange(object sender, bool user)
     {
         if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Checked, instance: PageInstanceLeft.Instance);
+        {
+            var checkBox = (MyCheckBox)sender;
+            ModBase.Setup.Set(Conversions.ToString(checkBox.Tag), checkBox.Checked, instance: PageInstanceLeft.Instance);
+        }
     }
 
     // 切换到全局设置
