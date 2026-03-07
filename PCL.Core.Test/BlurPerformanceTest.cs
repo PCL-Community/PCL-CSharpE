@@ -292,11 +292,11 @@ public static class PerformanceTestExamples
         
         // 快速对比测试
         BlurPerformanceTest.QuickPerformanceComparison();
-        Console.WriteLine($"\n{new string('=', 60)}\n");
+        Console.WriteLine("\n" + new string('=', 60) + "\n");
         
         // 完整基准测试
         BlurPerformanceTest.RunComprehensiveTest();
-        Console.WriteLine($"\n{new string('=', 60)}\n");
+        Console.WriteLine("\n" + new string('=', 60) + "\n");
         
         // 内存使用测试
         BlurPerformanceTest.MemoryUsageTest();

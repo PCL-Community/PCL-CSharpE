@@ -177,7 +177,7 @@ public sealed class DependencyCollectorGenerator : IIncrementalGenerator
                     var cnt = args.Count;
                     if (cnt == 0) return string.Empty;
                     if (cnt == 1) return args[0];
-                    return $"({string.Join(", ", args)})";
+                    return "(" + string.Join(", ", args) + ")";
                 }))();
                 if (argTypeList != string.Empty) sb.Append(", ").Append(argTypeList);
                 sb.AppendLine("> { Items = [");
