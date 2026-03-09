@@ -171,8 +171,8 @@ public static class ModEvent
 
                 case "切换页面":
                 {
-                    ModMain.FrmMain.PageChange((dynamic)ModBase.Val(Data[0]),
-                        (FormMain.PageSubType)ModBase.Val(Data[1]));
+                    ModMain.FrmMain.PageChange((FormMain.PageType)int.Parse(Data[0]),
+                        (FormMain.PageSubType)int.Parse(Data[1]));
                     break;
                 }
 
