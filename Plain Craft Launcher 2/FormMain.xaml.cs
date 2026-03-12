@@ -765,13 +765,31 @@ public partial class FormMain
 
             if (e.Key == Key.Escape)
             {
-                object Msg = PanMsg.Children[0];
-                if (!(Msg is MyMsgInput) && !(Msg is MyMsgSelect) && ((dynamic)Msg).Btn3.Visibility == Visibility.Visible)
-                    ((dynamic)Msg).Btn3_Click();
-                else if (((dynamic)Msg).Btn2.Visibility == Visibility.Visible)
-                    ((dynamic)Msg).Btn2_Click();
-                else
-                    ((dynamic)Msg).Btn1_Click();
+                var msg = PanMsg.Children[0];
+                Action? escapeAction = msg switch
+                {
+                    MyMsgInput input => input.Btn2.Visibility == Visibility.Visible
+                        ? () => input.Btn2_Click(sender, null)
+                        : () => input.Btn1_Click(sender, null),
+                    MyMsgSelect select => select.Btn2.Visibility == Visibility.Visible
+                        ? () => select.Btn2_Click(sender, null)
+                        : () => select.Btn1_Click(sender, null),
+                    MyMsgText text => text.Btn3.Visibility == Visibility.Visible
+                        ? () => text.Btn3_Click(sender, null)
+                        : text.Btn2.Visibility == Visibility.Visible
+                            ? () => text.Btn2_Click(sender, null)
+                            : () => text.Btn1_Click(sender, null),
+                    MyMsgMarkdown markdown => markdown.Btn3.Visibility == Visibility.Visible
+                        ? () => markdown.Btn3_Click(sender, null)
+                        : markdown.Btn2.Visibility == Visibility.Visible
+                            ? () => markdown.Btn2_Click(sender, null)
+                            : () => markdown.Btn1_Click(sender, null),
+                    MyMsgLogin login => login.Btn3.Visibility == Visibility.Visible
+                        ? () => login.Btn3_Click(sender, null)
+                        : () => login.Btn1_Click(sender, null),
+                    _ => null
+                };
+                escapeAction?.Invoke();
                 return;
             }
         }
@@ -1564,7 +1582,7 @@ public partial class FormMain
     {
         get
         {
-            switch ((dynamic)PageCurrent)
+            switch (PageCurrent.Page)
             {
                 case PageType.Download:
                 {
@@ -1693,10 +1711,10 @@ public partial class FormMain
                     if (ModMain.FrmDownloadLeft is null)
                         ModMain.FrmDownloadLeft = new PageDownloadLeft();
                     foreach (var item in ModMain.FrmDownloadLeft.PanItem.Children)
-                        if (ReferenceEquals(item.GetType(), typeof(MyListItem)) &&
-                            ModBase.Val(((dynamic)item).tag) == (double)SubType)
+                        if (item is MyListItem listItem &&
+                            ModBase.Val(listItem.tag) == (double)SubType)
                         {
-                            ((MyListItem)item).SetChecked(true, true, Stack == PageCurrent);
+                            listItem.SetChecked(true, true, Stack == PageCurrent);
                             break;
                         }
 
@@ -1725,10 +1743,10 @@ public partial class FormMain
                     if (ModMain.FrmInstanceLeft is null)
                         ModMain.FrmInstanceLeft = new PageInstanceLeft();
                     foreach (var item in ModMain.FrmInstanceLeft.PanItem.Children)
-                        if (ReferenceEquals(item.GetType(), typeof(MyListItem)) &&
-                            ModBase.Val(((dynamic)item).tag) == (double)SubType)
+                        if (item is MyListItem listItem &&
+                            ModBase.Val(listItem.tag) == (double)SubType)
                         {
-                            ((MyListItem)item).SetChecked(true, true, Stack == PageCurrent);
+                            listItem.SetChecked(true, true, Stack == PageCurrent);
                             break;
                         }
 
@@ -1739,10 +1757,10 @@ public partial class FormMain
                     if (ModMain.FrmInstanceSavesLeft is null)
                         ModMain.FrmInstanceSavesLeft = new PageInstanceSavesLeft();
                     foreach (var item in ModMain.FrmInstanceSavesLeft.PanItem.Children)
-                        if (ReferenceEquals(item.GetType(), typeof(MyListItem)) &&
-                            ModBase.Val(((dynamic)item).tag) == (double)SubType)
+                        if (item is MyListItem listItem &&
+                            ModBase.Val(listItem.tag) == (double)SubType)
                         {
-                            ((MyListItem)item).SetChecked(true, true, Stack == PageCurrent);
+                            listItem.SetChecked(true, true, Stack == PageCurrent);
                             break;
                         }
 
@@ -2105,8 +2123,10 @@ public partial class FormMain
     {
         if (ModMain.DragControl is null)
             return;
-        if (Mouse.LeftButton == MouseButtonState.Pressed)
-            ((dynamic)ModMain.DragControl).DragDoing();
+        if (Mouse.LeftButton == MouseButtonState.Pressed) 
+        {
+            ModMain.DragControl.DragDoing();
+        }
         else
             DragStop();
     }
@@ -2123,9 +2143,9 @@ public partial class FormMain
         {
             if (ModMain.DragControl is null)
                 return;
-            var Control = ModMain.DragControl;
+            var control = ModMain.DragControl;
             ModMain.DragControl = null;
-            ((dynamic)Control).DragStop(); // 控件会在该事件中判断 DragControl，所以得放在后面
+            control.DragStop(); // 控件会在该事件中判断 DragControl，所以得放在后面
         });
     }
 

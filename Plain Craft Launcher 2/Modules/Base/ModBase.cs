@@ -2169,9 +2169,7 @@ public static class ModBase
     {
         try
         {
-            return Str is string && Str == "&"
-                ? 0d
-                : Conversion.Val(Str);
+            return Str is "&" ? 0d : Conversion.Val(Str);
         }
         catch
         {

@@ -92,7 +92,7 @@ public static class ModMain
     public static ModLoader.LoaderTask<int, List<HelpEntry>> HelpLoader = new("Help Page", HelpLoad, null,
         ThreadPriority.BelowNormal);
 
-    public static object? DragControl = null;
+    public static MySlider? DragControl = null;
     private static int Timer4Count;
     private static int Timer150Count;
 
