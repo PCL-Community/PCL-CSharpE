@@ -1602,6 +1602,10 @@ public partial class PageInstanceInstall
     {
         if (ModMinecraft.CompareVersionGe("1.5.1", _vanillaName) && ModMinecraft.CompareVersionGe(_vanillaName, "1.1"))
             return "无可用版本";
+                
+        if (SelectedLoaderName is not null && !ReferenceEquals(SelectedLoaderName, "Forge"))
+            return $"与 {SelectedLoaderName} 不兼容";
+
         // 检查 Loader
         if (GetLoaderError(LoadForge) is not null)
             return GetLoaderError(LoadForge);
@@ -2776,7 +2780,12 @@ public partial class PageInstanceInstall
         SelectedLabyModCommitRef = null;
         SelectedLabyModVersion = null;
         SelectedLabyModChannel = null;
-        SelectedLoaderName = null;
+        
+        if (SelectedLoaderName == "LabyMod")
+        {
+            SelectedLoaderName = null;
+        }    
+
         SelectedAPIName = null;
         CardLabyMod.IsSwapped = true;
         e.Handled = true;
