@@ -240,6 +240,7 @@ public partial class PageInstanceServer : MyPageRight
                 var server = new NbtCompound();
                 server["name"] = new NbtString("name", result.Name);
                 server["ip"] = new NbtString("ip", result.Address);
+                if (nbtData.Count == 0) nbtData.ListType = NbtTagType.Compound;
                 nbtData.Add(server);
                 var clonedNbtData = (NbtList)nbtData.Clone();
                 await NbtFileHandler.WriteTagInNbtFileAsync(clonedNbtData, serversDatPath);
