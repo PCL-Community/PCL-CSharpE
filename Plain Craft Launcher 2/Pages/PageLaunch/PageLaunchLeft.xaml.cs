@@ -517,14 +517,6 @@ public partial class PageLaunchLeft
     #region 切换大页面
 
     /// <summary>
-    ///     获取你知道吗。
-    /// </summary>
-    private string GetRandomHint()
-    {
-        return PageLaunchRight.GetRandomHint(true);
-    }
-
-    /// <summary>
     ///     切换至启动中页面。
     /// </summary>
     public void PageChangeToLaunching()
@@ -575,7 +567,7 @@ public partial class PageLaunchLeft
 
         var ShouldShowHint = Conversions.ToBoolean(Config.Preference.ShowLaunchingHint);
         if (ShouldShowHint)
-            LabLaunchingHint.Text = GetRandomHint();
+            LabLaunchingHint.Text = PageLaunchRight.GetRandomHint(true, true);
         else
             LabLaunchingHint.Text = "";
 

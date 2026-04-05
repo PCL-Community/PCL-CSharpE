@@ -228,63 +228,50 @@ public partial class PageLaunchRight : IRefreshable
 
     private readonly object RefreshLock = new();
 
-    public static string GetRandomHint(bool enableLengthLimit = false)
+    public static string GetRandomHint(bool enableLengthLimit = false, bool raw = false)
     {
-        // 优先尝试外部文件
-        var externalPath = ModBase.ExePath + @"PCL\hints.txt";
+        string[] lines = null;
+
+        // 外部文件
+        var externalPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\PCL\\hints.txt";
         if (File.Exists(externalPath))
+        {
             try
             {
-                var lines = File.ReadAllLines(externalPath).Where(l => !string.IsNullOrWhiteSpace(l))
-                    .Select(l => l.Trim()).ToArray();
-                if (lines.Length > 0)
-                {
-                    var validHints = lines;
-                    if (enableLengthLimit)
-                    {
-                        validHints = lines.Where(l => l.Length < 50).ToArray();
-                        if (validHints.Length == 0)
-                        {
-                            validHints = lines;
-                            ModBase.Log("[Page] 外部 hints.txt 中没有字数小于50的提示，已取消字数限制", ModBase.LogLevel.Debug);
-                        }
-                    }
-
-                    var hint = validHints[new Random().Next(validHints.Length)];
-                    hint = hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
-                    return hint;
-                }
-
-                ModBase.Log("[Page] 外部 hints.txt 文件为空", ModBase.LogLevel.Debug);
-                return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本";
+                lines = File.ReadAllLines(externalPath)
+                    .Where(l => !string.IsNullOrWhiteSpace(l))
+                    .Select(l => l.Trim())
+                    .ToArray();
             }
-            catch (Exception ex)
+            catch
             {
-                ModBase.Log(ex, "[Page] 读取外部 hints.txt 失败", ModBase.LogLevel.Hint);
-            }
-
-        // 回退到嵌入式资源
-        try
-        {
-            using (var reader = new StreamReader(System.Windows.Application
-                       .GetResourceStream(new Uri(
-                           "pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints.txt",
-                           UriKind.Absolute)).Stream))
-            {
-                var lines = reader.ReadToEnd()
-                    .Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries)
-                    .Where(l => !string.IsNullOrWhiteSpace(l)).Select(l => l.Trim()).ToArray();
-                var validHints = enableLengthLimit ? lines.Where(l => l.Length < 50).ToArray() : lines;
-                var hint = validHints[new Random().Next(validHints.Length)];
-                hint = hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
-                return hint;
+                ModBase.Log($"[Page] 读取外部文件失败：{externalPath}", ModBase.LogLevel.Hint);
             }
         }
-        catch (Exception ex)
+
+        // 嵌入式资源
+        if (lines == null || lines.Length == 0)
         {
-            ModBase.Log(ex, "[Page] 嵌入式资源 hints.txt 读取失败", ModBase.LogLevel.Hint);
-            return "PCL CE 是由 PCL-Community 开发的 PCL 社区衍生版本";
+            using (var reader = new StreamReader(Application.GetResourceStream(new Uri("pack://application:,,,/Plain Craft Launcher 2;component/Resources/hints.txt", UriKind.Absolute)).Stream))
+            {
+                lines = reader.ReadToEnd()
+                    .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Where(l => !string.IsNullOrWhiteSpace(l))
+                    .Select(l => l.Trim())
+                    .ToArray();
+            }
         }
+
+        // 长度限制
+        if (enableLengthLimit)
+        {
+            var shortLines = lines.Where(l => l.Length < 50).ToArray();
+            if (shortLines.Length > 0) lines = shortLines;
+        }
+
+        // 随机返回
+        var hint = lines[Random.Shared.Next(lines.Length)];
+        return raw ? hint : hint.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
     }
 
     // 联网获取主页文件
