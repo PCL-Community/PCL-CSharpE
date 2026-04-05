@@ -1551,7 +1551,7 @@ public static class ModModpack
                         if (!string.IsNullOrEmpty(PreLaunchCommand))
                         {
                             PreLaunchCommand = PreLaunchCommand.Replace(@"\""", "\"")
-                                .Replace("$INST_JAVA", "{java}javaw.exe").Replace(@"$INST_MC_DIR\", "{minecraft}")
+                                .Replace("$INST_JAVA", "{java}java.exe").Replace(@"$INST_MC_DIR\", "{minecraft}")
                                 .Replace("$INST_MC_DIR", "{minecraft}").Replace(@"$INST_DIR\", "{verpath}")
                                 .Replace("$INST_DIR", "{verpath}").Replace("$INST_ID", "{name}")
                                 .Replace("$INST_NAME", "{name}");
