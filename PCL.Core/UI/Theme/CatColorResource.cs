@@ -1,4 +1,4 @@
-using System.Windows.Media;
+﻿using System.Windows.Media;
 using PCL.Core.App;
 using PCL.Core.App.IoC;
 
