@@ -161,14 +161,13 @@
                                 <local:MyComboBoxItem Content="深色" />
                                 <local:MyComboBoxItem Content="跟随系统" /> <!-- default -->
                             </local:MyComboBox>
-                            <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       Text="浅色配色" />
-                            <local:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor"
-                                              SelectionChanged="ThemeColor_Change" />
-                            <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       Text="深色配色" />
-                            <local:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor"
-                                              SelectionChanged="ThemeColor_Change" />
+
+                            <TextBlock Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="浅色配色"/>
+                            <local:MyComboBox Grid.Column="3" x:Name="ComboLightColor" Tag="UiLightColor" ItemsSource="{Binding ThemeColors}"/>
+
+                            <TextBlock Grid.Column="4" VerticalAlignment="Center" HorizontalAlignment="Center" Text="深色配色"/>
+                            <local:MyComboBox Grid.Column="5" x:Name="ComboDarkColor" Tag="UiDarkColor" ItemsSource="{Binding ThemeColors}"/>
+
                         </Grid>
                         <local:MyCheckBox Text="打开启动器时显示 PCL 图标" Margin="-1,0,0,7" Height="22"
                                           x:Name="CheckLauncherLogo" Tag="UiLauncherLogo" Change="CheckBoxChange" />
@@ -544,15 +543,9 @@
                                           Text="查看日志" x:Name="CheckHiddenSetupLog" Tag="UiHiddenSetupLog"
                                           Change="CheckBoxChange" />
                         <TextBlock Grid.Row="4" VerticalAlignment="Center" HorizontalAlignment="Left" Text="子页面 工具" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="联机"
-                                          x:Name="CheckHiddenToolsGameLink" Tag="UiHiddenToolsGameLink"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="4"
-                                          Text="百宝箱" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest"
-                                          Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="帮助"
-                                          x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp"
-                                          Change="CheckBoxChange" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="联机" x:Name="CheckHiddenToolsGameLink" Tag="UiHiddenToolsGameLink" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="百宝箱" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="4" Text="帮助" x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp" />
                         <TextBlock Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Left" Text="子页面 实例设置 " />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="2" Text="修改"
                                           x:Name="CheckHiddenVersionEdit" Tag="UiHiddenVersionEdit"
