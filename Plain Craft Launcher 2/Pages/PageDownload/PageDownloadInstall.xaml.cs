@@ -558,7 +558,7 @@ public partial class PageDownloadInstall
         }
 
         // Fabric
-        if (VanillaDrop <= 130)
+        if (VanillaDrop < 0 || VanillaDrop <= 130)
         {
             CardFabric.Visibility = Visibility.Collapsed;
         }
