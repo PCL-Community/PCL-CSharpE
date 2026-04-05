@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
