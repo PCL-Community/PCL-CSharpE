@@ -1250,6 +1250,7 @@ public partial class PageInstanceInstall
                                 case "23w13a_or_b":
                                 case "24w14potato":
                                 case "25w14craftmine":
+                                case "26w14a":
                                 {
                                     Type = "愚人节版";
                                     Version["type"] = "special";

@@ -1823,6 +1823,8 @@ public static class ModMinecraft
 
         if (name == "25w14craftmine") return "2025 | 你可以合成任何东西——包括合成你的世界！";
 
+        if (name == "26w14a") return "2026 | 为什么需要物品栏？让方块们跟着你走吧！";
+
         return "";
     }
 
