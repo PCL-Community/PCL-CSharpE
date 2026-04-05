@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using PCL.Core.App;
 
 namespace PCL;
 
@@ -18,13 +19,32 @@ public partial class PageToolsLeft
 
     private void PageLinkLeft_Loaded(object sender, RoutedEventArgs e)
     {
-        if (IsLoad)
+        var IsHiddenPage = false;
+        var hide = Config.Preference.Hide;
+
+        if (ItemGameLink.Checked && hide.ToolsGameLink) IsHiddenPage = true;
+        if (ItemTest.Checked && hide.ToolsTest) IsHiddenPage = true;
+        if (ItemLauncherHelp.Checked && hide.ToolsHelp) IsHiddenPage = true;
+        if (PageSetupUI.HiddenForceShow)
+            IsHiddenPage = false;
+        // 若页面错误，或尚未加载，则继续
+        if (IsLoad && !IsHiddenPage)
             return;
         IsLoad = true;
-        // 切换默认页面
-        if (IsPageSwitched)
+        // 刷新子页面隐藏情况
+        PageSetupUI.HiddenRefresh();
+        // 选择第一个未被禁用的子页面
+        if (IsPageSwitched) 
             return;
-        ItemGameLink.SetChecked(true, false, false);
+        var hideCfg = Config.Preference.Hide;
+        if (!hideCfg.ToolsGameLink)
+            ItemGameLink.SetChecked(true, false, false);
+        else if (!hideCfg.ToolsTest)
+            ItemTest.SetChecked(true, false, false);
+        else if (!hideCfg.ToolsHelp)
+            ItemLauncherHelp.SetChecked(true, false, false);
+        else
+            ItemGameLink.SetChecked(true, false, false);
     }
 
     private void PageOtherLeft_Unloaded(object sender, RoutedEventArgs e)
@@ -89,18 +109,11 @@ public partial class PageToolsLeft
         var targetID = ID ?? PageID;
         switch (ID)
         {
-            case 0:
             case FormMain.PageSubType.ToolsGameLink:
             {
                 if (ModMain.FrmToolsGameLink is null)
                     ModMain.FrmToolsGameLink = new PageToolsGameLink();
                 return ModMain.FrmToolsGameLink;
-            }
-            case FormMain.PageSubType.SetupGameLink:
-            {
-                if (ModMain.FrmSetupGameLink is null)
-                    ModMain.FrmSetupGameLink = new PageSetupGameLink();
-                return ModMain.FrmSetupGameLink;
             }
             case FormMain.PageSubType.ToolsTest:
             {

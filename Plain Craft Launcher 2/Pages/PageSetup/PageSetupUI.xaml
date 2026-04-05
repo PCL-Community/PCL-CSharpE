@@ -547,10 +547,11 @@
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="2" Text="联机"
                                           x:Name="CheckHiddenToolsGameLink" Tag="UiHiddenToolsGameLink"
                                           Change="CheckBoxChange" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="帮助"
-                                          x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp" Change="CheckBoxChange" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="4"
                                           Text="百宝箱" x:Name="CheckHiddenToolsTest" Tag="UiHiddenToolsTest"
+                                          Change="CheckBoxChange" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="4" Grid.Column="3" Text="帮助"
+                                          x:Name="CheckHiddenToolsHelp" Tag="UiHiddenToolsHelp"
                                           Change="CheckBoxChange" />
                         <TextBlock Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Left" Text="子页面 实例设置 " />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="5" Grid.Column="2" Text="修改"

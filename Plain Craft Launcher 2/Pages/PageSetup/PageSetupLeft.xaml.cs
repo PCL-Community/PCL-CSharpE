@@ -16,14 +16,16 @@ public partial class PageSetupLeft
         var IsHiddenPage = false;
         var hide = Config.Preference.Hide;
 
-        if (ItemLaunch.Checked && hide.SetupLaunch)
-            IsHiddenPage = true;
-        if (ItemUI.Checked && hide.SetupUi)
-            IsHiddenPage = true;
-        if (ItemGameManage.Checked && hide.SetupGameManage)
-            IsHiddenPage = true;
-        if (ItemAbout.Checked && Config.Preference.Hide.SetupAbout)
-            IsHiddenPage = true;
+        if (ItemLaunch.Checked && hide.SetupLaunch) IsHiddenPage = true;
+        if (ItemJava.Checked && hide.SetupJava) IsHiddenPage = true;
+        if (ItemGameManage.Checked && hide.SetupGameManage)  IsHiddenPage = true;
+        if (ItemGameLink.Checked && hide.SetupGameLink) IsHiddenPage = true;
+        if (ItemUI.Checked && hide.SetupUi) IsHiddenPage = true;
+        if (ItemLauncherMisc.Checked && hide.SetupLauncherMisc) IsHiddenPage = true;
+        if (ItemAbout.Checked && hide.SetupAbout) IsHiddenPage = true;
+        if (ItemUpdate.Checked && hide.SetupUpdate) IsHiddenPage = true;
+        if (ItemFeedback.Checked && hide.SetupFeedback) IsHiddenPage = true;
+        if (ItemLog.Checked && hide.SetupLog) IsHiddenPage = true;
         if (PageSetupUI.HiddenForceShow)
             IsHiddenPage = false;
         // 若页面错误，或尚未加载，则继续
@@ -36,27 +38,27 @@ public partial class PageSetupLeft
         if (IsPageSwitched)
             return;
         var hideCfg = Config.Preference.Hide;
-        if (!hideCfg.SetupLaunch)
+        if (!hideCfg.SetupLaunch) 
             ItemLaunch.SetChecked(true, false, false);
-        else if (!hideCfg.SetupUi)
-            ItemUI.SetChecked(true, false, false);
-        else if (!hideCfg.SetupGameManage)
+        else if (!hideCfg.SetupJava) 
+            ItemJava.SetChecked(true, false, false);    
+        else if (!hideCfg.SetupGameManage) 
             ItemGameManage.SetChecked(true, false, false);
-        else if (!hideCfg.SetupLauncherMisc)
+        else if (!hideCfg.SetupGameLink) 
+            ItemGameLink.SetChecked(true, false, false);    
+        else if (!hideCfg.SetupUi) 
+            ItemUI.SetChecked(true, false, false);
+        else if (!hideCfg.SetupLauncherMisc) 
             ItemLauncherMisc.SetChecked(true, false, false);
-        else if (!hideCfg.SetupUpdate)
+        else if (!hideCfg.SetupAbout) 
+            ItemAbout.SetChecked(true, false, false);   
+        else if (!hideCfg.SetupUpdate) 
             ItemUpdate.SetChecked(true, false, false);
-        else if (!hideCfg.SetupAbout)
-            ItemAbout.SetChecked(true, false, false);
-        else if (!hideCfg.SetupFeedback)
+        else if (!hideCfg.SetupFeedback) 
             ItemFeedback.SetChecked(true, false, false);
-        else if (!hideCfg.SetupGameLink)
-            ItemGameLink.SetChecked(true, false, false);
-        else if (!hideCfg.SetupJava)
-            ItemJava.SetChecked(true, false, false);
-        else if (!hideCfg.SetupLog)
+        else if (!hideCfg.SetupLog) 
             ItemLog.SetChecked(true, false, false);
-        else
+        else 
             ItemLaunch.SetChecked(true, false, false);
     }
 
@@ -197,22 +199,22 @@ public partial class PageSetupLeft
         var hideCfg = Config.Preference.Hide;
         if (!hideCfg.SetupLaunch)
             PageID = FormMain.PageSubType.SetupLaunch;
-        else if (!hideCfg.SetupUi)
-            PageID = FormMain.PageSubType.SetupUI;
-        else if (!hideCfg.SetupGameManage)
-            PageID = FormMain.PageSubType.SetupGameManage;
-        else if (!hideCfg.SetupLauncherMisc)
-            PageID = FormMain.PageSubType.SetupLauncherMisc;
-        else if (!hideCfg.SetupUpdate)
-            PageID = FormMain.PageSubType.SetupUpdate;
-        else if (!hideCfg.SetupAbout)
-            PageID = FormMain.PageSubType.SetupAbout;
-        else if (!hideCfg.SetupFeedback)
-            PageID = FormMain.PageSubType.SetupFeedback;
-        else if (!hideCfg.SetupGameLink)
-            PageID = FormMain.PageSubType.SetupGameLink;
         else if (!hideCfg.SetupJava)
             PageID = FormMain.PageSubType.SetupJava;
+        else if (!hideCfg.SetupGameManage)
+            PageID = FormMain.PageSubType.SetupGameManage;
+        else if (!hideCfg.SetupGameLink)
+            PageID = FormMain.PageSubType.SetupGameLink;    
+        else if (!hideCfg.SetupUi)
+            PageID = FormMain.PageSubType.SetupUI;
+        else if (!hideCfg.SetupLauncherMisc)
+            PageID = FormMain.PageSubType.SetupLauncherMisc;
+        else if (!hideCfg.SetupAbout)
+            PageID = FormMain.PageSubType.SetupAbout;        
+        else if (!hideCfg.SetupUpdate)
+            PageID = FormMain.PageSubType.SetupUpdate;
+        else if (!hideCfg.SetupFeedback)
+            PageID = FormMain.PageSubType.SetupFeedback;
         else if (!hideCfg.SetupLog)
             PageID = FormMain.PageSubType.SetupLog;
         else
