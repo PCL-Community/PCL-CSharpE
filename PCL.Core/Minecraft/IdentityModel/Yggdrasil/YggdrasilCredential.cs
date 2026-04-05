@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 using PCL.Core.Link.Scaffolding.Client.Models;
 
 namespace PCL.Core.Minecraft.IdentityModel.Yggdrasil;

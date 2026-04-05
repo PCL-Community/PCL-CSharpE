@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
