@@ -152,7 +152,7 @@ public partial class MyHint
         IsMouseDown = false;
         ModBase.Log("[Control] 按下提示条" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
         e.Handled = true;
-        RaiseCustomEvent(); //自定义事件
+        ModMain.RaiseCustomEvent(this);
     }
 
     private void MyHint_MouseDown(object sender, MouseButtonEventArgs e)

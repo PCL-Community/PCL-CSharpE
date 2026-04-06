@@ -66,15 +66,15 @@ public partial class MyMsgLogin
 
         // 设置 UI
         LabTitle.Text = "登录 Minecraft";
-        Btn1.EventData = Website;
-        Btn2.EventData = UserCode;
+        CustomEventService.SetEventData(Btn1, Website);
+        CustomEventService.SetEventData(Btn2, UserCode);
         // 启动工作线程
         ModBase.RunInNewThread(WorkThread, "MyMsgLogin");
     }
 
     private void WorkThread()
     {
-        Thread.Sleep(3000);
+        Thread.Sleep(2000);
         if (MyConverter.IsExited)
             return;
         ModBase.OpenWebsite(Website);

@@ -207,7 +207,7 @@ public partial class MyExtraButton
                     ModAnimation.AaScaleTransform(PanScale, 1d - ((ScaleTransform)PanScale.RenderTransform).ScaleX, 300,
                         Ease: new ModAnimation.AniEaseOutBack())
                 }, "MyExtraButton Scale " + Uuid);
-        if (IsLeftMouseHeld) RaiseCustomEvent();
+        if (IsLeftMouseHeld) ModMain.RaiseCustomEvent(this);
         IsLeftMouseHeld = false;
         RefreshColor(); // 直接刷新颜色以判断是否已触发 MouseLeave
     }

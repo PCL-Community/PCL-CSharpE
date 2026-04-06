@@ -401,7 +401,7 @@ public class MyTextBox : TextBox
     // 在按下回车时触发自定义事件
     private void MyTextBox_KeyUp(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter) RaiseCustomEvent();
+        if (e.Key == Key.Enter) ModMain.RaiseCustomEvent(this);
         
     }
     private enum ValidateState

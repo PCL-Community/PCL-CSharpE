@@ -597,12 +597,11 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
         }
         catch (Win32Exception ex)
         {
-            ModBase.Log(ex, "自动更新时触发 Win32 错误，疑似被拦截");
-            if (ModMain.MyMsgBox(
-                    string.Format(
-                        @"由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\Plain Craft Launcher Community Edition.exe 替换当前文件！",
-                        "\r\n", ModBase.ExePath), "更新失败", "查看帮助", "确定", "", true) ==
-                1) ModEvent.TryStartEvent("打开帮助", "启动器/Microsoft Defender 添加排除项.json");
+            ModBase.Log(ex, "自动更新时触发 Win32 错误，疑似被拦截", ModBase.LogLevel.Debug, "出现错误");
+            if (ModMain.MyMsgBox(string.Format("由于被 Windows 安全中心拦截，或者存在权限问题，导致 PCL 无法更新。{0}请将 PCL 所在文件夹加入白名单，或者手动用 {1}PCL\\Plain Craft Launcher Community Edition.exe 替换当前文件！", Environment.NewLine, ModBase.ExePath), "更新失败", "查看帮助", "确定", "", true, true, false, null, null, null) == 1)
+            {
+                CustomEvent.Raise(CustomEvent.EventType.打开帮助, "启动器/Microsoft Defender 添加排除项.json");
+            }
         }
     }
 
@@ -690,8 +689,16 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 {
                     var SelectedBtn = ModMain.MyMsgBox(item.detail, item.title, item.btn1 is null ? "" : item.btn1.text,
                         item.btn2 is null ? "" : item.btn2.text, "关闭",
-                        Button1Action: () => ModEvent.TryStartEvent(item.btn1.command, item.btn1.command_paramter),
-                        Button2Action: () => ModEvent.TryStartEvent(item.btn2.command, item.btn2.command_paramter));
+                        Button1Action: () => 
+                        {
+                            if (Enum.TryParse<CustomEvent.EventType>(item.btn1.command, true, out var eventType))
+                                CustomEvent.Raise(eventType, item.btn1.command_paramter);
+                        },
+                        Button2Action: () => 
+                        {
+                            if (Enum.TryParse<CustomEvent.EventType>(item.btn2.command, true, out var eventType))
+                                CustomEvent.Raise(eventType, item.btn2.command_paramter);
+                        });
                 }
             });
             ShowedAnnounced.AddRange(ShowAnnounce.Select(x => x.id).ToList());

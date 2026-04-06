@@ -232,7 +232,7 @@ public partial class MyButton
             return;
         ModBase.Log("[Control] 按下按钮：" + Text);
         Click?.Invoke(sender, e);
-        RaiseCustomEvent();
+        ModMain.RaiseCustomEvent(this);
     }
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)

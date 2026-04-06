@@ -134,7 +134,7 @@ public partial class MyExtraTextButton
         ModBase.Log("[Control] 按下附加图标按钮：" + Text);
         Click?.Invoke(sender, e);
         e.Handled = true;
-        RaiseCustomEvent();
+        ModMain.RaiseCustomEvent(this);
         Button_LeftMouseUp();
     }
 

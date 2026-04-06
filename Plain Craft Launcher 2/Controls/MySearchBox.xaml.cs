@@ -20,7 +20,7 @@ public partial class MySearchBox : MyCard
     
     private void MySearchBox_KeyUp(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter) RaiseCustomEvent();
+        if (e.Key == Key.Enter) ModMain.RaiseCustomEvent(this);
     }
     
     // 属性

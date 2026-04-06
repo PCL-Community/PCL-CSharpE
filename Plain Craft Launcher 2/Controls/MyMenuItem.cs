@@ -91,6 +91,6 @@ public class MyMenuItem : MenuItem
     }
     private void MyMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        RaiseCustomEvent();
+        ModMain.RaiseCustomEvent(this);
     }
 }

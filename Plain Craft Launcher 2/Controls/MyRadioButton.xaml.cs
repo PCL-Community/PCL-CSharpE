@@ -191,7 +191,7 @@ public partial class MyRadioButton
             // 触发事件
             if (Checked)
                 Check?.Invoke(this, raiseByMouse);
-            RaiseCustomEvent();
+            ModMain.RaiseCustomEvent(this);
         }
 
         catch (Exception ex)

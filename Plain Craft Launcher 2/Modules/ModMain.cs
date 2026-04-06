@@ -13,6 +13,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 
@@ -996,7 +997,7 @@ public static class ModMain
         public HelpEntry(string FilePath)
         {
             RawPath = FilePath;
-            var JsonData = (JObject)ModBase.GetJson(HelpArgumentReplace(ModBase.ReadFile(FilePath)));
+            var JsonData = (JObject)ModBase.GetJson(ModMain.ArgumentReplace(ModBase.ReadFile(FilePath)));
             if (JsonData is null)
                 throw new FileNotFoundException("未找到帮助文件：" + FilePath, FilePath);
             // 加载常规信息
@@ -1016,10 +1017,8 @@ public static class ModMain
             // 加载事件信息
             if ((bool)(JsonData["IsEvent"] ?? false))
             {
-                EventType = (string)JsonData["EventType"];
-                if (EventType is null)
-                    throw new ArgumentException("未找到 EventType 项");
-                EventData = (string)(JsonData["EventData"] ?? "");
+                EventType = Enum.Parse(typeof(CustomEvent.EventType), JsonData["EventType"].ToString()).ToString();
+                EventData = (JsonData["EventData"] ?? "").ToString();
                 IsEvent = true;
             }
             else
@@ -1071,8 +1070,8 @@ public static class ModMain
             Item.Height = 42d;
             Item.Type = MyListItem.CheckType.Clickable;
             Item.Tag = this;
-            Item.EventType = null;
-            Item.EventData = null;
+            CustomEventService.SetEventType(Item, CustomEvent.EventType.None); //清空自定义事件属性，它们会被下面的点击事件处理
+            CustomEventService.SetEventData(Item, null);
             // 项目的点击事件
             Item.Click += (sender, e) => PageToolsHelp.OnItemClick((HelpEntry)((MyListItem)sender).Tag);
             return Item;
@@ -1437,6 +1436,105 @@ public static class ModMain
             }
     }
 
+    /// <summary>
+    /// 对替换标记进行处理。会对替换内容使用 EscapeHandler 进行转义。
+    /// /// </summary>
+    public static string ArgumentReplace(string text, Func<string, string> escapeHandler = null, bool replaceTime = true) 
+    {
+    // 预处理
+    if (text == null) return null;
+    
+    Func<string, string> replacer = (s) =>
+    {
+        if (s == null) return "";
+        if (escapeHandler == null) return s;
+        if (s.Contains(":\\")) s = ModBase.ShortenPath(s);
+        return escapeHandler(s);
+    };
+    
+    // 基础
+    text = text.Replace("{pcl_version}", replacer(ModBase.VersionBaseName));
+    text = text.Replace("{pcl_version_code}", replacer(ModBase.VersionCode.ToString()));
+    text = text.Replace("{pcl_version_branch}", replacer(ModBase.VersionBranchName));
+    text = text.Replace("{pcl_branch}", replacer(ModBase.VersionBranchName));
+    text = text.Replace("{identify}", replacer(ModBase.UniqueAddress));
+    text = text.Replace("{path}", replacer(Basics.ExecutableDirectory));
+    text = text.Replace("{path_with_name}", replacer(Basics.ExecutableName));
+    text = text.Replace("{path_temp}", replacer(ModBase.PathTemp));
+    
+    // 时间
+    if (replaceTime) // 在窗口标题中，时间会被后续动态替换，所以此时不应该替换
+    {
+        text = text.Replace("{date}", replacer(DateTime.Now.ToString("yyyy/M/d")));
+        text = text.Replace("{time}", replacer(DateTime.Now.ToString("HH:mm:ss")));
+    }
+    
+    // Minecraft
+    text = text.Replace("{java}", replacer(ModLaunch.McLaunchJavaSelected?.Installation.JavaFolder));
+    text = text.Replace("{minecraft}", replacer(ModMinecraft.McFolderSelected));
+    
+    if (ModMinecraft.McInstanceSelected != null)
+    {
+        text = text.Replace("{version_path}", replacer(ModMinecraft.McInstanceSelected.PathInstance));
+        text = text.Replace("{verpath}", replacer(ModMinecraft.McInstanceSelected.PathInstance));
+        text = text.Replace("{version_indie}", replacer(ModMinecraft.McInstanceSelected.PathIndie));
+        text = text.Replace("{verindie}", replacer(ModMinecraft.McInstanceSelected.PathIndie));
+        text = text.Replace("{name}", replacer(ModMinecraft.McInstanceSelected.Name));
+        
+        if (new[] { "unknown", "old", "pending" }.Contains(ModMinecraft.McInstanceSelected.Info.VanillaName))
+        {
+            text = text.Replace("{version}", replacer(ModMinecraft.McInstanceSelected.Name));
+        }
+        else
+        {
+            text = text.Replace("{version}", replacer(ModMinecraft.McInstanceSelected.Info.VanillaName));
+        }
+    }
+    else
+    {
+        text = text.Replace("{version_path}", replacer(null));
+        text = text.Replace("{verpath}", replacer(null));
+        text = text.Replace("{version_indie}", replacer(null));
+        text = text.Replace("{verindie}", replacer(null));
+        text = text.Replace("{name}", replacer(null));
+        text = text.Replace("{version}", replacer(null));
+    }
+    
+    // 验证信息
+    if (ModLaunch.McLoginLoader.State == ModBase.LoadState.Finished)
+    {
+        text = text.Replace("{user}", replacer(ModLaunch.McLoginLoader.Output.Name));
+        text = text.Replace("{uuid}", replacer(ModLaunch.McLoginLoader.Output.Uuid.ToLower()));
+        
+        switch (ModLaunch.McLoginLoader.Input.Type)
+        {
+            case ModLaunch.McLoginType.Legacy:
+                text = text.Replace("{login}", replacer("离线"));
+                break;
+            case ModLaunch.McLoginType.Ms:
+                text = text.Replace("{login}", replacer("正版"));
+                break;
+            case ModLaunch.McLoginType.Auth:
+                text = text.Replace("{login}", replacer("Authlib-Injector"));
+                break;
+        }
+    }
+    else
+    {
+        text = text.Replace("{user}", replacer(null));
+        text = text.Replace("{uuid}", replacer(null));
+        text = text.Replace("{login}", replacer(null));
+    }
+    
+    // 高级
+    text = ModBase.RegexReplaceEach(text, @"\{hint\}", m => replacer(PageToolsTest.GetRandomHint()));
+    text = ModBase.RegexReplaceEach(text, @"\{cave\}", m => replacer(PageToolsTest.GetRandomCave()));
+    text = ModBase.RegexReplaceEach(text, @"\{setup:([a-zA-Z0-9]+)\}", m => replacer(ModBase.Setup.GetSafe(m.Groups[1].Value, ModMinecraft.McInstanceSelected)?.ToString() ?? ""));
+    text = ModBase.RegexReplaceEach(text, @"\{varible:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
+    text = ModBase.RegexReplaceEach(text, @"\{variable:([^\}]+)\}", m => replacer(CustomEvent.GetCustomVariable(m.Groups[1].Value)));
+    
+    return text;
+}
     #endregion
 
     #region 任务缓存
@@ -1512,4 +1610,21 @@ public static class ModMain
     }
 
     #endregion
+    
+    public static void RaiseCustomEvent(DependencyObject control)
+    {
+        // 收集事件列表
+        var events = CustomEventService.GetEvents(control).ToList();
+        var eventType = CustomEventService.GetEventType(control);
+        if (eventType != CustomEvent.EventType.None)
+            events.Add(new CustomEvent(eventType, CustomEventService.GetEventData(control)));
+
+        if (!events.Any()) return;
+
+        ModBase.RunInNewThread(() =>
+            {
+                foreach (var e in events)
+                    e.Raise();
+            }, $"执行自定义事件 {ModBase.GetUuid()}");
+    }
 }

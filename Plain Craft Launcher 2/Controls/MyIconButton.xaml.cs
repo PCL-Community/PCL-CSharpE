@@ -93,7 +93,7 @@ public partial class MyIconButton
         Click?.Invoke(sender, e);
         e.Handled = true;
         Button_MouseUp();
-        RaiseCustomEvent(); //自定义事件
+        ModMain.RaiseCustomEvent(this);
     }
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)

@@ -33,7 +33,7 @@ public partial class PageOtherHelpDetail : IRefreshable
         try
         {
             // 修改时应同时修改 PageLaunchRight.LoadContent
-            Content = ModMain.HelpArgumentReplace(Content);
+            Content = ModMain.ArgumentReplace(Content);
             if (Content.Contains("xmlns"))
                 Content = Content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", ""); // 禁止声明命名空间
             Content =

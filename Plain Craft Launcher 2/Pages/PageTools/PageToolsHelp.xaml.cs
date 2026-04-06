@@ -93,7 +93,7 @@ public partial class PageToolsHelp : IRefreshable
         try
         {
             if (Entry.IsEvent)
-                ModEvent.TryStartEvent(Entry.EventType, Entry.EventData);
+                CustomEvent.Raise(Enum.Parse<CustomEvent.EventType>(Entry.EventType), Entry.EventData);
             else
                 EnterHelpPage(Entry);
         }

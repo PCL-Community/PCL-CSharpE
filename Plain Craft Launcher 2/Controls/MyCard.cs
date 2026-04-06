@@ -429,7 +429,7 @@ public class MyCard : AnimatedBackgroundGrid
     {
         if (!IsCustomMouseDown) return;
         IsCustomMouseDown = false;
-        RaiseCustomEvent(); // 触发自定义事件
+        ModMain.RaiseCustomEvent(this);
 
         if (!IsSwapMouseDown) return;
         IsSwapMouseDown = false;

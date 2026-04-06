@@ -405,7 +405,7 @@ public partial class PageLaunchRight : IRefreshable
             try
             {
                 // 修改时应同时修改 PageOtherHelpDetail.Init
-                Content = ModMain.HelpArgumentReplace(Content);
+                Content = ModMain.ArgumentReplace(Content);
                 while (Content.Contains("xmlns"))
                     Content = Content.RegexReplace("xmlns[^\"']*(\"|')[^\"']*(\"|')", "").Replace("xmlns", "");
                 Content =

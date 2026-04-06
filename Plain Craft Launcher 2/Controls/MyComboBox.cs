@@ -227,7 +227,7 @@ public class MyComboBox : ComboBox
     
     private void MyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (IsLoaded && ModAnimation.AniControlEnabled == 0) RaiseCustomEvent();
+        if (IsLoaded && ModAnimation.AniControlEnabled == 0) ModMain.RaiseCustomEvent(this);
     }
     
     protected override bool IsItemItsOwnContainerOverride(object item)

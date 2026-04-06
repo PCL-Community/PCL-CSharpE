@@ -113,7 +113,7 @@ public partial class MyIconTextButton
         ModBase.Log("[Control] 按下带图标按钮：" + Text);
         IsMouseDown = false;
         Click?.Invoke(this, new ModBase.RouteEventArgs(true));
-        RaiseCustomEvent(); //自定义事件
+        ModMain.RaiseCustomEvent(this);
         RefreshColor();
     }
 

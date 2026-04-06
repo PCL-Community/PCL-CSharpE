@@ -130,7 +130,7 @@ public partial class MyCheckBox
 
             // 更改动画
             SyncUI();
-            RaiseCustomEvent();
+            ModMain.RaiseCustomEvent(this);
         }
         catch (Exception ex)
         {

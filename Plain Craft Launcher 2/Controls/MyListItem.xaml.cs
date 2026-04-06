@@ -177,7 +177,7 @@ public partial class MyListItem : IMyRadio
         {
             try
             {
-                HelpEntry entry = new HelpEntry(CustomEvent.GetAbsoluteUrls(CustomEventService.GetEventData(this), CustomEventService.GetEventType(this))[0]);
+                ModMain.HelpEntry entry = new ModMain.HelpEntry(CustomEvent.GetAbsoluteUrls(CustomEventService.GetEventData(this), CustomEventService.GetEventType(this))[0]);
                 entry.SetToListItem(this);
             }
             catch (Exception ex)
@@ -937,9 +937,10 @@ public partial class MyListItem : IMyRadio
         if (e.Handled)
             return;
         // 触发自定义事件
-        if (CustomEventService.GetEventType(sender) != CustomEvent.EventType.None)
+        var dependencyObject = (DependencyObject)sender;
+        if (CustomEventService.GetEventType(dependencyObject) != CustomEvent.EventType.None)
         {
-            RaiseCustomEvent();
+            ModMain.RaiseCustomEvent(this);
             e.Handled = true;
         }
 
