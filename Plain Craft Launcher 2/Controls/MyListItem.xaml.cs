@@ -173,18 +173,20 @@ public partial class MyListItem : IMyRadio
         else
             SetResourceReference(ForegroundProperty, "ColorBrush1");
         ColumnPaddingRight.Width = new GridLength(MinPaddingRight);
-        if (EventType == "打开帮助" && !(!string.IsNullOrEmpty(Title) && !string.IsNullOrEmpty(Info))) // #3266
+        if (CustomEventService.GetEventType(this) == CustomEvent.EventType.打开帮助 && !(Title != "" && Info != "")) // #3266
+        {
             try
             {
-                var Unused =
-                    new ModMain.HelpEntry(ModEvent.GetEventAbsoluteUrls(EventData, EventType)[0]).SetToListItem(this);
+                HelpEntry entry = new HelpEntry(CustomEvent.GetAbsoluteUrls(CustomEventService.GetEventData(this), CustomEventService.GetEventType(this))[0]);
+                entry.SetToListItem(this);
             }
             catch (Exception ex)
             {
                 ModBase.Log(ex, "设置帮助 MyListItem 失败", ModBase.LogLevel.Msgbox);
-                EventType = null;
-                EventData = null;
+                CustomEventService.SetEventType(this, CustomEvent.EventType.None);
+                CustomEventService.SetEventData(this, "");
             }
+        }
     }
 
     public override string ToString()
@@ -935,9 +937,9 @@ public partial class MyListItem : IMyRadio
         if (e.Handled)
             return;
         // 触发自定义事件
-        if (!string.IsNullOrEmpty(EventType))
+        if (CustomEventService.GetEventType(sender) != CustomEvent.EventType.None)
         {
-            ModEvent.TryStartEvent(EventType, EventData);
+            RaiseCustomEvent();
             e.Handled = true;
         }
 
@@ -986,25 +988,6 @@ public partial class MyListItem : IMyRadio
         if (ButtonStack is not null)
             ButtonStack.IsHitTestVisible = true;
     }
-
-    // 实现自定义事件
-    public string EventType
-    {
-        get => Conversions.ToString(GetValue(EventTypeProperty));
-        set => SetValue(EventTypeProperty, value);
-    }
-
-    public static readonly DependencyProperty EventTypeProperty =
-        DependencyProperty.Register("EventType", typeof(string), typeof(MyListItem), new PropertyMetadata(null));
-
-    public string EventData
-    {
-        get => Conversions.ToString(GetValue(EventDataProperty));
-        set => SetValue(EventDataProperty, value);
-    }
-
-    public static readonly DependencyProperty EventDataProperty =
-        DependencyProperty.Register("EventData", typeof(string), typeof(MyListItem), new PropertyMetadata(null));
 
     #endregion
 }

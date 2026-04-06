@@ -17,7 +17,12 @@ public partial class MySearchBox : MyCard
 
         Loaded += MySearchBox_Loaded;
     }
-
+    
+    private void MySearchBox_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter) RaiseCustomEvent();
+    }
+    
     // 属性
     public string HintText
     {

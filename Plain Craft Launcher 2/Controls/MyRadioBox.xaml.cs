@@ -163,6 +163,7 @@ public partial class MyRadioBox : IMyRadio
                 if (Checked)
                     Check?.Invoke(this, new ModBase.RouteEventArgs(user));
                 Changed?.Invoke(this, new ModBase.RouteEventArgs(user));
+                RaiseCustomEvent();
             }
 
             // 更改动画

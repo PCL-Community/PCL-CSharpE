@@ -89,4 +89,8 @@ public class MyMenuItem : MenuItem
             SetResourceReference(ForegroundProperty, ForeName);
         }
     }
+    private void MyMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        RaiseCustomEvent();
+    }
 }

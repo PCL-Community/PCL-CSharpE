@@ -17,22 +17,17 @@ public class MyTextButton : Label
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyTextButton), new PropertyMetadata("", (sender, e) =>
         {
-            if (Conversions.ToBoolean(!Operators.ConditionalCompareObjectEqual(e.OldValue, e.NewValue, false)))
-                ModAnimation.AniStart(
-                    new[]
-                    {
-                        ModAnimation.AaOpacity(sender, -((MyTextButton)sender).Opacity, 50),
-                        ModAnimation.AaCode(() => ((MyTextButton)sender).Content = e.NewValue, After: true),
-                        ModAnimation.AaOpacity(sender, 1d, 170)
-                    }, "MyTextButton Text " + ((MyTextButton)sender).Uuid);
+            if (Equals(e.OldValue, e.NewValue)) return;
+            var button = (MyTextButton)sender;
+            ModAnimation.AniStart(
+                new[]
+                {
+                    ModAnimation.AaOpacity(button, -button.Opacity, 50),
+                    ModAnimation.AaCode(() => button.Content = e.NewValue, After: true),
+                    ModAnimation.AaOpacity(button, 1d, 170)
+                }, "MyTextButton Text " + button.Uuid);
         }));
-
-    public static readonly DependencyProperty EventTypeProperty =
-        DependencyProperty.Register("EventType", typeof(string), typeof(MyTextButton), new PropertyMetadata(null));
-
-    public static readonly DependencyProperty EventDataProperty =
-        DependencyProperty.Register("EventData", typeof(string), typeof(MyTextButton), new PropertyMetadata(null));
-
+    
     private string ColorName;
 
     // 鼠标事件
@@ -65,19 +60,6 @@ public class MyTextButton : Label
         set => SetValue(TextProperty, value);
     }
 
-    // 实现自定义事件
-    public string EventType
-    {
-        get => Conversions.ToString(GetValue(EventTypeProperty));
-        set => SetValue(EventTypeProperty, value);
-    }
-
-    public string EventData
-    {
-        get => Conversions.ToString(GetValue(EventDataProperty));
-        set => SetValue(EventDataProperty, value);
-    }
-
     public event ClickEventHandler? Click;
 
     private void MyTextButton_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -93,14 +75,12 @@ public class MyTextButton : Label
 
     private void MyTextButton_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (IsMouseDown)
-        {
-            IsMouseDown = false;
-            ModBase.Log("[Control] 按下文本按钮：" + Text);
-            Click?.Invoke(this, null);
-            ModEvent.TryStartEvent(EventType, EventData);
-            e.Handled = true;
-        }
+        if (!IsMouseDown) return;
+        IsMouseDown = false;
+        ModBase.Log("[Control] 按下文本按钮：" + Text);
+        Click?.Invoke(this, null);
+        RaiseCustomEvent();
+        e.Handled = true;
     }
 
     private void RefreshColor()

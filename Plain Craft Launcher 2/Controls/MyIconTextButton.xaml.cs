@@ -37,12 +37,6 @@ public partial class MyIconTextButton
     public static readonly DependencyProperty ColorTypeProperty = DependencyProperty.Register("ColorType",
         typeof(ColorState), typeof(MyIconTextButton), new PropertyMetadata(ColorState.Black));
 
-    public static readonly DependencyProperty EventTypeProperty = DependencyProperty.Register("EventType",
-        typeof(string), typeof(MyIconTextButton), new PropertyMetadata(null));
-
-    public static readonly DependencyProperty EventDataProperty = DependencyProperty.Register("EventData",
-        typeof(string), typeof(MyIconTextButton), new PropertyMetadata(null));
-
     private double _LogoScale = 1d;
     private bool IsMouseDown;
 
@@ -105,25 +99,8 @@ public partial class MyIconTextButton
         }
     } // 颜色类别
 
-    public string EventType
-    {
-        get => Conversions.ToString(GetValue(EventTypeProperty));
-        set => SetValue(EventTypeProperty, value);
-    }
-
-    public string EventData
-    {
-        get => Conversions.ToString(GetValue(EventDataProperty));
-        set => SetValue(EventDataProperty, value);
-    }
-
     public event CheckEventHandler? Check;
     public event ChangeEventHandler? Change;
-
-    public void RaiseChange()
-    {
-        Change?.Invoke(this, false);
-    } // 使外部程序可以引发本控件的 Change 事件
 
     // 点击事件
 
@@ -136,7 +113,7 @@ public partial class MyIconTextButton
         ModBase.Log("[Control] 按下带图标按钮：" + Text);
         IsMouseDown = false;
         Click?.Invoke(this, new ModBase.RouteEventArgs(true));
-        ModEvent.TryStartEvent(EventType, EventData);
+        RaiseCustomEvent(); //自定义事件
         RefreshColor();
     }
 

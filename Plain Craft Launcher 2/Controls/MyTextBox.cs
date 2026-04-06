@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using FluentValidation;
 using Microsoft.VisualBasic.CompilerServices;
@@ -393,8 +394,16 @@ public class MyTextBox : TextBox
             ModAnimation.AniStop("MyTextBox TextColor " + Uuid);
             Foreground = NewColor;
         }
-    }
+        
 
+    }
+    
+    // 在按下回车时触发自定义事件
+    private void MyTextBox_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter) RaiseCustomEvent();
+        
+    }
     private enum ValidateState
     {
         NotInited,

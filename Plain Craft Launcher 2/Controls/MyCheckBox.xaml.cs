@@ -94,11 +94,6 @@ public partial class MyCheckBox
 
     public event PreviewChangeEventHandler? PreviewChange;
 
-    public void RaiseChange()
-    {
-        Change?.Invoke(this, false);
-    } // 使外部程序引发本控件的 Change 事件
-
     /// <summary>
     ///     手动设置 Checked 属性。
     /// </summary>
@@ -135,6 +130,7 @@ public partial class MyCheckBox
 
             // 更改动画
             SyncUI();
+            RaiseCustomEvent();
         }
         catch (Exception ex)
         {

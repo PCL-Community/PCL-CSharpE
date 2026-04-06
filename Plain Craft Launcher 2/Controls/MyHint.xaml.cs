@@ -36,12 +36,6 @@ public partial class MyHint
             f.LabText.Text = Conversions.ToString(e.NewValue);
         }));
 
-    public static readonly DependencyProperty EventTypeProperty =
-        DependencyProperty.Register("EventType", typeof(string), typeof(MyHint), new PropertyMetadata(null));
-
-    public static readonly DependencyProperty EventDataProperty =
-        DependencyProperty.Register("EventData", typeof(string), typeof(MyHint), new PropertyMetadata(null));
-
     private Themes _ColorType = Themes.Red;
 
     // 触发点击事件
@@ -109,18 +103,6 @@ public partial class MyHint
 
     public string RelativeSetup { get; set; } = "";
 
-    public string EventType
-    {
-        get => Conversions.ToString(GetValue(EventTypeProperty));
-        set => SetValue(EventTypeProperty, value);
-    }
-
-    public string EventData
-    {
-        get => Conversions.ToString(GetValue(EventDataProperty));
-        set => SetValue(EventDataProperty, value);
-    }
-
     private void UpdateUI()
     {
         var hue = default(double);
@@ -170,7 +152,7 @@ public partial class MyHint
         IsMouseDown = false;
         ModBase.Log("[Control] 按下提示条" + (string.IsNullOrEmpty(Name) ? "" : "：" + Name));
         e.Handled = true;
-        ModEvent.TryStartEvent(EventType, EventData);
+        RaiseCustomEvent(); //自定义事件
     }
 
     private void MyHint_MouseDown(object sender, MouseButtonEventArgs e)

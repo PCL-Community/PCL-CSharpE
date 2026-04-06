@@ -3645,6 +3645,11 @@ public static class ModBase
     /// </summary>
     public static object GetObjectFromXML(string Str)
     {
+        Str = Str. // 兼容旧版自定义事件写法
+            Replace("EventType=\"", "local:CustomEventService.EventType=\"").
+            Replace("EventData=\"", "local:CustomEventService.EventData=\"").
+            Replace("Property=\"EventType\"", "Property=\"local:CustomEventService.EventType\"").
+            Replace("Property=\"EventData\"", "Property=\"local:CustomEventService.EventData\"");
         using (var Stream = new MemoryStream(Encoding.UTF8.GetBytes(Str)))
         {
             // 类型检查

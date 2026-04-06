@@ -402,7 +402,8 @@ public class MyCard : AnimatedBackgroundGrid
     }
 
     public bool SwapLogoRight { get; set; } = false;
-    private bool IsMouseDown;
+    private bool IsSwapMouseDown = false; //用于触发卡片展开/折叠的 MouseDown
+    private bool IsCustomMouseDown = false; //用于触发自定义事件的 MouseDown
     public event PreviewSwapEventHandler? PreviewSwap;
 
     public delegate void PreviewSwapEventHandler(object sender, ModBase.RouteEventArgs e);
@@ -415,40 +416,44 @@ public class MyCard : AnimatedBackgroundGrid
 
     private void MyCard_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        var Pos = Mouse.GetPosition(this).Y;
-        if (!IsSwapped && (SwapControl is null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) ||
-                           (Pos == 0d && !IsMouseDirectlyOver)))
-            return; // 检测点击位置；或已经不在可视树上的误判
-        IsMouseDown = true;
+        double Pos = Mouse.GetPosition(this).Y;
+        if (!IsSwapped && (Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
+            return;
+        IsCustomMouseDown = true;
+        if (!IsSwapped && (SwapControl == null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
+            return;
+        IsSwapMouseDown = true;
     }
 
     private void MyCard_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (!IsMouseDown)
-            return;
-        IsMouseDown = false;
+        if (!IsCustomMouseDown) return;
+        IsCustomMouseDown = false;
+        RaiseCustomEvent(); // 触发自定义事件
 
-        var Pos = Mouse.GetPosition(this).Y;
-        if (!IsSwapped && (SwapControl is null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) ||
-                           (Pos == 0d && !IsMouseDirectlyOver)))
+        if (!IsSwapMouseDown) return;
+        IsSwapMouseDown = false;
+
+        double Pos = Mouse.GetPosition(this).Y;
+        if (!IsSwapped && (SwapControl == null || Pos > (IsSwapped ? SwapedHeight : SwapedHeight - 6) || (Pos == 0 && !IsMouseDirectlyOver)))
             return; // 检测点击位置；或已经不在可视树上的误判
 
-        var ee = new ModBase.RouteEventArgs(true);
-        PreviewSwap?.Invoke(this, ee);
-        if (ee.Handled)
+        var e2 = new ModBase.RouteEventArgs(true);
+        PreviewSwap?.Invoke(this, e2);
+        if (e2.Handled)
         {
-            IsMouseDown = false;
+            IsSwapMouseDown = false;
             return;
         }
 
         IsSwapped = !IsSwapped;
-        ModBase.Log("[Control] " + (IsSwapped ? "折叠卡片" : "展开卡片") + (Title is null ? "" : "：" + Title));
-        Swap?.Invoke(this, ee);
+        ModBase.Log("[Control] " + (IsSwapped ? "折叠卡片" : "展开卡片") + (Title == null ? "" : "：" + Title));
+        Swap?.Invoke(this, e2);
     }
 
     private void MyCard_MouseLeave_Swap(object sender, MouseEventArgs e)
     {
-        IsMouseDown = false;
+        IsSwapMouseDown = false;
     }
 
     #endregion

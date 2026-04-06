@@ -207,7 +207,7 @@ public class MyComboBox : ComboBox
     {
         if (IsTextChanging || !IsEditable)
             return;
-        if (SelectedItem is not null && (Text ?? "") != (SelectedItem.ToString() ?? ""))
+        if (SelectedItem == null || Text == SelectedItem.ToString()) return;
         {
             var RawText = Text;
             var RawSelectionStart = TextBox.SelectionStart;
@@ -224,7 +224,12 @@ public class MyComboBox : ComboBox
     {
         return new MyComboBoxItem();
     }
-
+    
+    private void MyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (IsLoaded && ModAnimation.AniControlEnabled == 0) RaiseCustomEvent();
+    }
+    
     protected override bool IsItemItsOwnContainerOverride(object item)
     {
         return item is MyComboBoxItem || base.IsItemItsOwnContainerOverride(item);

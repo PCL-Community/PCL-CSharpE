@@ -130,13 +130,12 @@ public partial class MyExtraTextButton
     // 触发点击事件
     private void Button_LeftMouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (IsLeftMouseHeld)
-        {
-            ModBase.Log("[Control] 按下附加图标按钮：" + Text);
-            Click?.Invoke(sender, e);
-            e.Handled = true;
-            Button_LeftMouseUp();
-        }
+        if (!IsLeftMouseHeld) return;
+        ModBase.Log("[Control] 按下附加图标按钮：" + Text);
+        Click?.Invoke(sender, e);
+        e.Handled = true;
+        RaiseCustomEvent();
+        Button_LeftMouseUp();
     }
 
     private void Button_LeftMouseDown(object sender, MouseButtonEventArgs e)

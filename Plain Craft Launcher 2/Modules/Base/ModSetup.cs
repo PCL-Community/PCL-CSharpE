@@ -93,7 +93,29 @@ public class ModSetup : IConfigScope
         InvokeEventMethod(key, () => value);
         return value;
     }
+    
+    /// <summary>
+    /// 写入某个未经加密的设置项。
+    /// 若该设置项经过了加密，则会抛出异常。
+    /// </summary>
+    public void SetSafe(string key, object value, bool forceReload = false, ModMinecraft.McInstance instance = null)
+    {
+        if (!ConfigService.TryGetConfigItemNoType(key, out ConfigItem item)) return;
+        if (item.Source == ConfigSource.SharedEncrypt) throw new InvalidOperationException("禁止写入加密设置项：" + key);
+        Set(key, value, forceReload, instance);
+    }
 
+    /// <summary>
+    /// 获取某个未经加密的设置项的值。
+    /// 若该设置项经过了加密，则会抛出异常。
+    /// </summary>
+    public object GetSafe(string key, ModMinecraft.McInstance instance = null)
+    {
+        if (!ConfigService.TryGetConfigItemNoType(key, out ConfigItem item)) return null;
+        if (item.Source == ConfigSource.SharedEncrypt) throw new InvalidOperationException("禁止读取加密设置项：" + key);
+        return Get(key, instance);
+    }
+    
     /// <summary>
     ///     获取某个设置项的值。
     /// </summary>
@@ -373,8 +395,7 @@ public class ModSetup : IConfigScope
                         : Visibility.Visible;
                 ModMain.FrmSetupUI.HintCustom.Text =
                     $"从 PCL 文件夹下的 Custom.xaml 读取主页内容。{"\r\n"}你可以手动编辑该文件，向主页添加文本、图片、常用网站、快捷启动等功能。";
-                ModMain.FrmSetupUI.HintCustom.EventType = "";
-                ModMain.FrmSetupUI.HintCustom.EventData = "";
+                CustomEventService.SetEventType(ModMain.FrmSetupUI.HintCustom, CustomEvent.EventType.None);
                 break;
             }
             case 2: // 联网
@@ -389,8 +410,8 @@ public class ModSetup : IConfigScope
                         : Visibility.Visible;
                 ModMain.FrmSetupUI.HintCustom.Text =
                     $"从指定网址联网获取主页内容。服主也可以用于动态更新服务器公告。{"\r\n"}如果你制作了稳定运行的联网主页，可以点击这条提示投稿，若合格即可加入预设！";
-                ModMain.FrmSetupUI.HintCustom.EventType = "打开网页";
-                ModMain.FrmSetupUI.HintCustom.EventData = "https://github.com/Meloong-Git/PCL/discussions/2528";
+                CustomEventService.SetEventType(ModMain.FrmSetupUI.HintCustom, CustomEvent.EventType.打开网页);
+                CustomEventService.SetEventData(ModMain.FrmSetupUI.HintCustom, "https://github.com/Meloong-Git/PCL/discussions/2528");
                 break;
             }
             case 3: // 预设

@@ -111,29 +111,21 @@ public partial class MyRadioButton
     } // 颜色类别
 
     public event CheckEventHandler? Check;
-    public event ChangeEventHandler? Change;
-
-    public void RaiseChange()
-    {
-        Change?.Invoke(this, false);
-    } // 使外部程序可以引发本控件的 Change 事件
 
     /// <summary>
     ///     手动设置 Checked 属性。
     /// </summary>
     /// <param name="value">新的 Checked 属性。</param>
-    /// <param name="user">是否由用户引发。</param>
+    /// <param name="raiseByMouse">是否由用户引发。</param>
     /// <param name="anime">是否执行动画。</param>
-    public void SetChecked(bool value, bool user, bool anime)
+    public void SetChecked(bool value, bool raiseByMouse, bool anime)
     {
         try
         {
             // 自定义属性基础
 
             var IsChanged = false;
-            if (IsLoaded && !(value == _Checked))
-                Change?.Invoke(this, user);
-            if (!(value == _Checked))
+            if (_Checked != value)
             {
                 _Checked = value;
                 IsChanged = true;
@@ -141,8 +133,7 @@ public partial class MyRadioButton
 
             // 保证只有一个单选框选中
 
-            if (Parent == null)
-                return;
+            if (Parent == null) return;
             var RadioboxList = new List<MyRadioButton>();
             var CheckedCount = 0;
             // 收集控件列表与选中个数
@@ -199,7 +190,8 @@ public partial class MyRadioButton
 
             // 触发事件
             if (Checked)
-                Check?.Invoke(this, user);
+                Check?.Invoke(this, raiseByMouse);
+            RaiseCustomEvent();
         }
 
         catch (Exception ex)

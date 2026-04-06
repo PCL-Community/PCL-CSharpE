@@ -35,17 +35,11 @@ public partial class MyButton
         {
             if (sender is not null) ((MyButton)sender).PanFore.Padding = (Thickness)e.NewValue;
         }));
-
-    public static readonly DependencyProperty EventTypeProperty =
-        DependencyProperty.Register("EventType", typeof(string), typeof(MyButton), new PropertyMetadata(null));
-
-    public static readonly DependencyProperty EventDataProperty =
-        DependencyProperty.Register("EventData", typeof(string), typeof(MyButton), new PropertyMetadata(null));
-
+    
     private ColorState _ColorType = ColorState.Normal; // 配色方案
 
     // 鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
-    private bool IsMouseDown;
+    
 
     // 自定义属性
     public int Uuid = ModBase.GetUuid();
@@ -99,18 +93,6 @@ public partial class MyButton
     {
         get => PanFore.RenderTransform;
         set => PanFore.RenderTransform = value;
-    }
-
-    public string EventType
-    {
-        get => Conversions.ToString(GetValue(EventTypeProperty));
-        set => SetValue(EventTypeProperty, value);
-    }
-
-    public string EventData
-    {
-        get => Conversions.ToString(GetValue(EventDataProperty));
-        set => SetValue(EventDataProperty, value);
     }
 
     // 声明
@@ -243,17 +225,14 @@ public partial class MyButton
     }
 
     // 实现自定义事件
+    private bool IsMouseDown = false;
     private void Button_MouseUp(object sender, MouseButtonEventArgs e)
     {
         if (!IsMouseDown)
             return;
         ModBase.Log("[Control] 按下按钮：" + Text);
         Click?.Invoke(sender, e);
-        if (!string.IsNullOrEmpty(Conversions.ToString(Tag)))
-            if (Tag.ToString().StartsWithF("链接-") || Tag.ToString().StartsWithF("启动-"))
-                ModMain.Hint("主页自定义按钮语法已更新，且不再兼容老版本语法，请查看新的自定义示例！");
-
-        ModEvent.TryStartEvent(EventType, EventData);
+        RaiseCustomEvent();
     }
 
     private void Button_MouseDown(object sender, MouseButtonEventArgs e)
