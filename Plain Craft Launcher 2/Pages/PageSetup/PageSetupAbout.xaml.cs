@@ -43,8 +43,8 @@ public partial class PageSetupAbout
         {
             using (var response = await HttpRequest
                        .Create("https://api.github.com/repos/PCL-Community/PCL2-CE/contributors").SendAsync())
-                response.EnsureSuccessStatusCode();
             {
+                response.EnsureSuccessStatusCode();
                 var cos = await response.AsJsonAsync<List<GitHubContributor>>();
                 Contributors.Clear();
                 foreach (var item in cos)
