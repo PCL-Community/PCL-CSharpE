@@ -125,11 +125,11 @@
                     <!--     </LinearGradientBrush> -->
                     <!-- </Grid.Background> -->
                     <local:MyImage x:Name="ImgTitle" IsHitTestVisible="False" Stretch="UniformToFill" IsEnabled="False" RenderOptions.BitmapScalingMode="LowQuality" />
-                    <local:MyIconButton x:Name="BtnTitleClose" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,12,0" Theme="White" 
+                    <local:MyIconButton x:Name="BtnTitleClose" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,12,0" Theme="White" Click="BtnTitleClose_Click"
                                         LogoScale="0.72" Logo="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z" />
-                    <local:MyIconButton x:Name="BtnTitleMin" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,44,0" Theme="White" 
+                    <local:MyIconButton x:Name="BtnTitleMin" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,44,0" Theme="White" Click="BtnTitleMin_Click"
                                        LogoScale="0.72" Logo="F1 M0,0 h15 v2 h-15 v-2 Z" />
-                    <local:MyIconButton x:Name="BtnTitleHelp" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,76,0" Theme="White" Visibility="Collapsed"
+                    <local:MyIconButton x:Name="BtnTitleHelp" HorizontalAlignment="Right" Height="28" VerticalAlignment="Center" Width="28" Margin="0,0,76,0" Theme="White" Visibility="Collapsed" Click="BtnTitleHelp_Click"
                                         LogoScale="1.05" Logo="M512 128a384 384 0 1 1-384 384 384 384 0 0 1 384-384m0-64a448 448 0 1 0 448 448 448 448 0 0 0-448-448z M533.76 654.08H465.92v-19.2a140.8 140.8 0 0 1 64-128A135.04 135.04 0 0 0 598.4 403.2 79.36 79.36 0 0 0 518.4 320Q430.72 320 408.32 429.44l-72.32-18.56A168.32 168.32 0 0 1 528.64 256a144 144 0 0 1 152.32 138.88A167.68 167.68 0 0 1 588.8 544a108.8 108.8 0 0 0-55.04 96zM458.24 704h82.56v88.96H458.24z" />
                     <Grid x:Name="PanTitleMain" HorizontalAlignment="Left" Width="{Binding ActualWidth, ElementName=PanTitle, Mode=OneWay}">
                         <Grid.ColumnDefinitions>
