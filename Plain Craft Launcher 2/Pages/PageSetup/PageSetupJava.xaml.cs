@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
@@ -40,122 +41,152 @@ public partial class PageSetupJava
 
     private void OnLoadFinished()
     {
-        MyListItem ItemBuilder(JavaEntry J)
-        {
-            var Item = new MyListItem();
-            var VersionTypeDesc = J.Installation.IsJre ? "JRE" : "JDK";
-            var VersionNameDesc = J.Installation.MajorVersion.ToString();
-            Item.Title = $"{VersionTypeDesc} {VersionNameDesc}";
-
-            Item.Info = J.Installation.JavaFolder;
-            var displayTags = new List<string>();
-            var DisplayBits = J.Installation.Is64Bit ? "64 Bit" : "32 Bit";
-            displayTags.Add(DisplayBits);
-            var DisplayBrand = J.Installation.Brand.ToString();
-            displayTags.Add(DisplayBrand);
-            Item.Tags = displayTags;
-
-            Item.Type = MyListItem.CheckType.RadioBox;
-            Item.Check += (sender, e) =>
-            {
-                if (J.IsEnabled)
-                {
-                    Config.Launch.SelectedJava = J.Installation.JavaExePath;
-                }
-                else
-                {
-                    ModMain.Hint("请先启用此 Java 后再选择其作为默认 Java");
-                    e.Handled = true;
-                }
-            };
-            var BtnOpenFolder = new MyIconButton();
-            BtnOpenFolder.Logo = ModBase.Logo.IconButtonOpen;
-            BtnOpenFolder.ToolTip = "打开";
-            BtnOpenFolder.Click += (sender, e) => ModBase.OpenExplorer(J.Installation.JavaFolder);
-            var BtnInfo = new MyIconButton();
-            BtnInfo.Logo = ModBase.Logo.IconButtonInfo;
-            BtnInfo.ToolTip = "详细信息";
-            BtnInfo.Click += (sender, e) =>
-                ModMain.MyMsgBox(
-                    $"""
-                     类型: {VersionTypeDesc}
-                     版本: {J.Installation.Version.ToString()}
-                     架构: {J.Installation.Architecture.ToString()} ({DisplayBits})
-                     品牌: {DisplayBrand}
-                     位置: {J.Installation.JavaFolder}
-                     """,
-                    "Java 信息");
-            var BtnEnableSwitch = new MyIconButton();
-
-
-            Item.Buttons = new[] { BtnOpenFolder, BtnInfo, BtnEnableSwitch };
-
-            void UpdateEnableStyle(bool IsCurEnable)
-            {
-                if (IsCurEnable)
-                {
-                    Item.LabTitle.TextDecorations = null;
-                    Item.LabTitle.Foreground = (Brush)ModSecret.AppResources["ColorBrush1"];
-                    BtnEnableSwitch.Logo = ModBase.Logo.IconButtonDisable;
-                    BtnEnableSwitch.ToolTip = "禁用此 Java";
-                }
-                else
-                {
-                    Item.LabTitle.TextDecorations = TextDecorations.Strikethrough;
-                    Item.LabTitle.Foreground = (Brush)ModSecret.AppResources["ColorBrushGray4"];
-                    BtnEnableSwitch.Logo = ModBase.Logo.IconButtonEnable;
-                    BtnEnableSwitch.ToolTip = "启用此 Java";
-                }
-            }
-
-            ;
-            BtnInfo.Click += (sender, e) =>
-            {
-                try
-                {
-                    var target = ModJava.Javas.AddOrGet(J.Installation.JavaExePath);
-                    if (target.IsEnabled && Operators.ConditionalCompareObjectEqual(
-                            Config.Launch.SelectedJava, target.Installation.JavaExePath, false))
-                    {
-                        ModMain.Hint("请先取消选择此 Java 作为默认 Java 后再禁用");
-                        return;
-                    }
-
-                    target.IsEnabled = !target.IsEnabled;
-                    UpdateEnableStyle(target.IsEnabled);
-                    ModJava.Javas.SaveConfig();
-                }
-                catch (Exception ex)
-                {
-                    ModBase.Log(ex, "调整 Java 启用状态失败", ModBase.LogLevel.Hint);
-                }
-            };
-            UpdateEnableStyle(J.IsEnabled);
-
-            return Item;
-        }
-
-        ;
         PanContent.Children.Clear();
-        var ItemAuto = new MyListItem
+        var itemAuto = new MyListItem
         {
             Type = MyListItem.CheckType.RadioBox,
             Title = "自动选择",
             Info = "Java 选择自动挡，依据游戏需要自动选择合适的 Java"
         };
-        ItemAuto.Check += (sender, e) => Config.Launch.SelectedJava = "";
-        PanContent.Children.Add(ItemAuto);
-        var CurrentSetJava = Config.Launch.SelectedJava;
+        itemAuto.Check += (sender, e) => Config.Launch.SelectedJava = "";
+        PanContent.Children.Add(itemAuto);
+        var currentSetJava = Config.Launch.SelectedJava;
         foreach (var entry in ModJava.Javas.GetSortedJavaList())
         {
-            var item = ItemBuilder(entry);
+            var item = ItemBuild(entry);
             PanContent.Children.Add(item);
-            if (entry.Installation.JavaExePath == CurrentSetJava)
+            if (entry.Installation.JavaExePath == currentSetJava)
                 item.SetChecked(true, false, false);
         }
 
-        if (string.IsNullOrEmpty(Conversions.ToString(CurrentSetJava)))
-            ItemAuto.SetChecked(true, false, false);
+        if (string.IsNullOrEmpty(Conversions.ToString(currentSetJava)))
+            itemAuto.SetChecked(true, false, false);
+    }
+    
+    private MyListItem ItemBuild(JavaEntry J)
+    {
+        var item = new MyListItem();
+        var versionTypeDesc = J.Installation.IsJre ? "JRE" : "JDK";
+        var versionNameDesc = J.Installation.MajorVersion.ToString();
+        item.Title = $"{versionTypeDesc} {versionNameDesc}";
+
+        item.Info = J.Installation.JavaFolder;
+        var displayTags = new List<string>();
+        var displayBits = J.Installation.Is64Bit ? "64 Bit" : "32 Bit";
+        displayTags.Add(displayBits);
+        var DisplayBrand = J.Installation.Brand.ToString();
+        displayTags.Add(DisplayBrand);
+        item.Tags = displayTags;
+
+        item.Type = MyListItem.CheckType.RadioBox;
+        item.Check += (sender, e) =>
+        {
+            if (!J.Installation.IsStillAvailable)
+            {
+                ModMain.Hint("此 Java 不可用，请刷新列表");
+                return;
+            }
+
+            if (J.IsEnabled)
+                Config.Launch.SelectedJava = J.Installation.JavaExePath;
+            else
+            {
+                ModMain.Hint("请先启用此 Java 后再选择其作为默认 Java");
+                e.Handled = true;
+            }
+        };
+        var btnOpenFolder = new MyIconButton();
+        btnOpenFolder.Logo = ModBase.Logo.IconButtonOpen;
+        btnOpenFolder.ToolTip = "打开";
+        btnOpenFolder.Click += (sender, e) =>
+        {
+            if (!J.Installation.IsStillAvailable)
+            {
+                ModMain.Hint("此 Java 不可用，请刷新列表");
+                return;
+            }
+
+            ModBase.OpenExplorer(J.Installation.JavaFolder);
+        };
+        var btnInfo = new MyIconButton();
+        btnInfo.Logo = ModBase.Logo.IconButtonInfo;
+        btnInfo.ToolTip = "详细信息";
+        btnInfo.Click += (sender, e) =>
+        {
+            if (!J.Installation.IsStillAvailable)
+            {
+                ModMain.Hint("此 Java 不可用，请刷新列表");
+                return;
+            }
+
+            ModMain.MyMsgBox(
+                $"""
+                 类型: {versionTypeDesc}
+                 版本: {J.Installation.Version.ToString()}
+                 架构: {J.Installation.Architecture.ToString()} ({displayBits})
+                 品牌: {DisplayBrand}
+                 位置: {J.Installation.JavaFolder}
+                 """,
+                "Java 信息");
+        };
+        var btnEnableSwitch = new MyIconButton();
+        
+        item.Buttons = [btnOpenFolder, btnInfo, btnEnableSwitch];
+
+        void UpdateEnableStyle(bool isCurEnable)
+        {
+            if (!J.Installation.IsStillAvailable)
+            {
+                ModMain.Hint("此 Java 不可用，请刷新列表");
+                return;
+            }
+
+            if (isCurEnable)
+            {
+                item.LabTitle.TextDecorations = null;
+                item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrush1");
+                btnEnableSwitch.Logo = ModBase.Logo.IconButtonDisable;
+                btnEnableSwitch.ToolTip = "禁用此 Java";
+            }
+            else
+            {
+                item.LabTitle.TextDecorations = TextDecorations.Strikethrough;
+                item.LabTitle.SetResourceReference(TextBlock.ForegroundProperty, "ColorBrushGray4");
+                btnEnableSwitch.Logo = ModBase.Logo.IconButtonEnable;
+                btnEnableSwitch.ToolTip = "启用此 Java";
+            }
+        }
+        
+        btnEnableSwitch.Click += (_, _) =>
+        {
+            try
+            {
+                var target = ModJava.Javas.AddOrGet(J.Installation.JavaExePath);
+                if (target == null)
+                {
+                    ModMain.Hint("此 Java 不可用，请刷新列表");
+                    return;
+                }
+
+                if (target.IsEnabled && Operators.ConditionalCompareObjectEqual(
+                        Config.Launch.SelectedJava, target.Installation.JavaExePath, false))
+                {
+                    ModMain.Hint("请先取消选择此 Java 作为默认 Java 后再禁用");
+                    return;
+                }
+
+                target.IsEnabled = !target.IsEnabled;
+                UpdateEnableStyle(target.IsEnabled);
+                ModJava.Javas.SaveConfig();
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "调整 Java 启用状态失败", ModBase.LogLevel.Hint);
+            }
+        };
+        UpdateEnableStyle(J.IsEnabled);
+
+        return item;
     }
 
     private void BtnAdd_Click(object sender, ModBase.RouteEventArgs e)
