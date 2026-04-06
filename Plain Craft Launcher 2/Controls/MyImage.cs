@@ -232,6 +232,35 @@ public class MyImage : Image
     ///     正在下载网络图片时显示的本地图片。
     /// </summary>
     public string LoadingSource { get; set; } = "pack://application:,,,/images/Icons/NoIcon.png";
+    public CornerRadius CornerRadius
+    {
+        get => (CornerRadius)GetValue(CornerRadiusProperty);
+        set => SetValue(CornerRadiusProperty, value);
+    }
+    private static readonly DependencyProperty CornerRadiusProperty =
+        DependencyProperty.Register(
+            "CornerRadius",
+            typeof(CornerRadius),
+            typeof(MyImage),
+            new FrameworkPropertyMetadata(
+                new CornerRadius(0),
+                OnCornerRadiusChanged)
+        );
 
+    private static void OnCornerRadiusChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        ((MyImage)d).UpdateClip();
+    }
+
+    private void UpdateClip() // Handles Me.SizeChanged will be added separately
+    {
+        if (ActualWidth > 0 && ActualHeight > 0)
+        {
+            Clip = new RectangleGeometry(
+                new Rect(0, 0, ActualWidth, ActualHeight),
+                CornerRadius.TopLeft,
+                CornerRadius.TopRight);
+        }
+    }
     #endregion
 }

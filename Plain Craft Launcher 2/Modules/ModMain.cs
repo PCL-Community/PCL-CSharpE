@@ -89,6 +89,7 @@ public static class ModMain
     public static PageInstanceSavesBackup? FrmInstanceSavesBackup;
     public static PageInstanceSavesDatapack? FrmInstanceSavesDatapack;
     public static PageDownloadCompDetail? FrmDownloadCompDetail;
+    public static PageHomepageNewsView? FrmHomepageNews;
 
     public static ModLoader.LoaderTask<int, List<HelpEntry>> HelpLoader = new("Help Page", HelpLoad, null,
         ThreadPriority.BelowNormal);
@@ -918,7 +919,7 @@ public static class ModMain
 
 
     // 资源信息分页声明
-
+    
     #endregion
 
     #region 帮助

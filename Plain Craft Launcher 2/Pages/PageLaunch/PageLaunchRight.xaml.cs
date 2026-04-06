@@ -194,6 +194,16 @@ public partial class PageLaunchRight : IRefreshable
                     url = "https://s3.pysio.online/pcl2-ce/apiv2/pages/announce.xaml";
                     content = LoadFromNetwork(url);
                     break;
+                case 15:
+                    LogWrapper.Info("[Page] 主页预设：Minecraft 信息流");
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (ModMain.FrmHomepageNews == null) 
+                            ModMain.FrmHomepageNews = new PageHomepageNewsView();
+                        PanCustom.Children.Clear();
+                        PanCustom.Children.Add(ModMain.FrmHomepageNews);
+                    });
+                    return;
             }
         }
 
