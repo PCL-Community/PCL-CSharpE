@@ -146,7 +146,11 @@ public partial class ServerCard
     {
         try
         {
-            var launchOptions = new ModLaunch.McLaunchOptions { ServerIp = Server.Address };
+            var launchOptions = new ModLaunch.McLaunchOptions
+            {
+                ServerIp = Server.Address,
+                Instance = PageInstanceLeft.Instance
+            };
             ModLaunch.McLaunchStart(launchOptions);
             ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.Launch });
             ModMain.Hint($"正在连接到服务器 {Server.Name}...");

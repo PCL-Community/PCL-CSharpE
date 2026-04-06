@@ -281,7 +281,11 @@ public partial class PageInstanceSaves : IRefreshable
                     BtnLaunch.Click += (_, _) =>
                     {
                         var WorldName = GetFileNameFromPath(tmpCurFolder);
-                        var LaunchOptions = new ModLaunch.McLaunchOptions { WorldName = WorldName };
+                        var LaunchOptions = new ModLaunch.McLaunchOptions
+                        {
+                            WorldName = WorldName,
+                            Instance = PageInstanceLeft.Instance
+                        };
                         ModLaunch.McLaunchStart(LaunchOptions);
                         ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.Launch });
                     };
