@@ -2,7 +2,7 @@ using System.Net.Http;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -22,23 +22,27 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
 
     public VersionDataModel GetLatestVersion(UpdateChannel channel, UpdateArch arch)
     {
-        var response = HttpRequestBuilder.Create(GetUrl(channel, arch), HttpMethod.Get).SendAsync().GetAwaiter()
-            .GetResult();
-        var ret = (JObject)ModBase.GetJson(response.AsStringContent());
-        if ((int)ret["code"] != 0)
-            throw new Exception("Mirror 酱获取数据不成功");
-        var data = ret["data"];
-        var upd_url = data["url"]?.ToString();
-        if (data is not null && string.IsNullOrWhiteSpace(upd_url))
-            throw new Exception("无效 CDK");
-        return new VersionDataModel
+        using (var response = HttpRequest.Create(GetUrl(channel, arch))
+                   .SendAsync()
+                   .GetAwaiter()
+                   .GetResult())
         {
-            Source = SourceName,
-            VersionCode = (int)data["version_number"],
-            VersionName = (string)data["version_name"],
-            SHA256 = (string)data["sha256"],
-            Changelog = (string)data["release_note"]
-        };
+            var ret = (JObject)ModBase.GetJson(response.AsString());
+            if ((int)ret["code"] != 0)
+                throw new Exception("Mirror 酱获取数据不成功");
+            var data = ret["data"];
+            var upd_url = data["url"]?.ToString();
+            if (data is not null && string.IsNullOrWhiteSpace(upd_url))
+                throw new Exception("无效 CDK");
+            return new VersionDataModel
+            {
+                Source = SourceName,
+                VersionCode = (int)data["version_number"],
+                VersionName = (string)data["version_name"],
+                SHA256 = (string)data["sha256"],
+                Changelog = (string)data["release_note"]
+            };
+        }
     }
 
     public bool RefreshCache()

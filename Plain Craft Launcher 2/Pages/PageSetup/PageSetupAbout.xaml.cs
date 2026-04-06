@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 
 namespace PCL;
 
@@ -41,8 +41,9 @@ public partial class PageSetupAbout
     {
         try
         {
-            using (var response = await HttpRequestBuilder
-                       .Create("https://api.github.com/repos/PCL-Community/PCL2-CE/contributors").SendAsync(true))
+            using (var response = await HttpRequest
+                       .Create("https://api.github.com/repos/PCL-Community/PCL2-CE/contributors").SendAsync())
+                response.EnsureSuccessStatusCode();
             {
                 var cos = await response.AsJsonAsync<List<GitHubContributor>>();
                 Contributors.Clear();

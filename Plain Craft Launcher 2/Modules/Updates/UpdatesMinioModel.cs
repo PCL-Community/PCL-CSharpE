@@ -3,7 +3,7 @@ using System.IO.Compression;
 using System.Net.Http;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Diff;
 
@@ -163,10 +163,14 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         }
         else
         {
-            var response = HttpRequestBuilder.Create($"{_baseUrl}apiv2/{path}{name}.json", HttpMethod.Get).SendAsync()
-                .GetAwaiter().GetResult();
-            jsonData = JToken.Parse(response.AsStringContent());
-            ModBase.WriteFile(localInfoFile, response.AsStringContent());
+            var response = HttpRequest.Create($"{_baseUrl}apiv2/{path}{name}.json")
+                .SendAsync()
+                .GetAwaiter()
+                .GetResult();
+
+            var content = response.AsString();
+            jsonData = JToken.Parse(content);
+            ModBase.WriteFile(localInfoFile, content);
         }
 
         return jsonData;

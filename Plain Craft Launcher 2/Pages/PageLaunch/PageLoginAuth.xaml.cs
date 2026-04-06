@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
@@ -137,18 +137,19 @@ public partial class PageLoginAuth
             try
             {
                 serverUri = await ApiLocation.TryRequestAsync(serverUriInput);
-                var response = await HttpRequestBuilder.Create(serverUri, HttpMethod.Get).SendAsync();
-                var responseText = await response.AsStringAsync();
-                serverName = await Task.Run(() => JObject.Parse(responseText)["meta"]["serverName"].ToString());
+                using (var resp = await HttpRequest.Create(serverUri).SendAsync())
+                {
+                    string responseText = await resp.AsStringAsync();
+                    serverName = await Task.Run(() => JObject.Parse(responseText)["meta"]["serverName"].ToString());
+                }
             }
             catch (Exception ex)
             {
                 ModBase.Log(ex, "从服务器获取名称失败");
             }
 
-            if (serverUri is not null)
-                TextServer.Text = serverUri;
-            if (serverName is null)
+            if (serverUri != null) TextServer.Text = serverUri;
+            if (serverName == null)
             {
                 TextServerName.Visibility = Visibility.Hidden;
             }

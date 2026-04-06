@@ -1,7 +1,7 @@
-using PCL.Core.IO.Net.Http.Client;
 using System;
 using System.Windows;
 using System.Windows.Input;
+using PCL.Core.IO.Net.Http.Client.Request;
 
 namespace PCL
 {
@@ -31,7 +31,7 @@ namespace PCL
             try
             {
                 const string HomepageMarketUri = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/JingHai-Lingyun/Custom.xaml";
-                var content = HttpRequestBuilder.Create(HomepageMarketUri).SendAsync(true).Result.AsStringAsync().Result;
+                var content = HttpRequest.Create(HomepageMarketUri).SendAsync().Result.AsStringAsync().Result;
                 content = content.Replace("EventType=\"刷新主页\"", "EventType=\"刷新主页市场\"");
 
                 ModBase.RunInUi(() =>

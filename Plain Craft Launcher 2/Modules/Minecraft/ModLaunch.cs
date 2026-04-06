@@ -10,7 +10,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Launch.Utils;
 using PCL.Core.Utils;
@@ -913,14 +913,22 @@ public static class ModLaunch
 
         McLaunchLog("开始正版验证 Step 1/6（原始登录）");
         JObject PrepareJson;
-        using (var response = HttpRequestBuilder
-                   .Create("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode", HttpMethod.Post)
-                   .WithContent(
-                       new ByteArrayContent(Encoding.UTF8.GetBytes(
-                           $"client_id={ModSecret.OAuthClientId}&tenant=/consumers&scope=XboxLive.signin%20offline_access")),
-                       "application/x-www-form-urlencoded").SendAsync(true).GetAwaiter().GetResult())
+        var parameters = new Dictionary<string, string>
         {
-            PrepareJson = (JObject)ModBase.GetJson(response.AsStringContent());
+            {"client_id", ModSecret.OAuthClientId},
+            {"tenant", "/consumers"},
+            {"scope", "XboxLive.signin offline_access"}
+        };
+
+        using (var response = HttpRequest
+                   .CreatePost("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode")
+                   .WithFormContent(parameters)
+                   .SendAsync()
+                   .GetAwaiter()
+                   .GetResult())
+        {
+            response.EnsureSuccessStatusCode();
+            PrepareJson = (JObject)ModBase.GetJson(response.AsString());
         }
 
         McLaunchLog("网页登录地址：" + PrepareJson["verification_uri"]);
@@ -960,12 +968,23 @@ public static class ModLaunch
         string Result = null;
         try
         {
-            using (var response = HttpRequestBuilder.Create("https://login.live.com/oauth20_token.srf", HttpMethod.Post)
-                       .WithContent(
-                           $"client_id={ModSecret.OAuthClientId}&refresh_token={Uri.EscapeDataString(Code)}&grant_type=refresh_token&scope=XboxLive.signin%20offline_access",
-                           "application/x-www-form-urlencoded").SendAsync(true).GetAwaiter().GetResult())
+            var parameters = new Dictionary<string, string>
             {
-                Result = response.AsStringContent();
+                {"client_id", ModSecret.OAuthClientId},
+                {"refresh_token", Code},
+                {"grant_type", "refresh_token"},
+                {"scope", "XboxLive.signin offline_access"}
+            };
+
+            using (var response = HttpRequest
+                       .CreatePost("https://login.live.com/oauth20_token.srf")
+                       .WithFormContent(parameters)
+                       .SendAsync()
+                       .GetAwaiter()
+                       .GetResult())
+            {
+                response.EnsureSuccessStatusCode();
+                Result = response.AsString();
             }
         }
         catch (ThreadInterruptedException ex)
@@ -1037,11 +1056,15 @@ public static class ModLaunch
         string Result = null;
         try
         {
-            using (var response = HttpRequestBuilder
-                       .Create("https://user.auth.xboxlive.com/user/authenticate", HttpMethod.Post)
-                       .WithJsonContent(requestData).SendAsync(true).GetAwaiter().GetResult())
+            using (var response = HttpRequest
+                       .CreatePost("https://user.auth.xboxlive.com/user/authenticate")
+                       .WithJsonContent(requestData)
+                       .SendAsync()
+                       .GetAwaiter()
+                       .GetResult())
             {
-                Result = response.AsStringContent();
+                response.EnsureSuccessStatusCode();
+                Result = response.AsString();
             }
         }
         catch (Exception ex)
@@ -1099,12 +1122,15 @@ public static class ModLaunch
             TokenType = "JWT"
         };
         string result;
-        using (var response = HttpRequestBuilder
-                   .Create("https://xsts.auth.xboxlive.com/xsts/authorize", HttpMethod.Post)
-                   .WithJsonContent(requestData).SendAsync().GetAwaiter().GetResult())
+        using (var response = HttpRequest
+                   .CreatePost("https://api.minecraftservices.com/authentication/login_with_xbox")
+                   .WithJsonContent(requestData)
+                   .SendAsync()
+                   .GetAwaiter()
+                   .GetResult())
         {
-            result = response.AsStringContent();
-
+            result = response.AsString();
+        
             if (!response.IsSuccess)
             {
                 // 参考 https://github.com/PrismarineJS/prismarine-auth/blob/master/src/common/Constants.js
@@ -1190,11 +1216,15 @@ public static class ModLaunch
         string Result;
         try
         {
-            using (var response = HttpRequestBuilder
-                       .Create("https://api.minecraftservices.com/authentication/login_with_xbox", HttpMethod.Post)
-                       .WithJsonContent(requestData).SendAsync(true).GetAwaiter().GetResult())
+            using (var response = HttpRequest
+                       .CreatePost("https://api.minecraftservices.com/authentication/login_with_xbox")
+                       .WithJsonContent(requestData)
+                       .SendAsync()
+                       .GetAwaiter()
+                       .GetResult())
             {
-                Result = response.AsStringContent();
+                response.EnsureSuccessStatusCode();
+                Result = response.AsString();
             }
         }
         catch (HttpRequestException ex)
@@ -1251,11 +1281,15 @@ public static class ModLaunch
         var result = "";
         try
         {
-            using (var response = HttpRequestBuilder
-                       .Create("https://api.minecraftservices.com/entitlements/mcstore", HttpMethod.Get)
-                       .WithBearerToken(accessToken).SendAsync(true).GetAwaiter().GetResult())
+            using (var response = HttpRequest
+                       .Create("https://api.minecraftservices.com/entitlements/mcstore")
+                       .WithBearerToken(accessToken)
+                       .SendAsync()
+                       .GetAwaiter()
+                       .GetResult())
             {
-                result = response.AsStringContent();
+                response.EnsureSuccessStatusCode();
+                result = response.AsString();
             }
 
             var ResultJson = (JObject)ModBase.GetJson(result);
@@ -1296,11 +1330,15 @@ public static class ModLaunch
         string Result;
         try
         {
-            using (var response = HttpRequestBuilder
-                       .Create("https://api.minecraftservices.com/minecraft/profile", HttpMethod.Get)
-                       .WithBearerToken(AccessToken).SendAsync(true).GetAwaiter().GetResult())
+            using (var response = HttpRequest
+                       .Create("https://api.minecraftservices.com/minecraft/profile")
+                       .WithBearerToken(AccessToken)
+                       .SendAsync()
+                       .GetAwaiter()
+                       .GetResult())
             {
-                Result = response.AsStringContent();
+                response.EnsureSuccessStatusCode();
+                Result = response.AsString();
             }
         }
         catch (HttpRequestException ex)

@@ -10,7 +10,7 @@ using System.Windows.Controls.Primitives;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.Utils;
@@ -828,11 +828,18 @@ pause";
             string PageData;
             try
             {
-                PageData = HttpRequestBuilder
-                    .Create("https://optifine.net/adloadx?f=" + DownloadInfo.NameFile, HttpMethod.Get)
-                    .WithHeader("Accept", "text/html").WithHeader("Accept-Language", "en-US,en;q=0.5")
-                    .WithHeader("X-Requested-With", "XMLHttpRequest").SendAsync(true).GetAwaiter().GetResult()
-                    .AsStringContent();
+                using (var resp = HttpRequest
+                           .Create("https://optifine.net/adloadx?f=" + DownloadInfo.NameFile)
+                           .WithHeader("Accept", "text/html")
+                           .WithHeader("Accept-Language", "en-US,en;q=0.5")
+                           .WithHeader("X-Requested-With", "XMLHttpRequest")
+                           .SendAsync()
+                           .GetAwaiter()
+                           .GetResult())
+                {
+                    resp.EnsureSuccessStatusCode();
+                    PageData = resp.AsString();
+                }
                 Task.Progress = 0.8d;
                 Sources.Add("https://optifine.net/" + PageData.RegexSearch(@"downloadx\?f=[^""']+")[0]);
                 ModBase.Log("[Download] OptiFine " + DownloadInfo.DisplayName + " 官方下载地址：" + Sources.Last());
@@ -1055,11 +1062,16 @@ pause";
                 string PageData;
                 try
                 {
-                    PageData = HttpRequestBuilder
-                        .Create("https://optifine.net/adloadx?f=" + downloadInfo.NameFile, HttpMethod.Get)
-                        .WithHeader("Accept", "text/html").WithHeader("Accept-Language", "en-US,en;q=0.5")
-                        .WithHeader("X-Requested-With", "XMLHttpRequest").SendAsync(true).GetAwaiter().GetResult()
-                        .AsStringContent();
+                    using (var resp = HttpRequest
+                            .Create("https://optifine.net/adloadx?f=" + downloadInfo.NameFile)
+                            .WithHeader("Accept", "text/html")
+                            .WithHeader("Accept-Language", "en-US,en;q=0.5")
+                            .WithHeader("X-Requested-With", "XMLHttpRequest")
+                            .SendAsync().GetAwaiter().GetResult())
+                    {
+                        resp.EnsureSuccessStatusCode();
+                        PageData = resp.AsString();
+                    }
                     Task.Progress = 0.8d;
                     sources.Add("https://optifine.net/" + PageData.RegexSearch(@"downloadx\?f=[^""']+")[0]);
                     ModBase.Log("[Download] OptiFine " + downloadInfo.DisplayName + " 官方下载地址：" + sources.Last());

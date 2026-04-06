@@ -7,7 +7,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -631,10 +631,17 @@ public static class ModDownload
 
     private static void DlOptiFineListOfficialMain(ModLoader.LoaderTask<int, DlOptiFineListResult> Loader)
     {
-        var Result = HttpRequestBuilder.Create("https://optifine.net/downloads", HttpMethod.Get)
+        string Result = "";
+        using var resp = HttpRequest
+            .Create("https://optifine.net/downloads")
             .WithHeader("Accept", "application/json, text/javascript, */*; q=0.01")
-            .WithHeader("Accept-Language", "en-US,en;q=0.5").WithHeader("X-Requested-With", "XMLHttpRequest")
-            .SendAsync(true).GetAwaiter().GetResult().AsStringContent();
+            .WithHeader("Accept-Language", "en-US,en;q=0.5")
+            .WithHeader("X-Requested-With", "XMLHttpRequest")
+            .SendAsync()
+            .GetAwaiter()
+            .GetResult();
+        resp.EnsureSuccessStatusCode();
+        Result = resp.AsString();
         if (Result.Length < 200)
             throw new Exception("获取到的版本列表长度不足（" + Result + "）");
         try
@@ -1978,19 +1985,26 @@ public static class ModDownload
     private static void DlLabyModListOfficialMain(ModLoader.LoaderTask<int, DlLabyModListResult> Loader)
     {
         JObject ResultProduction;
-        using (var productionResponse = HttpRequestBuilder
-                   .Create("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json", HttpMethod.Get)
-                   .WithHttpVersionOption(HttpVersion.Version20).SendAsync(true).GetAwaiter().GetResult())
+        using (var productionResponse = HttpRequest
+                   .Create("https://releases.r2.labymod.net/api/v1/manifest/production/latest.json")
+                   .WithHttpVersionOption(HttpVersion.Version20)
+                   .SendAsync()
+                   .GetAwaiter()
+                   .GetResult())
         {
-            ResultProduction = (JObject)ModBase.GetJson(productionResponse.AsStringContent());
+            ResultProduction = (JObject)ModBase.GetJson(productionResponse.AsString());
         }
 
         JObject ResultSnapshot;
-        using (var snapshotResponse = HttpRequestBuilder
-                   .Create("https://releases.r2.labymod.net/api/v1/manifest/snapshot/latest.json", HttpMethod.Get)
-                   .WithHttpVersionOption(HttpVersion.Version20).SendAsync(true).GetAwaiter().GetResult())
+        using (var snapshotResponse = HttpRequest
+                   .Create("https://releases.r2.labymod.net/api/v1/manifest/snapshot/latest.json")
+                   .WithHttpVersionOption(HttpVersion.Version20)
+                   .SendAsync()
+                   .GetAwaiter()
+                   .GetResult())
         {
-            ResultSnapshot = (JObject)ModBase.GetJson(snapshotResponse.AsStringContent());
+            snapshotResponse.EnsureSuccessStatusCode();
+            ResultSnapshot = (JObject)ModBase.GetJson(snapshotResponse.AsString());
         }
 
         var Result = new JObject();

@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
 
 namespace PCL;
@@ -91,10 +91,10 @@ public class MyImage : Image
             Directory.CreateDirectory(ModBase.GetPathFromFullPath(TempPath)); // 重新实现下载，以避免携带 Header（#5072）
             using (var fs = new FileStream(TempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
             {
-                using (var response = await HttpRequestBuilder.Create(Url, HttpMethod.Get)
-                           .WithHttpVersionOption(HttpVersion.Version30).WithDefaultHeaderOption(false).SendAsync())
+                using (var response = await  HttpRequest.Create(Url)
+                           .WithHttpVersionOption(HttpVersion.Version30).SendAsync(addMetedata:false).ConfigureAwait(false))
                 {
-                    if (response.IsSuccess)
+                    if (response.IsSuccessStatusCode)
                     {
                         using (var nfs = await response.AsStreamAsync())
                         {
@@ -104,11 +104,11 @@ public class MyImage : Image
                     }
                     else if (!string.IsNullOrWhiteSpace(FallbackSource))
                     {
-                        using (var fallbackResponse = await HttpRequestBuilder.Create(FallbackSource, HttpMethod.Get)
-                                   .WithHttpVersionOption(HttpVersion.Version30).WithDefaultHeaderOption(false)
-                                   .SendAsync(true))
+                        using (var fallbackResponse = await HttpRequest.Create(FallbackSource)
+                                   .WithHttpVersionOption(HttpVersion.Version30). SendAsync(addMetedata:false)
+                                   .ConfigureAwait(false))
                         {
-                            if (fallbackResponse.IsSuccess)
+                            if (fallbackResponse.IsSuccessStatusCode)
                                 using (var fallbackNfs = await fallbackResponse.AsStreamAsync())
                                 {
                                     fs.SetLength(0L);
