@@ -90,6 +90,7 @@ public partial class PageInstanceSetup
             TextAdvanceGame.Text = Config.Instance.GameArgs[PageInstanceLeft.Instance];
             TextAdvanceRun.Text = Config.Instance.PreLaunchCommand[PageInstanceLeft.Instance];
             CheckAdvanceRunWait.Checked = (bool?)ModBase.Setup.Get("VersionAdvanceRunWait", PageInstanceLeft.Instance);
+            CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.Instance];
             if (Conversions.ToBoolean(
                     Operators.ConditionalCompareObjectEqual(
                         ModBase.Setup.Get("VersionAdvanceAssets", PageInstanceLeft.Instance), 2, false)))

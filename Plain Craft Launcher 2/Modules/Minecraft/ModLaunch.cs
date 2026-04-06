@@ -2195,7 +2195,46 @@ public static class ModLaunch
                                       !(bool)ModBase.Setup.Get("VersionAdvanceDisableRW", Mc))); // <1.6
     }
 
+    /// <summary>
+    /// 获取实例所依赖的 LWJGL 版本
+    /// </summary>
+    private static string McLaunchGetLwjglVersion(ModMinecraft.McInstance mc)
+    {
+        foreach (ModMinecraft.McLibToken library in ModMinecraft.McLibListGet(mc, false))
+        {
+            if (string.IsNullOrWhiteSpace(library.OriginalName))
+                continue;
+        
+            string[] parts = library.OriginalName.Split(':');
+            if (parts.Length >= 3 &&
+                parts[0].Equals("org.lwjgl", StringComparison.OrdinalIgnoreCase) &&
+                parts[1].Equals("lwjgl", StringComparison.OrdinalIgnoreCase))
+            {
+                return parts[2];
+            }
+        }
+    
+        return null;
+    }
 
+    /// <summary>
+    /// 判断是否启用了针对 Minecraft 26.1 的性能问题补丁
+    /// </summary>
+    private static bool McLaunchUsesLwjglUnsafeAgent(ModMinecraft.McInstance mc)
+    {
+        if (McLaunchGetLwjglVersion(mc) == "3.4.1")
+        {
+            bool globalDisabled = Config.Launch.DisableLwjglUnsafeAgent;
+            bool instanceDisabled = Config.Instance.DisableLwjglUnsafeAgent[mc];
+        
+            return !globalDisabled && !instanceDisabled;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
     // 主方法，合并 Jvm、Game、Replace 三部分的参数数据
     private static void McLaunchArgumentMain(ModLoader.LoaderTask<string, List<ModMinecraft.McLibToken>> Loader)
     {
@@ -2364,6 +2403,12 @@ public static class ModLaunch
             }
         }
 
+        // LWJGL Unsafe Agent
+        if (McLaunchUsesLwjglUnsafeAgent(ModMinecraft.McInstanceSelected))
+        {
+            DataList.Insert(0, $"-javaagent:\"{ModBase.PathPure}lwjgl-unsafe-agent.jar\"");
+        }
+        
         if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
         {
             if (ModMinecraft.McInstanceSelected.ReleaseTime.Year >= 2017)
@@ -2814,6 +2859,21 @@ public static class ModLaunch
             }
         }
 
+        // LWJGL Unsafe Agent 释放
+        if (McLaunchUsesLwjglUnsafeAgent(instance))
+        {
+            string AgentPath = ModBase.PathPure + "lwjgl-unsafe-agent.jar";
+            try
+            {
+                ModBase.WriteFile(AgentPath, ModBase.GetResourceStream("Resources/lwjgl-unsafe-agent.jar"));
+                CpStrings.Add(AgentPath);
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "LWJGL Unsafe Agent 释放失败");
+            }
+        }
+        
         foreach (var Library in LibList)
         {
             if (Library.IsNatives)

@@ -75,6 +75,7 @@ public partial class PageSetupLaunch
             CheckAdvanceDisableRW.Checked = Config.Launch.DisableRw;
             CheckAdvanceGraphicCard.Checked = Config.Launch.SetGpuPreference;
             CheckAdvanceNoJavaw.Checked = Config.Launch.NoJavaw;
+            CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Launch.DisableLwjglUnsafeAgent;
             if (ModBase.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
