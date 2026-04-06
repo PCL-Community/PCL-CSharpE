@@ -154,7 +154,7 @@ public partial class Application
 
             // 检测异常环境
             var problemList = new List<string>();
-            var currentOSVersion = KernelInterop.GetCurrentOsVersion();
+            var currentOSVersion = NtInterop.GetCurrentOsVersion();
             if (currentOSVersion.Build < 17763)
                 problemList.Add("- Windows 版本不满足推荐要求，推荐至少 Windows 10 1809，建议考虑升级 Windows 系统");
             if (ModBase.Is32BitSystem)

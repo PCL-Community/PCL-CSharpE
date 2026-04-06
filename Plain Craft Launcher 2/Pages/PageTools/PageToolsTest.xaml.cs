@@ -291,23 +291,6 @@ public partial class PageToolsTest
         }, "Rubbish Clear");
     }
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Ansi)]
-    private static extern nint GetCurrentProcess();
-
-    [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-    private static extern bool CloseHandle(nint handle);
-
-    [DllImport("advapi32.dll", CharSet = CharSet.Auto)]
-    private static extern bool OpenProcessToken(HandleRef ProcessHandle, int DesiredAccess, out nint TokenHandle);
-
-    [DllImport("advapi32.dll", CharSet = CharSet.Auto)]
-    private static extern bool LookupPrivilegeValue([MarshalAs(UnmanagedType.LPTStr)] string lpSystemName,
-        [MarshalAs(UnmanagedType.LPTStr)] string lpName, out LUID lpLuid);
-
-    [DllImport("advapi32.dll", CharSet = CharSet.Auto)]
-    private static extern bool AdjustTokenPrivileges(HandleRef TokenHandle, bool DisableAllPrivileges,
-        TokenPrivileges NewState, int BufferLength, nint PreviousState, nint ReturnLength);
-
     [DllImport("ntdll.dll", CharSet = CharSet.Ansi)]
     private static extern uint NtSetSystemInformation(int SystemInformationClass, nint SystemInformation,
         int SystemInformationLength);
@@ -395,35 +378,12 @@ public partial class PageToolsTest
         // 提权部分
         try
         {
-            var processId = GetCurrentProcess();
-            LUID luid1 = default;
-            LUID luid2 = default;
-            nint hToken = 0;
-            if (OpenProcessToken(new HandleRef(null, processId), 32, out hToken))
-            {
-                string arglpSystemName = null;
-                var arglpName = "SeProfileSingleProcessPrivilege";
-                LookupPrivilegeValue(arglpSystemName, arglpName, out luid1);
-                string arglpSystemName1 = null;
-                var arglpName1 = "SeIncreaseQuotaPrivilege";
-                LookupPrivilegeValue(arglpSystemName1, arglpName1, out luid2);
-
-                var tokenPrivileges1 = new TokenPrivileges();
-                tokenPrivileges1.Luid = luid1;
-                tokenPrivileges1.Attributes = 2;
-                var tokenPrivileges2 = new TokenPrivileges();
-                tokenPrivileges2.Luid = luid2;
-                tokenPrivileges2.Attributes = 2;
-
-                AdjustTokenPrivileges(new HandleRef(null, hToken), false, tokenPrivileges1, 0, nint.Zero, nint.Zero);
-                AdjustTokenPrivileges(new HandleRef(null, hToken), false, tokenPrivileges2, 0, nint.Zero, nint.Zero);
-
-                CloseHandle(hToken);
-            }
+            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, true);
+            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, true);
         }
-        catch (Exception)
+        catch (System.ComponentModel.Win32Exception ex)
         {
-            throw new Exception(string.Format("获取内存优化权限失败（错误代码：{0}）", Marshal.GetLastWin32Error()));
+            throw new Exception(String.Format("获取内存优化权限失败（错误代码：{0}）", ex.NativeErrorCode));
         }
 
         if (ShowHint) ModMain.Hint("正在进行内存优化……");
@@ -440,39 +400,50 @@ public partial class PageToolsTest
             NowType = "MemoryEmptyWorkingSets";
             info = 2;
             _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned);
-            NtSetSystemInformation(80, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info));
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
+                _gcHandle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(info));
             _gcHandle.Free();
             NowType = "SystemFileCacheInformation";
             scfi.MaximumWorkingSet = uint.MaxValue;
             scfi.MinimumWorkingSet = uint.MaxValue;
             _gcHandle = GCHandle.Alloc(scfi, GCHandleType.Pinned);
-            NtSetSystemInformation(81, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(scfi));
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemFileCacheInformationEx,
+                _gcHandle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(scfi));
             _gcHandle.Free();
             NowType = "MemoryFlushModifiedList";
             info = 3;
             _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned);
-            NtSetSystemInformation(80, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info));
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
+                _gcHandle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(info));
             _gcHandle.Free();
             NowType = "MemoryPurgeStandbyList";
             info = 4;
             _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned);
-            NtSetSystemInformation(80, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info));
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
+                _gcHandle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(info));
             _gcHandle.Free();
             NowType = "MemoryPurgeLowPriorityStandbyList";
             info = 5;
             _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned);
-            NtSetSystemInformation(80, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info));
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
+                _gcHandle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(info));
             _gcHandle.Free();
             NowType = "SystemRegistryReconciliationInformation";
-            NtSetSystemInformation(155, new nint(default(int)), 0);
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemRegistryReconciliationInformation,
+                IntPtr.Zero, 0);
             NowType = "SystemCombinePhysicalMemoryInformation";
             _gcHandle = GCHandle.Alloc(combineInfoEx, GCHandleType.Pinned);
-            NtSetSystemInformation(130, _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(combineInfoEx));
+            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemCombinePhysicalMemoryInformation,
+                _gcHandle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(combineInfoEx));
             _gcHandle.Free();
         }
-        catch (Exception)
+        catch (System.ComponentModel.Win32Exception ex)
         {
-            throw new Exception(string.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType));
+            throw new Exception(string.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType, ex.NativeErrorCode));
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(string.Format("内存优化操作 {0} 失败（错误信息：{1}）", NowType, ex.Message));
         }
     }
 
@@ -962,20 +933,6 @@ public partial class PageToolsTest
     {
         SaveCustomUserAgent(sender, e);
         TextDownloadFolder_ValidateChanged(sender, e);
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private class TokenPrivileges
-    {
-        public int PrivilegeCount = 1;
-        public LUID Luid;
-        public int Attributes;
-    }
-
-    private struct LUID
-    {
-        public int LowPart;
-        public int HighPart;
     }
 
     [StructLayout(LayoutKind.Sequential)]
