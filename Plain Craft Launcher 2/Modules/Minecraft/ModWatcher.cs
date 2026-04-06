@@ -754,9 +754,16 @@ public static class ModWatcher
                     if (CheckAlive(GameProcess))
                     {
                         WatcherLog("进程仍未退出，尝试使用 taskkill.exe");
-                        var taskkillProcess = Process.Start("taskkill.exe", $"/PID {GameProcess.Id} /F /T");
+                        var taskkillInfo = new ProcessStartInfo
+                        {
+                            FileName = "taskkill.exe",
+                            Arguments = $"/PID {GameProcess.Id} /F /T",
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false
+                        };
+                        var taskkillProcess = Process.Start(taskkillInfo);
                         var output = taskkillProcess.StandardOutput.ReadToEnd();
-                        ModBase.Log($"执行 taskkill.exe 结果: {output}");
+                        WatcherLog($"执行 taskkill.exe 结果:\n{output}");
                         GameProcess.WaitForExit(5000);
                         if (CheckAlive(GameProcess))
                         {
