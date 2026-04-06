@@ -2242,7 +2242,31 @@ public static class ModBase
 
         return RegexSearchRet;
     }
-
+    
+    /// <summary>
+    /// 搜索字符串中的所有正则匹配项。
+    /// </summary>
+    /// <param name="str">要搜索的字符串</param>
+    /// <param name="regex">正则表达式对象</param>
+    /// <returns>所有匹配项的列表</returns>
+    public static List<string> RegexSearch(this string str, Regex regex)
+    {
+        try
+        {
+            var result = new List<string>();
+            foreach (Match item in regex.Matches(str))
+            {
+                result.Add(item.Value);
+            }
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Log(ex, "正则匹配全部项出错");
+            return new List<string>();
+        }
+    }
+    
     /// <summary>
     ///     获取字符串中的第一个正则匹配项，若无匹配则返回 Nothing。
     /// </summary>

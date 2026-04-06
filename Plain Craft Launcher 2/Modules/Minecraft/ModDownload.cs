@@ -1246,7 +1246,7 @@ public static class ModDownload
                 VersionName = ApiName;
                 Version = new Version(ApiName.BeforeFirst("-"));
                 if (Version.Major >= 24)
-                    Inherit = Version.ToString().Replace(".0", "");
+                    Inherit = Version.Major + "." + Version.Minor;
                 else
                     Inherit = "1." + Version.Major + (Version.Minor > 0 ? "." + Version.Minor : "");
                 if (VersionName.Contains("+"))
@@ -1379,8 +1379,7 @@ public static class ModDownload
 
     private static List<DlNeoForgeListEntry> GetNeoForgeEntries(string latestJson, string latestLegacyJson)
     {
-        var versionNames = (latestLegacyJson + latestJson).RegexSearch(
-            @"(?<="")(1\.20\.1-)?\d+\.[^\.]+\.\d+(\.\d+)?(-(beta|alpha)(\.\d+)?)?(\+snapshot-\d+)?(?="")");
+        var versionNames = ModBase.RegexSearch(latestLegacyJson + latestJson, RegexPatterns.DlNeoForgeVersion);
         var versions = versionNames.Where(name => name != "47.1.82").Select(name => new DlNeoForgeListEntry(name))
             .OrderByDescending(a => a).ToList(); // 这个版本虽然在版本列表中，但不能下载
         if (!versions.Any())
