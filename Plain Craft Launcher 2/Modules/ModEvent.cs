@@ -240,7 +240,7 @@ namespace PCL
                         break;
 
                     case EventType.内存优化:
-                        if (PageToolsTest.AskTrulyWantMemoryOptimize)
+                        if (PageToolsTest.AskTrulyWantMemoryOptimize())
                             ModBase.RunInThread(() => PageToolsTest.MemoryOptimize(true));
                         break;
 

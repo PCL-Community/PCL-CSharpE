@@ -294,7 +294,37 @@ public partial class PageToolsTest
     [DllImport("ntdll.dll", CharSet = CharSet.Ansi)]
     private static extern uint NtSetSystemInformation(int SystemInformationClass, nint SystemInformation,
         int SystemInformationLength);
+    public static bool AskTrulyWantMemoryOptimize()
+    {
+        var memTotal = KernelInterop.GetPhysicalMemoryBytes().Total / 1024.0 / 1024.0 / 1024.0; // GB
+        var memLoad = KernelInterop.GetMemoryLoadPercent();
+        if (memLoad > 90) return true; // 情况不太妙啊，先别问了
 
+        string prompt = string.Empty;
+        if (memTotal >= 32)
+        {
+            prompt = "当前总内存充足，建议关闭不必要的程序来腾出内存而不是尝试使用内存优化。";
+        }
+        else if (memTotal >= 16 && memTotal < 32)
+        {
+            prompt = "当前内存比较充足，建议优先考虑让系统自动管理内存。";
+        }
+        else if (memTotal >= 6 && memTotal < 16)
+        {
+            prompt = "建议在使用后静置一分钟等待系统响应完毕。";
+        }
+        else if (memTotal >= 2 && memTotal < 6)
+        {
+            prompt = "内存资源比较紧张，建议通过加装内存以避免频繁使用内存优化功能，防止内存优化对硬盘造成过大压力。";
+        }
+        else if (memTotal < 2)
+        {
+            prompt = "嗯……？";
+        }
+
+        var s = ModMain.MyMsgBox(prompt, "确认内存优化？", "继续", "取消");
+        return s == 1;
+    }
     public static void MemoryOptimize(bool ShowHint)
     {
         if (Conversions.ToBoolean(IsMemoryOptimizing))
@@ -330,7 +360,9 @@ public partial class PageToolsTest
                 ModBase.Log("[Test] 没有管理员权限，将以命令行方式进行内存优化");
                 try
                 {
-                    num = ProcessInterop.StartAsAdmin("--memory").ExitCode * 1024L;
+                    var callProcess = ProcessInterop.StartAsAdmin(Basics.ExecutablePath, "--memory");
+                    callProcess.WaitForExit();
+                    num = (long)callProcess.ExitCode * 1024L;
                 }
                 catch (Exception ex2)
                 {
@@ -378,8 +410,8 @@ public partial class PageToolsTest
         // 提权部分
         try
         {
-            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, true);
-            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, true);
+            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, true,false);
+            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, true,false);
         }
         catch (System.ComponentModel.Win32Exception ex)
         {
@@ -403,13 +435,13 @@ public partial class PageToolsTest
             NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
                 _gcHandle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(info));
             _gcHandle.Free();
-            NowType = "SystemFileCacheInformation";
-            scfi.MaximumWorkingSet = uint.MaxValue;
-            scfi.MinimumWorkingSet = uint.MaxValue;
-            _gcHandle = GCHandle.Alloc(scfi, GCHandleType.Pinned);
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemFileCacheInformationEx,
-                _gcHandle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(scfi));
-            _gcHandle.Free();
+            //NowType = "SystemFileCacheInformation";
+            //scfi.MaximumWorkingSet = uint.MaxValue;
+            //scfi.MinimumWorkingSet = uint.MaxValue;
+            //_gcHandle = GCHandle.Alloc(scfi, GCHandleType.Pinned);
+            //NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemFileCacheInformationEx,
+            //    _gcHandle.AddrOfPinnedObject(), (uint)Marshal.SizeOf(scfi));
+            //_gcHandle.Free();
             NowType = "MemoryFlushModifiedList";
             info = 3;
             _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned);
@@ -528,7 +560,10 @@ public partial class PageToolsTest
 
     private void BtnMemory_Click(object sender, MouseButtonEventArgs e)
     {
-        ModBase.RunInThread(() => MemoryOptimize(true));
+        if (AskTrulyWantMemoryOptimize())
+        {
+            ModBase.RunInThread(() => MemoryOptimize(true));
+        }
     }
 
     // 下载正版玩家皮肤
