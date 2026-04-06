@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -649,7 +650,12 @@ public partial class PageDownloadCompDetail
         // UI 化筛选器
         PanInstanceFilter.Children.Clear();
         PanModLoaderFilter.Children.Clear();
-        if (!(_pageType == ModComp.CompType.Mod))
+        if (_pageType == ModComp.CompType.Mod)
+        {
+            PanInstanceFilter.Margin = new Thickness(10d, 10d, 0d, 5d);
+            PanModLoaderFilter.Margin = new Thickness(10d, 5d, 0d, 10d);
+        }
+        else
         {
             PanInstanceFilter.Margin = new Thickness(10d, 10d, 0d, 10d);
             PanModLoaderFilter.Margin = new Thickness(0d);
