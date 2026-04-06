@@ -447,7 +447,7 @@ public partial class PageSelectRight
 
         BtnStar.Click += (_, _) =>
         {
-            Config.Instance.Starred[Version.PathInstance] = !Version.IsStar;
+            States.Instance.Starred[Version.PathInstance] = !Version.IsStar;
             ModMinecraft.McInstanceListForceRefresh = true;
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
                 ModLoader.LoaderFolderRunType.ForceRun, 1, @"versions\");

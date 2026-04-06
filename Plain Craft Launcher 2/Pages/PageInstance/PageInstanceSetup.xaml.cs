@@ -128,34 +128,10 @@ public partial class PageInstanceSetup
     {
         try
         {
-            if (Conversions.ToBoolean(!(bool)ModBase.Setup.Get("VersionServerLoginLock", PageInstanceLeft.Instance)))
-            {
-                ModBase.Setup.Reset("VersionServerLoginRequire", instance: PageInstanceLeft.Instance);
-                ModBase.Setup.Reset("VersionServerAuthServer", instance: PageInstanceLeft.Instance);
-                ModBase.Setup.Reset("VersionServerAuthRegister", instance: PageInstanceLeft.Instance);
-                ModBase.Setup.Reset("VersionServerAuthName", instance: PageInstanceLeft.Instance);
-            }
+            if (!Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance.PathInstance])
+                Config.InstanceAuth.Reset(PageInstanceLeft.Instance.PathInstance);
 
-            ModBase.Setup.Reset("VersionServerEnter", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionArgumentTitle", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionArgumentInfo", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionArgumentIndieV2", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionRamType", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionRamCustom", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionRamOptimize", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionAdvanceJvm", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionAdvanceGame", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionAdvanceAssets", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionAdvanceAssetsV2", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionAdvanceJava", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionAdvanceDisableJlw", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionAdvanceRun", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionAdvanceRunWait", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionAdvanceDisableJLW", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionAdvanceUseProxyV2", instance: PageInstanceLeft.Instance);
-            ModBase.Setup.Reset("VersionAdvanceRenderer", instance: PageInstanceLeft.Instance);
-
-            ModBase.Setup.Reset("VersionArgumentJavaSelect", instance: PageInstanceLeft.Instance);
+            Config.Instance.Reset(PageInstanceLeft.Instance.PathInstance);
 
             ModBase.Log("[Setup] 已初始化实例独立设置");
             ModMain.Hint("已初始化实例独立设置！", ModMain.HintType.Finish, false);

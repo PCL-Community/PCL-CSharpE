@@ -583,8 +583,8 @@ public static class ModModpack
             if (Logo is not null && File.Exists(Logo))
             {
                 File.Copy(Logo, VersionFolder + @"PCL\Logo.png", true);
-                Config.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
-                Config.Instance.IsLogoCustom[VersionFolder] = true;
+                States.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
+                States.Instance.IsLogoCustom[VersionFolder] = true;
                 ModBase.Log("[ModPack] 已设置整合包 Logo：" + Logo);
             }
 
@@ -603,9 +603,9 @@ public static class ModModpack
             }
 
             // 整合包版本
-            if (Json["version"] is not null) Config.Instance.ModpackVersion[VersionFolder] = Json["version"].ToString();
-            Config.Instance.ModpackSource[VersionFolder] = "CurseForge";
-            Config.Instance.ModpackId[VersionFolder] = resourceId;
+            if (Json["version"] is not null) States.Instance.ModpackVersion[VersionFolder] = Json["version"].ToString();
+            States.Instance.ModpackSource[VersionFolder] = "CurseForge";
+            States.Instance.ModpackId[VersionFolder] = resourceId;
             do
             {
                 try
@@ -613,7 +613,7 @@ public static class ModModpack
                     var projects = ModComp.CompRequest.GetCompProjectsByIds([resourceId]);
                     if (projects.Count == 0)
                         break;
-                    Config.Instance.CustomInfo[VersionFolder] = projects.First().Description;
+                    States.Instance.CustomInfo[VersionFolder] = projects.First().Description;
                 }
                 catch (Exception ex)
                 {
@@ -813,8 +813,8 @@ public static class ModModpack
             if (Logo is not null && File.Exists(Logo))
             {
                 File.Copy(Logo, VersionFolder + @"PCL\Logo.png", true);
-                Config.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
-                Config.Instance.IsLogoCustom[VersionFolder] = true;
+                States.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
+                States.Instance.IsLogoCustom[VersionFolder] = true;
                 ModBase.Log("[ModPack] 已设置整合包 Logo：" + Logo);
             }
 
@@ -834,9 +834,9 @@ public static class ModModpack
 
             // 整合包版本
             if (Json["versionId"] is not null)
-                Config.Instance.ModpackVersion[VersionFolder] = Json["versionId"].ToString();
-            Config.Instance.ModpackSource[VersionFolder] = "Modrinth";
-            Config.Instance.ModpackId[VersionFolder] = resourceId;
+                States.Instance.ModpackVersion[VersionFolder] = Json["versionId"].ToString();
+            States.Instance.ModpackSource[VersionFolder] = "Modrinth";
+            States.Instance.ModpackId[VersionFolder] = resourceId;
             do
             {
                 try
@@ -844,7 +844,7 @@ public static class ModModpack
                     var projects = ModComp.CompRequest.GetCompProjectsByIds([resourceId]);
                     if (projects.Count == 0)
                         break;
-                    Config.Instance.CustomInfo[VersionFolder] = projects.First().Description;
+                    States.Instance.CustomInfo[VersionFolder] = projects.First().Description;
                 }
                 catch (Exception ex)
                 {
@@ -1011,7 +1011,7 @@ public static class ModModpack
             }
 
             // 整合包版本
-            if (Json["version"] != null) Config.Instance.ModpackVersion[VersionFolder] = Json["version"].ToString();
+            if (Json["version"] != null) States.Instance.ModpackVersion[VersionFolder] = Json["version"].ToString();
         });
 
         unzipTask.ProgressWeight = new FileInfo(FileAddress).Length / 1024.0 / 1024.0 / 6.0; // 每 6M 需要 1s
@@ -1579,8 +1579,8 @@ public static class ModModpack
                     var Logo = Path.GetFileName(ModBase.ReadIni(MMCSetupFile, "iconKey"));
                     if (!string.IsNullOrEmpty(Logo) && File.Exists($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png"))
                     {
-                        Config.Instance.IsLogoCustom[VersionFolder] = true;
-                        Config.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
+                        States.Instance.IsLogoCustom[VersionFolder] = true;
+                        States.Instance.LogoPath[VersionFolder] = @"PCL\Logo.png";
                         ModBase.CopyFile($"{InstallTemp}{ArchiveBaseFolder}{Logo}.png",
                             $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\PCL\Logo.png");
                         ModBase.Log($"[ModPack] 迁移 MultiMC 实例独立设置：实例图标（{Logo}.png）");

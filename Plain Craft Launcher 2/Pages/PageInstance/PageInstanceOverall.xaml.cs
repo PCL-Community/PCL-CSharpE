@@ -73,7 +73,7 @@ public partial class PageInstanceOverall
 
         var instance = PageInstanceLeft.Instance;
         // 刷新设置项目
-        ComboDisplayType.SelectedIndex = Config.Instance.CardType[instance.PathInstance];
+        ComboDisplayType.SelectedIndex = States.Instance.CardType[instance.PathInstance];
         BtnDisplayStar.Text = instance.IsStar ? "从收藏夹中移除" : "加入收藏夹";
         BtnFolderMods.Visibility = instance.Modable ? Visibility.Visible : Visibility.Collapsed;
         // 刷新实例显示
@@ -86,8 +86,8 @@ public partial class PageInstanceOverall
         GetInstanceInfo();
         // 刷新实例图标
         ComboDisplayLogo.SelectedIndex = 0;
-        var Logo = Config.Instance.LogoPath[instance.PathInstance];
-        var LogoCustom = Config.Instance.IsLogoCustom[instance.PathInstance];
+        var Logo = States.Instance.LogoPath[instance.PathInstance];
+        var LogoCustom = States.Instance.IsLogoCustom[instance.PathInstance];
         if (LogoCustom)
             foreach (MyComboBoxItem Selection in ComboDisplayLogo.Items)
                 if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(Selection.Tag, Logo, false)) ||
@@ -113,7 +113,7 @@ public partial class PageInstanceOverall
         var loaders = new List<ModLoader.LoaderBase>();
         loaders.Add(new ModLoader.LoaderTask<int, int>("获取可能的整合包信息", _ =>
         {
-            var modpackId = Config.Instance.ModpackId[PageInstanceLeft.Instance.PathInstance];
+            var modpackId = States.Instance.ModpackId[PageInstanceLeft.Instance.PathInstance];
             if (!string.IsNullOrWhiteSpace(modpackId))
             {
                 var compProjects = ModComp.CompRequest.GetCompProjectsByIds(new List<string> { modpackId });
@@ -133,7 +133,7 @@ public partial class PageInstanceOverall
             var instance = PageInstanceLeft.Instance;
             var instanceInfo = instance.Info;
             List<MyListItem> items = [];
-            var launchCount = Config.Instance.LaunchCount[instance.PathInstance];
+            var launchCount = States.Instance.LaunchCount[instance.PathInstance];
             if (launchCount == 0)
                 items.Add(new MyListItem
                 {
@@ -143,13 +143,13 @@ public partial class PageInstanceOverall
                 items.Add(new MyListItem
                 {
                     Title = "启动次数",
-                    Info = "已启动 " + Config.Instance.LaunchCount[instance.PathInstance] + " 次",
+                    Info = "已启动 " + States.Instance.LaunchCount[instance.PathInstance] + " 次",
                     Logo = "pack://application:,,,/images/Blocks/RedstoneLampOn.png"
                 });
-            if (!string.IsNullOrWhiteSpace(Config.Instance.ModpackVersion[instance.PathInstance]))
+            if (!string.IsNullOrWhiteSpace(States.Instance.ModpackVersion[instance.PathInstance]))
                 items.Add(new MyListItem
                 {
-                    Title = "整合包版本", Info = Config.Instance.ModpackVersion[instance.PathInstance],
+                    Title = "整合包版本", Info = States.Instance.ModpackVersion[instance.PathInstance],
                     Logo = "pack://application:,,,/images/Blocks/CommandBlock.png"
                 });
             items.Add(new MyListItem
@@ -239,10 +239,10 @@ public partial class PageInstanceOverall
             try
             {
                 // 若设置分类为可安装 Mod，则显示正常的 Mod 管理页面
-                Config.Instance.CardType[PageInstanceLeft.Instance.PathInstance] = ComboDisplayType.SelectedIndex;
+                States.Instance.CardType[PageInstanceLeft.Instance.PathInstance] = ComboDisplayType.SelectedIndex;
                 PageInstanceLeft.Instance.DisplayType =
                     (ModMinecraft.McInstanceCardType)Conversions.ToInteger(
-                        Config.Instance.CardType[PageInstanceLeft.Instance.PathInstance]);
+                        States.Instance.CardType[PageInstanceLeft.Instance.PathInstance]);
                 ModMain.FrmInstanceLeft.RefreshModDisabled();
 
                 ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
@@ -274,7 +274,7 @@ public partial class PageInstanceOverall
                     States.Hint.HideGameInstance = true;
                 }
 
-                Config.Instance.CardType[PageInstanceLeft.Instance.PathInstance] =
+                States.Instance.CardType[PageInstanceLeft.Instance.PathInstance] =
                     (int)ModMinecraft.McInstanceCardType.Hidden;
                 ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
                 ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
@@ -292,11 +292,11 @@ public partial class PageInstanceOverall
     {
         try
         {
-            var OldInfo = Config.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance];
+            var OldInfo = States.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance];
             var NewInfo = ModMain.MyMsgBoxInput("更改描述", "修改实例的描述文本，留空则使用 PCL 的默认描述。", OldInfo,
                 [], "默认描述");
             if (NewInfo is not null && (OldInfo ?? "") != (NewInfo ?? ""))
-                Config.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance] = NewInfo;
+                States.Instance.CustomInfo[PageInstanceLeft.Instance.PathInstance] = NewInfo;
             PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();
             Reload();
             ModLoader.LoaderFolderRun(ModMinecraft.McInstanceListLoader, ModMinecraft.McFolderSelected,
@@ -441,8 +441,8 @@ public partial class PageInstanceOverall
         try
         {
             string NewLogo = Conversions.ToString(((MyComboBoxItem)ComboDisplayLogo.SelectedItem).Tag);
-            Config.Instance.LogoPath[PageInstanceLeft.Instance.PathInstance] = NewLogo;
-            Config.Instance.IsLogoCustom[PageInstanceLeft.Instance.PathInstance] = !string.IsNullOrEmpty(NewLogo);
+            States.Instance.LogoPath[PageInstanceLeft.Instance.PathInstance] = NewLogo;
+            States.Instance.IsLogoCustom[PageInstanceLeft.Instance.PathInstance] = !string.IsNullOrEmpty(NewLogo);
             // 刷新显示
             ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
             PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();
@@ -461,7 +461,7 @@ public partial class PageInstanceOverall
     {
         try
         {
-            Config.Instance.Starred[PageInstanceLeft.Instance.PathInstance] = !PageInstanceLeft.Instance.IsStar;
+            States.Instance.Starred[PageInstanceLeft.Instance.PathInstance] = !PageInstanceLeft.Instance.IsStar;
             PageInstanceLeft.Instance = new ModMinecraft.McInstance(PageInstanceLeft.Instance.Name).Load();
             Reload();
             ModMinecraft.McInstanceListForceRefresh = true;

@@ -1220,8 +1220,8 @@ public static class ModMinecraft
                 ExitDataLoad: ;
 
                 // 确定实例图标
-                Logo = Config.Instance.LogoPath[PathInstance];
-                if (string.IsNullOrEmpty(Logo) || !Config.Instance.IsLogoCustom[PathInstance])
+                Logo = States.Instance.LogoPath[PathInstance];
+                if (string.IsNullOrEmpty(Logo) || !States.Instance.IsLogoCustom[PathInstance])
                     switch (State)
                     {
                         case McInstanceState.Original:
@@ -1304,37 +1304,37 @@ public static class ModMinecraft
                 }
                 else
                 {
-                    Desc = Config.Instance.CustomInfo[PathInstance];
+                    Desc = States.Instance.CustomInfo[PathInstance];
                     if ((Desc ?? "") == (GetDefaultDescription() ?? ""))
                         Desc = "";
                 }
 
                 // 确定实例收藏状态
-                IsStar = Config.Instance.Starred[PathInstance];
+                IsStar = States.Instance.Starred[PathInstance];
                 // 确定实例显示种类
-                DisplayType = (McInstanceCardType)Conversions.ToInteger(Config.Instance.CardType[PathInstance]);
+                DisplayType = (McInstanceCardType)Conversions.ToInteger(States.Instance.CardType[PathInstance]);
                 // 写入缓存
                 if (Directory.Exists(PathInstance))
                 {
-                    Config.Instance.State[PathInstance] = (int)State;
-                    Config.Instance.Info[PathInstance] = Desc;
-                    Config.Instance.LogoPath[PathInstance] = Logo;
+                    States.Instance.State[PathInstance] = (int)State;
+                    States.Instance.Info[PathInstance] = Desc;
+                    States.Instance.LogoPath[PathInstance] = Logo;
                 }
 
                 if (State != McInstanceState.Error)
                 {
-                    Config.Instance.ReleaseTime[PathInstance] = ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm");
-                    Config.Instance.FabricVersion[PathInstance] = Info.Fabric;
-                    Config.Instance.LegacyFabricVersion[PathInstance] = Info.LegacyFabric;
-                    Config.Instance.QuiltVersion[PathInstance] = Info.Quilt;
-                    Config.Instance.LabyModVersion[PathInstance] = Info.LabyMod;
-                    Config.Instance.OptiFineVersion[PathInstance] = Info.OptiFine;
-                    Config.Instance.HasLiteLoader[PathInstance] = Info.HasLiteLoader;
-                    Config.Instance.ForgeVersion[PathInstance] = Info.Forge;
-                    Config.Instance.NeoForgeVersion[PathInstance] = Info.NeoForge;
-                    Config.Instance.CleanroomVersion[PathInstance] = Info.Cleanroom;
-                    Config.Instance.VanillaVersionName[PathInstance] = Info.VanillaName;
-                    Config.Instance.VanillaVersion[PathInstance] = Info.Vanilla.ToString();
+                    States.Instance.ReleaseTime[PathInstance] = ReleaseTime.ToString("yyyy'-'MM'-'dd HH':'mm");
+                    States.Instance.FabricVersion[PathInstance] = Info.Fabric;
+                    States.Instance.LegacyFabricVersion[PathInstance] = Info.LegacyFabric;
+                    States.Instance.QuiltVersion[PathInstance] = Info.Quilt;
+                    States.Instance.LabyModVersion[PathInstance] = Info.LabyMod;
+                    States.Instance.OptiFineVersion[PathInstance] = Info.OptiFine;
+                    States.Instance.HasLiteLoader[PathInstance] = Info.HasLiteLoader;
+                    States.Instance.ForgeVersion[PathInstance] = Info.Forge;
+                    States.Instance.NeoForgeVersion[PathInstance] = Info.NeoForge;
+                    States.Instance.CleanroomVersion[PathInstance] = Info.Cleanroom;
+                    States.Instance.VanillaVersionName[PathInstance] = Info.VanillaName;
+                    States.Instance.VanillaVersion[PathInstance] = Info.Vanilla.ToString();
                 }
             }
             catch (Exception ex)
@@ -2005,9 +2005,9 @@ public static class ModMinecraft
                         // 读取单个实例
                         var instance = new McInstance(versionFolder);
                         instanceList.Add(instance);
-                        instance.Desc = Config.Instance.CustomInfo[instance.PathInstance];
+                        var instanceCfg = States.Instance;
+                        instance.Desc = instanceCfg.CustomInfo[instance.PathInstance];
 
-                        var instanceCfg = Config.Instance;
                         if (string.IsNullOrEmpty(instance.Desc))
                             instance.Desc = instanceCfg.Info[instance.PathInstance];
                         if (!instanceCfg.LogoPathConfig.IsDefault(instance.PathInstance))
@@ -2057,7 +2057,7 @@ public static class ModMinecraft
                             instance.State = McInstanceState.Original;
                             instance.Check();
                             // 校验错误原因是否改变
-                            var CustomInfo = Config.Instance.CustomInfo[instance.PathInstance];
+                            var CustomInfo = States.Instance.CustomInfo[instance.PathInstance];
                             if (instance.State == McInstanceState.Original || (string.IsNullOrEmpty(CustomInfo) &&
                                                                                !((OldDesc ?? "") ==
                                                                                    (instance.Desc ?? ""))))
