@@ -9,6 +9,7 @@ using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.IO.Net.Http.Client;
+using PCL.Core.UI.Theme;
 using PCL.Core.Utils.Exts;
 
 namespace PCL;
@@ -475,13 +476,17 @@ public class ModSetup : IConfigScope
     // 顶部栏
     public void UiLogoType(int Value)
     {
+        if (ThemeService.CurrentTheme == ColorTheme.HmclBlue) Value = 4;
         switch (Value)
         {
             case 0: // 无
             {
                 ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Collapsed;
                 if (!(ModMain.FrmSetupUI == null))
                 {
@@ -495,8 +500,11 @@ public class ModSetup : IConfigScope
             case 1: // 默认
             {
                 ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Visible;
+                ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
                 if (!(ModMain.FrmSetupUI == null))
                 {
@@ -510,8 +518,11 @@ public class ModSetup : IConfigScope
             case 2: // 文本
             {
                 ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Visible;
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
                 if (ModMain.FrmSetupUI != null)
                 {
@@ -526,8 +537,11 @@ public class ModSetup : IConfigScope
             case 3: // 图片
             {
                 ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Visible;
+                ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Collapsed;
                 ModMain.FrmMain.CELogo.Visibility = Visibility.Visible;
                 if (ModMain.FrmSetupUI != null)
                 {
@@ -548,6 +562,19 @@ public class ModSetup : IConfigScope
 
                 break;
             }
+            case 4: //HMCL (愚人节)
+                ModMain.FrmMain.ShapeTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ShapeHMCLTitleLogo.Visibility = Visibility.Visible;
+                ModMain.FrmMain.LabTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.ImageTitleLogo.Visibility = Visibility.Collapsed;
+                ModMain.FrmMain.BtnTitleHelp.Visibility = Visibility.Visible;
+                ModMain.FrmMain.ImageHMCLTitleLogo.Visibility = Visibility.Visible;
+                if (ModMain.FrmSetupUI != null) 
+                    ModMain.FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed;
+                ModMain.FrmSetupUI.PanLogoText.Visibility = Visibility.Collapsed;
+                ModMain.FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed;
+                
+                break;
         }
 
         ModBase.Setup.Load("UiLogoLeft", true);

@@ -12,8 +12,10 @@ namespace PCL;
 
 public partial class PageSetupUI
 {
-    public readonly string[] ThemeColors = new[] { "天空蓝", "龙猫蓝", "死机蓝" };
-
+    public string[] ThemeColors => Basics.IsAprilFool 
+        ? ["天空蓝", "龙猫蓝", "死机蓝", "HMCL"]
+        : ["天空蓝", "龙猫蓝", "死机蓝"];
+    
     public new bool IsLoaded;
 
     public PageSetupUI()
@@ -152,7 +154,7 @@ public partial class PageSetupUI
             CheckLogoLeft.Visibility = RadioLogoType0.Checked ? Visibility.Visible : Visibility.Collapsed;
             PanLogoText.Visibility = RadioLogoType2.Checked ? Visibility.Visible : Visibility.Collapsed;
             PanLogoChange.Visibility = RadioLogoType3.Checked ? Visibility.Visible : Visibility.Collapsed;
-            TextLogoText.Text = Conversions.ToString(Config.Preference.LogoCustomText);
+            TextLogoText.Text = Conversions.ToString(Config.Preference.WindowTitleCustomText);
             CheckLogoLeft.Checked = (bool?)Config.Preference.TopBarLeftAlign;
 
             // 背景音乐
