@@ -294,15 +294,15 @@
                                       Change="CheckBoxChange"
                                       Text="等待命令执行完成后再继续启动" Margin="0,8,0,7" />
                     <StackPanel Margin="0,12,0,4" Grid.Row="8" Grid.ColumnSpan="2" HorizontalAlignment="Left">
-                        <local:MyCheckBox Height="28" Text="禁用 Java Launch Wrapper" x:Name="CheckAdvanceDisableJLW" Tag="LaunchAdvanceDisableJLW"
+                        <local:MyCheckBox Height="28" Text="禁用 Java Launch Wrapper" x:Name="CheckAdvanceDisableJLW" Tag="LaunchAdvanceDisableJLW"  Change="CheckBoxChange"
                                           ToolTipService.Placement="Right" ToolTip="PCL 会使用 Java Launch Wrapper 来修复老版本 Java 在中文路径下无法启动的问题。&#xa;如果这被反作弊拦截，或遇到其他问题，也可以将其关闭。" />
-                        <local:MyCheckBox Height="28" Text="禁用 RetroWrapper" x:Name="CheckAdvanceDisableRW" Tag="LaunchAdvanceDisableRW"
+                        <local:MyCheckBox Height="28" Text="禁用 RetroWrapper" x:Name="CheckAdvanceDisableRW" Tag="LaunchAdvanceDisableRW"  Change="CheckBoxChange"
                                           ToolTipService.Placement="Right" ToolTip="PCL 会在启动 1.5.x 及以下版本时使用 RetroWrapper 来改善老版本游戏体验和修复兼容性问题。" />
-                        <local:MyCheckBox Height="28" Text="要求 Java 使用高性能显卡" x:Name="CheckAdvanceGraphicCard" Tag="LaunchAdvanceGraphicCard"
+                        <local:MyCheckBox Height="28" Text="要求 Java 使用高性能显卡" x:Name="CheckAdvanceGraphicCard" Tag="LaunchAdvanceGraphicCard"  Change="CheckBoxChange"
                                           ToolTipService.Placement="Right" ToolTip="自动在 Windows 设置 → 系统 → 屏幕 → 显示卡 中将 Java 改为使用高性能显卡。&#xa;如果电脑同时有集显和独显，这能确保 MC 使用独显进行渲染，以大幅提高性能。" />
-                        <local:MyCheckBox Height="28" Text="使用 java.exe 而不是 javaw.exe" x:Name="CheckAdvanceNoJavaw" Tag="LaunchAdvanceNoJavaw"
+                        <local:MyCheckBox Height="28" Text="使用 java.exe 而不是 javaw.exe" x:Name="CheckAdvanceNoJavaw" Tag="LaunchAdvanceNoJavaw"  Change="CheckBoxChange"
                             ToolTipService.Placement="Right" ToolTip="如果遇到游戏窗口长时间不出现等故障可尝试启用此项，PCL 将使用 java.exe 来运行游戏，这样会让游戏进程拥有标准输入/输出流，以尽可能避免打印日志时出现问题。&#xa;&#xa;取决于不同 Java 发行版的行为，java.exe 可能无法使用 HDR 颜色等依赖操作系统支持的特性。因此，如果正常使用没有问题，请勿启用该选项。" />
-                        <local:MyCheckBox Height="28" Text="禁用 LWJGL Unsafe Agent" x:Name="CheckAdvanceDisableLwjglUnsafeAgent" Tag="LaunchAdvanceDisableLwjglUnsafeAgent"
+                        <local:MyCheckBox Height="28" Text="禁用 LWJGL Unsafe Agent" x:Name="CheckAdvanceDisableLwjglUnsafeAgent" Tag="LaunchAdvanceDisableLwjglUnsafeAgent"  Change="CheckBoxChange"
                                           ToolTipService.Placement="Right" ToolTip="Minecraft 26.1 使用了 LWJGL 3.4.1，LWJGL 3.4.1 使用了 FFM API 以在 JDK 25+ 上访问原生内存。由于 JDK 优化能力限制，某些情况下这会产生严重的性能问题。&#xa;PCL 会使用 LWJGL Unsafe Agent 修复这个问题，以解决可能存在的性能问题。&#xa;一般情况下没有禁用该选项的必要，但如果你遇到了额外问题，也可以尝试暂时禁用该选项以排查错误。&#xa;&#xa;该功能仅会在 LWJGL 版本为 3.4.1 时生效。" />
                     </StackPanel>
                     <local:MyHint Text="你还可以在实例独立设置中找到更多高级启动选项。" Margin="0,5,0,10" Theme="Blue" Grid.Row="9"
