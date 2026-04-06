@@ -43,13 +43,13 @@ public class MyTextButton : Label
         SetResourceReference(ForegroundProperty, "ColorBrush1");
         Background = ModSecret.ColorSemiTransparent;
         PreviewMouseLeftButtonDown += MyTextButton_MouseLeftButtonDown;
-        MouseLeave += (_, __) => MyTextButton_MouseLeave();
+        MouseLeave += (_, _) => MyTextButton_MouseLeave();
         PreviewMouseLeftButtonUp += MyTextButton_MouseLeftButtonUp;
-        MouseEnter += (_, __) => RefreshColor();
-        MouseLeave += (_, __) => RefreshColor();
-        IsEnabledChanged += (_, __) => RefreshColor();
-        MouseLeftButtonDown += (_, __) => RefreshColor();
-        MouseLeftButtonUp += (_, __) => RefreshColor();
+        MouseEnter += (_, _) => RefreshColor();
+        MouseLeave += (_, _) => RefreshColor();
+        IsEnabledChanged += (_, _) => RefreshColor();
+        MouseLeftButtonDown += (_, _) => RefreshColor();
+        MouseLeftButtonUp += (_, _) => RefreshColor();
     }
 
     // 文本

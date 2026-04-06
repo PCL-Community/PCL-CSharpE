@@ -37,12 +37,12 @@ public class MyComboBox : ComboBox
         PreviewMouseLeftButtonDown += MyComboBox_PreviewMouseLeftButtonDown;
         PreviewMouseLeftButtonUp += MyComboBox_PreviewMouseLeftButtonUp;
         MouseLeave += MyComboBox_PreviewMouseLeftButtonUp;
-        IsEnabledChanged += (_, __) => RefreshColor();
-        MouseEnter += (_, __) => RefreshColor();
-        MouseLeave += (_, __) => RefreshColor();
-        PreviewMouseLeftButtonDown += (_, __) => RefreshColor();
-        PreviewMouseLeftButtonUp += (_, __) => RefreshColor();
-        GotKeyboardFocus += (_, __) => RefreshColor();
+        IsEnabledChanged += (_, _) => RefreshColor();
+        MouseEnter += (_, _) => RefreshColor();
+        MouseLeave += (_, _) => RefreshColor();
+        PreviewMouseLeftButtonDown += (_, _) => RefreshColor();
+        PreviewMouseLeftButtonUp += (_, _) => RefreshColor();
+        GotKeyboardFocus += (_, _) => RefreshColor();
         DropDownOpened += MyComboBox_DropDownOpened;
         DropDownClosed += MyComboBox_DropDownClosed;
         TextChanged += MyComboBox_TextChanged;
@@ -96,7 +96,7 @@ public class MyComboBox : ComboBox
         try
         {
             TextBox = (MyTextBox)Template.FindName("PART_EditableTextBox", this);
-            TextBox.AddHandler(LostFocusEvent, new RoutedEventHandler((_, __) => RefreshColor()));
+            TextBox.AddHandler(LostFocusEvent, new RoutedEventHandler((_, _) => RefreshColor()));
             TextBox.ChangedEventList.Add((sender, e) => TextChanged?.Invoke(sender, (TextChangedEventArgs)e));
             TextBox.Tag = Tag; // 有时需要用文本框的 Tag 来写入设置
             if (string.IsNullOrEmpty(Text))

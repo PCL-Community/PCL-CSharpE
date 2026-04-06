@@ -22,8 +22,8 @@ public partial class PageLoginAuth
     public PageLoginAuth()
     {
         InitializeComponent();
-        Loaded += (_, __) => Reload();
-        Loaded += (_, __) => ReloadRegisterButton();
+        Loaded += (_, _) => Reload();
+        Loaded += (_, _) => ReloadRegisterButton();
         // Handles
         BtnBack.Click += BtnBack_Click;
         BtnLogin.Click += BtnLogin_Click;

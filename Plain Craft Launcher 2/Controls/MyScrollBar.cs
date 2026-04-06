@@ -10,12 +10,12 @@ public class MyScrollBar : ScrollBar
 
     public MyScrollBar()
     {
-        IsEnabledChanged += (_, __) => RefreshColor();
-        GotMouseCapture += (_, __) => RefreshColor();
-        LostMouseCapture += (_, __) => RefreshColor();
-        MouseEnter += (_, __) => RefreshColor();
-        MouseLeave += (_, __) => RefreshColor();
-        IsVisibleChanged += (_, __) => RefreshColor();
+        IsEnabledChanged += (_, _) => RefreshColor();
+        GotMouseCapture += (_, _) => RefreshColor();
+        LostMouseCapture += (_, _) => RefreshColor();
+        MouseEnter += (_, _) => RefreshColor();
+        MouseLeave += (_, _) => RefreshColor();
+        IsVisibleChanged += (_, _) => RefreshColor();
     }
 
     // 指向动画

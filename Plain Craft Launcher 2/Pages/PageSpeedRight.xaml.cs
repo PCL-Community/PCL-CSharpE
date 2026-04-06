@@ -5,7 +5,7 @@ public partial class PageSpeedRight
     public PageSpeedRight()
     {
         InitializeComponent();
-        Loaded += (_, __) => Init();
+        Loaded += (_, _) => Init();
     }
 
     private void Init()

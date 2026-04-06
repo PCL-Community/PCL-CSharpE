@@ -54,9 +54,9 @@ public partial class MyButton
         IsEnabledChanged += (_, _) => RefreshColor();
         MouseLeftButtonUp += Button_MouseUp;
         MouseLeftButtonDown += Button_MouseDown;
-        MouseEnter += (_, __) => Button_MouseEnter();
-        MouseLeftButtonUp += (_, __) => Button_MouseUp();
-        MouseLeave += (_, __) => Button_MouseLeave();
+        MouseEnter += (_, _) => Button_MouseEnter();
+        MouseLeftButtonUp += (_, _) => Button_MouseUp();
+        MouseLeave += (_, _) => Button_MouseLeave();
     }
 
     public InlineCollection Inlines => LabText.Inlines;

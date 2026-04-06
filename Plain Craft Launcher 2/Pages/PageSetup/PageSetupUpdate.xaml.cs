@@ -13,7 +13,7 @@ public partial class PageSetupUpdate
     public PageSetupUpdate()
     {
         InitializeComponent();
-        Loaded += (_, __) => Init();
+        Loaded += (_, _) => Init();
     }
 
     private void Init()

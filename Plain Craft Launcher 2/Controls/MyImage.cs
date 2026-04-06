@@ -15,8 +15,8 @@ public class MyImage : Image
 
     public MyImage()
     {
-        Initialized += (_, __) => Load();
-        SizeChanged += (_, __) => UpdateClip();
+        Initialized += (_, _) => Load();
+        SizeChanged += (_, _) => UpdateClip();
     }
 
     /// <summary>

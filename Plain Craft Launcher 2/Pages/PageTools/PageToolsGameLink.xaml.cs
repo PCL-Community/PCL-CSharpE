@@ -28,7 +28,7 @@ public partial class PageToolsGameLink
     {
         InitializeComponent();
         LoaderInit();
-        Loaded += (_, __) => Reload();
+        Loaded += (_, _) => Reload();
         PageEnter += PageLinkLobby_OnPageEnter;
     }
 

@@ -49,12 +49,12 @@ public partial class MyRadioBox : IMyRadio
     public MyRadioBox()
     {
         InitializeComponent();
-        MouseLeftButtonUp += (_, __) => Radiobox_MouseUp();
-        MouseLeftButtonDown += (_, __) => Radiobox_MouseDown();
-        MouseLeave += (_, __) => Radiobox_MouseLeave();
-        IsEnabledChanged += (_, __) => Radiobox_IsEnabledChanged();
-        MouseEnter += (_, __) => Radiobox_MouseEnterAnimation();
-        MouseLeave += (_, __) => Radiobox_MouseLeaveAnimation();
+        MouseLeftButtonUp += (_, _) => Radiobox_MouseUp();
+        MouseLeftButtonDown += (_, _) => Radiobox_MouseDown();
+        MouseLeave += (_, _) => Radiobox_MouseLeave();
+        IsEnabledChanged += (_, _) => Radiobox_IsEnabledChanged();
+        MouseEnter += (_, _) => Radiobox_MouseEnterAnimation();
+        MouseLeave += (_, _) => Radiobox_MouseLeaveAnimation();
     }
 
     // 自定义属性

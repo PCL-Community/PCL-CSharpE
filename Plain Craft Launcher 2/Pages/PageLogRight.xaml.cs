@@ -17,7 +17,7 @@ public partial class PageLogRight
 
     public PageLogRight()
     {
-        Initialized += (_, __) => Init();
+        Initialized += (_, _) => Init();
         Loaded += PageLogRight_Loaded;
         InitializeComponent();
     }

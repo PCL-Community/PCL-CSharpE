@@ -46,12 +46,12 @@ public partial class MyHint
     {
         InitializeComponent();
         UpdateUI();
-        Loaded += (_, __) => UpdateUI();
+        Loaded += (_, _) => UpdateUI();
         Loaded += MyHint_Loaded;
         MouseLeftButtonUp += MyHint_MouseUp;
         MouseLeftButtonDown += MyHint_MouseDown;
-        MouseLeave += (_, __) => MyHint_MouseLeave();
-        Unloaded += (_, __) => Dispose();
+        MouseLeave += (_, _) => MyHint_MouseLeave();
+        Unloaded += (_, _) => Dispose();
     }
 
     // 边框

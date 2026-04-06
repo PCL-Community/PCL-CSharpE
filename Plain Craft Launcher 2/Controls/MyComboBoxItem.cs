@@ -20,11 +20,11 @@ public class MyComboBoxItem : ComboBoxItem
     public MyComboBoxItem()
     {
         Style = (Style)FindResource("MyComboBoxItem");
-        Unselected += (_, __) => RefreshColor();
-        MouseMove += (_, __) => RefreshColor();
-        MouseLeave += (_, __) => RefreshColor();
-        Selected += (_, __) => RefreshColor();
-        IsEnabledChanged += (_, __) => RefreshColor();
+        Unselected += (_, _) => RefreshColor();
+        MouseMove += (_, _) => RefreshColor();
+        MouseLeave += (_, _) => RefreshColor();
+        Selected += (_, _) => RefreshColor();
+        IsEnabledChanged += (_, _) => RefreshColor();
         MouseLeftButtonUp += MyComboBoxItem_MouseLeftButtonUp;
     }
 

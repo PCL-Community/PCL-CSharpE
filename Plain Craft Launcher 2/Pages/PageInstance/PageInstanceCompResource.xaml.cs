@@ -28,8 +28,8 @@ public partial class PageInstanceCompResource : IRefreshable
     {
         InitializeComponent();
         Unloaded += Page_Unloaded;
-        Loaded += (_, __) => PageOther_Loaded();
-        Initialized += (_, __) => LoaderInit();
+        Loaded += (_, _) => PageOther_Loaded();
+        Initialized += (_, _) => LoaderInit();
         PageExit += UnselectedAllWithAnimation;
         Load.Click += Load_Click;
         BtnManageBack.Click += BtnManageBack_Click;
@@ -123,7 +123,7 @@ public partial class PageInstanceCompResource : IRefreshable
         }
 
         Unloaded += Page_Unloaded;
-        Loaded += (_, __) => PageOther_Loaded();
+        Loaded += (_, _) => PageOther_Loaded();
         LoaderInit();
         PageExit += UnselectedAllWithAnimation;
         // Handles

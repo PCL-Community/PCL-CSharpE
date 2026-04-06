@@ -38,11 +38,11 @@ public partial class MyLoading
     {
         InitializeComponent();
         SetResourceReference(ForegroundProperty, "ColorBrush3");
-        IsErrorChanged += (_, __) => RefreshText();
-        Loaded += (_, __) => RefreshText();
-        Loaded += (_, __) => InitState();
-        Loaded += (_, __) => RefreshState();
-        Unloaded += (_, __) => RefreshState();
+        IsErrorChanged += (_, _) => RefreshText();
+        Loaded += (_, _) => RefreshText();
+        Loaded += (_, _) => InitState();
+        Loaded += (_, _) => RefreshState();
+        Unloaded += (_, _) => RefreshState();
         MouseLeftButtonUp += Button_MouseUp;
         MouseLeftButtonDown += Button_MouseDown;
         MouseLeave += Button_MouseLeave;
@@ -161,15 +161,15 @@ public partial class MyLoading
         {
             if (__State != null)
             {
-                __State.ProgressChanged -= (_, __) => RefreshText();
-                __State.LoadingStateChanged -= (_, __) => RefreshState();
+                __State.ProgressChanged -= (_, _) => RefreshText();
+                __State.LoadingStateChanged -= (_, _) => RefreshState();
             }
 
             __State = value;
             if (__State != null)
             {
-                __State.ProgressChanged += (_, __) => RefreshText();
-                __State.LoadingStateChanged += (_, __) => RefreshState();
+                __State.ProgressChanged += (_, _) => RefreshText();
+                __State.LoadingStateChanged += (_, _) => RefreshState();
             }
         }
     }

@@ -34,7 +34,7 @@ public partial class PageSpeedLeft
 
         // 监控定时器
         var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 0, WatcherInterval) };
-        timer.Tick += (_, __) => Watcher();
+        timer.Tick += (_, _) => Watcher();
         timer.Start();
 
         // 非调试模式隐藏线程数

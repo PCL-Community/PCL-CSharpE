@@ -20,7 +20,7 @@ public class AnimatedBackgroundGrid : Grid
     public AnimatedBackgroundGrid(DependencyProperty brushDp)
     {
         _animatableBrushProperty = brushDp;
-        Loaded += (_, __) => Init();
+        Loaded += (_, _) => Init();
     }
 
     public AnimatedBackgroundGrid() : this(BackgroundProperty)

@@ -22,9 +22,9 @@ public class MyMenuItem : MenuItem
     public MyMenuItem()
     {
         Loaded += MyMenuItem_Loaded;
-        MouseEnter += (_, __) => RefreshColor();
-        MouseLeave += (_, __) => RefreshColor();
-        IsEnabledChanged += (_, __) => RefreshColor();
+        MouseEnter += (_, _) => RefreshColor();
+        MouseLeave += (_, _) => RefreshColor();
+        IsEnabledChanged += (_, _) => RefreshColor();
     }
 
     private void MyMenuItem_Loaded(object sender, RoutedEventArgs e)

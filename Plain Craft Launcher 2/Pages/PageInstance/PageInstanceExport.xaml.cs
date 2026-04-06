@@ -38,7 +38,7 @@ public partial class PageInstanceExport : IRefreshable
     public PageInstanceExport()
     {
         InitializeComponent();
-        Loaded += (_, __) => PageInstanceExport_Loaded();
+        Loaded += (_, _) => PageInstanceExport_Loaded();
         CardOptions.MouseLeftButtonDown += CardOptions_MouseLeftButtonDown;
         BtnAdvancedExport.Click += ExportConfig;
         BtnAdvancedImport.Click += ImportConfig;

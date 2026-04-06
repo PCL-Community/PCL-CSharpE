@@ -39,8 +39,8 @@ public partial class MyExtraTextButton
     {
         InitializeComponent();
 
-        Loaded += (_, __) => RefreshColor();
-        IsEnabledChanged += (_, __) => RefreshColor();
+        Loaded += (_, _) => RefreshColor();
+        IsEnabledChanged += (_, _) => RefreshColor();
         PanClick.MouseLeftButtonDown += Button_LeftMouseDown;
         PanClick.MouseLeftButtonUp += Button_LeftMouseUp;
         PanClick.MouseLeave += Button_MouseLeave;

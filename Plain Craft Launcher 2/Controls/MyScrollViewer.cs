@@ -20,7 +20,7 @@ public class MyScrollViewer : ScrollViewer
         PreviewMouseWheel += MyScrollViewer_PreviewMouseWheel;
         ScrollChanged += MyScrollViewer_ScrollChanged;
         IsVisibleChanged += MyScrollViewer_IsVisibleChanged;
-        Loaded += (_, __) => Load();
+        Loaded += (_, _) => Load();
         PreviewGotKeyboardFocus += MyScrollViewer_PreviewGotKeyboardFocus;
     }
 

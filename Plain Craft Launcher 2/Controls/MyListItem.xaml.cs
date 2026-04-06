@@ -491,7 +491,7 @@ public partial class MyListItem : IMyRadio
     {
         InitializeComponent();
 
-        SizeChanged += (_, __) => OnSizeChanged();
+        SizeChanged += (_, _) => OnSizeChanged();
         PreviewMouseLeftButtonUp += Button_MouseUp;
         PreviewMouseLeftButtonDown += Button_MouseDown;
         MouseLeave += Button_MouseLeave;

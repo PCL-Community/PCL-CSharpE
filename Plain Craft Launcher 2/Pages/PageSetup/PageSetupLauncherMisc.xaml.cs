@@ -21,7 +21,7 @@ public partial class PageSetupLauncherMisc
     {
         InitializeComponent();
         Loaded += PageSetupLink_Loaded;
-        Loaded += (_, __) => Reload();
+        Loaded += (_, _) => Reload();
     }
 
     private void PageSetupLink_Loaded(object sender, RoutedEventArgs e)

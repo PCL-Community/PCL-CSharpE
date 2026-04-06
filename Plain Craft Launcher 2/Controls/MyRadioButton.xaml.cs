@@ -49,15 +49,15 @@ public partial class MyRadioButton
     {
         InitializeComponent();
 
-        Loaded += (_, __) =>
+        Loaded += (_, _) =>
         {
             if (LabText != null)
                 LabText.Text = Conversions.ToString(GetValue(TextProperty));
         };
 
-        MouseLeftButtonUp += (_, __) => Radiobox_MouseUp();
-        MouseLeftButtonDown += (_, __) => Radiobox_MouseDown();
-        MouseLeave += (_, __) => Radiobox_MouseLeave();
+        MouseLeftButtonUp += (_, _) => Radiobox_MouseUp();
+        MouseLeftButtonDown += (_, _) => Radiobox_MouseDown();
+        MouseLeave += (_, _) => Radiobox_MouseLeave();
         MouseEnter += RefreshColor;
         MouseLeave += RefreshColor;
         Loaded += RefreshColor;

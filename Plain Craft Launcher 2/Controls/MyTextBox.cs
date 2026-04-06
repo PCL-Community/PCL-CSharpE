@@ -57,14 +57,14 @@ public class MyTextBox : TextBox
 
     public MyTextBox()
     {
-        Loaded += (_, __) => Validate();
+        Loaded += (_, _) => Validate();
         TextChanged += (a, b) => MyTextBox_TextChanged((MyTextBox)a, b);
-        IsEnabledChanged += (_, __) => RefreshColor();
-        MouseEnter += (_, __) => RefreshColor();
-        MouseLeave += (_, __) => RefreshColor();
-        GotFocus += (_, __) => RefreshColor();
-        LostFocus += (_, __) => RefreshColor();
-        IsEnabledChanged += (_, __) => RefreshTextColor();
+        IsEnabledChanged += (_, _) => RefreshColor();
+        MouseEnter += (_, _) => RefreshColor();
+        MouseLeave += (_, _) => RefreshColor();
+        GotFocus += (_, _) => RefreshColor();
+        LostFocus += (_, _) => RefreshColor();
+        IsEnabledChanged += (_, _) => RefreshTextColor();
     }
 
     // 自定义属性

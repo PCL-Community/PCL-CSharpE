@@ -38,11 +38,11 @@ public partial class MyIconButton
 
         MouseLeftButtonUp += Button_MouseUp;
         MouseLeftButtonDown += Button_MouseDown;
-        MouseLeftButtonUp += (_, __) => Button_MouseUp();
-        MouseLeave += (_, __) => Button_MouseLeave();
-        MouseEnter += (_, __) => RefreshAnim();
-        MouseLeave += (_, __) => RefreshAnim();
-        Loaded += (_, __) => RefreshAnim();
+        MouseLeftButtonUp += (_, _) => Button_MouseUp();
+        MouseLeave += (_, _) => Button_MouseLeave();
+        MouseEnter += (_, _) => RefreshAnim();
+        MouseLeave += (_, _) => RefreshAnim();
+        Loaded += (_, _) => RefreshAnim();
     }
 
     public string Logo

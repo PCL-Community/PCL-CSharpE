@@ -22,7 +22,7 @@ public partial class PageSetupUI
     {
         InitializeComponent();
         Loaded += PageSetupUI_Loaded;
-        Loaded += (_, __) => HiddenRefresh();
+        Loaded += (_, _) => HiddenRefresh();
     }
 
     private void PageSetupUI_Loaded(object sender, RoutedEventArgs e)

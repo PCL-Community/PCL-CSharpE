@@ -49,7 +49,7 @@ public partial class PageInstanceSetup
 
         // 内存自动刷新
         var timer = new DispatcherTimer { Interval = new TimeSpan(0, 0, 0, 1) };
-        timer.Tick += (_, __) => RefreshRam();
+        timer.Tick += (_, _) => RefreshRam();
         timer.Start();
         RectRamGame.SizeChanged += (s, e) => RefreshRamText();
     }

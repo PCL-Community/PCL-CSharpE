@@ -57,12 +57,12 @@ public partial class MyCheckBox
     {
         InitializeComponent();
 
-        MouseLeftButtonUp += (_, __) => Checkbox_MouseUp();
-        MouseLeftButtonDown += (_, __) => Checkbox_MouseDown();
-        MouseLeave += (_, __) => Checkbox_MouseLeave();
-        IsEnabledChanged += (_, __) => Checkbox_IsEnabledChanged();
-        MouseEnter += (_, __) => Checkbox_MouseEnterAnimation();
-        MouseLeave += (_, __) => Checkbox_MouseLeaveAnimation();
+        MouseLeftButtonUp += (_, _) => Checkbox_MouseUp();
+        MouseLeftButtonDown += (_, _) => Checkbox_MouseDown();
+        MouseLeave += (_, _) => Checkbox_MouseLeave();
+        IsEnabledChanged += (_, _) => Checkbox_IsEnabledChanged();
+        MouseEnter += (_, _) => Checkbox_MouseEnterAnimation();
+        MouseLeave += (_, _) => Checkbox_MouseLeaveAnimation();
     }
 
     // 自定义属性

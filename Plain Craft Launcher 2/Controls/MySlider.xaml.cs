@@ -31,10 +31,10 @@ public partial class MySlider
         InitializeComponent();
         SizeChanged += RefreshWidth;
         MouseLeftButtonDown += DragStart;
-        IsEnabledChanged += (_, __) => RefreshColor();
-        MouseEnter += (_, __) => RefreshColor();
-        MouseLeave += (_, __) => RefreshColor();
-        MouseEnter += (_, __) => MySlider_MouseEnter();
+        IsEnabledChanged += (_, _) => RefreshColor();
+        MouseEnter += (_, _) => RefreshColor();
+        MouseLeave += (_, _) => RefreshColor();
+        MouseEnter += (_, _) => MySlider_MouseEnter();
         KeyDown += MySlider_KeyDown;
     }
 
