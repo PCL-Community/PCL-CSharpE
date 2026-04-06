@@ -67,8 +67,19 @@ public partial class FormMain
         // 版本号改变
         var LastVersion = States.System.LastVersion;
         if (LastVersion < ModBase.VersionCode)
+        {
+            // 重新询问是否启用遥测数据收集
+            if (LastVersion <= 511)
+            {
+                if (!Config.System.TelemetryConfig.IsDefault() && Config.System.Telemetry)
+                {
+                    Config.System.TelemetryConfig.Reset();
+                    ModBase.Log("[Start] 遥测策略变更：由旧版本升级到含新版遥测的版本，已重置遥测设置");
+                }
+            }
             // 触发升级
             UpgradeSub(LastVersion);
+        }
         else if (LastVersion > ModBase.VersionCode)
             // 触发降级
             DowngradeSub(LastVersion);
@@ -287,13 +298,13 @@ public partial class FormMain
                 if (Config.System.TelemetryConfig.IsDefault())
                 {
                     var selection = ModMain.MyMsgBox(
-                                "这是一项与 Steam 硬件调查类似的计划，参与调查可以帮助我们更好的进行规划和开发，且我们会不定期发布该调查的统计结果。" + "\r\n" +
-                                "如果选择参与调查，我们将会收集以下信息：" + "\r\n" + "\r\n" + "- 启动器版本信息与识别码" +
+                                "启用遥测数据收集后，启动器将会收集并上报错误与设备环境信息，这可以帮助开发者修复潜在的问题、更好的进行规划和开发。" + "\r\n" +
+                                "若启用此功能，我们将会收集以下信息：" + "\r\n" + "\r\n" + "- 启动器内出现的错误" + "\r\n" + "- 启动器版本信息与识别码" +
                                 "\r\n" + "- Windows 系统版本与架构" + "\r\n" + "- 已安装的物理内存大小" +
                                 "\r\n" + "- NAT 与 IPv6 支持情况" + "\r\n" + "- 是否使用过官方版 PCL、HMCL 或 BakaXL" +
                                 "\r\n" + "\r\n" + "这些数据均不与你关联，我们也绝不会向第三方出售数据。" + "\r\n" +
-                                "如果不想参与该调查，可以选择拒绝，不会影响其他功能使用。" + "\r\n" + "你可以随时在启动器设置中调整这项设置。",
-                                "参与 PCL CE 软硬件调查", "同意", "拒绝");
+                                "如果不希望启用遥测，可以选择拒绝。这不会影响其他功能的正常使用，但可能会影响开发者修复潜在 Bug。" + "\r\n" + "你可以随时在启动器设置中调整这项设置。",
+                                "启用遥测数据收集", "同意", "拒绝");
                     Config.System.TelemetryConfig.SetValue(selection == 1, forceNewValue: true);
                 }
                 // 启动加载器池
