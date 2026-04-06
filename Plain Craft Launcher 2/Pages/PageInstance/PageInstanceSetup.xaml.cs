@@ -77,12 +77,12 @@ public partial class PageInstanceSetup
 
             // 服务器
             TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.Instance];
-            ComboServerLoginRequire.SelectedIndex = Config.Instance.LoginRequirementSolution[PageInstanceLeft.Instance];
+            ComboServerLoginRequire.SelectedIndex = Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.Instance];
             ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
             ServerLogin(ComboServerLoginRequire.SelectedIndex);
-            TextServerAuthServer.Text = Config.Instance.AuthServerAddress[PageInstanceLeft.Instance];
-            TextServerAuthName.Text = Config.Instance.AuthServerDisplayName[PageInstanceLeft.Instance];
-            TextServerAuthRegister.Text = Config.Instance.AuthRegisterAddress[PageInstanceLeft.Instance];
+            TextServerAuthServer.Text = Config.InstanceAuth.AuthServerAddress[PageInstanceLeft.Instance];
+            TextServerAuthName.Text = Config.InstanceAuth.AuthServerDisplayName[PageInstanceLeft.Instance];
+            TextServerAuthRegister.Text = Config.InstanceAuth.AuthRegisterAddress[PageInstanceLeft.Instance];
 
             // 高级设置
             ComboAdvanceRenderer.SelectedIndex = Config.Instance.Renderer[PageInstanceLeft.Instance];
@@ -642,7 +642,7 @@ public partial class PageInstanceSetup
                 $"你正在选择锁定此实例的验证方式。锁定之后，将无法再更改此实例的验证方式要求，启动此实例将必须使用指定的验证方式。{"\r\n"}此功能可能会帮助一些服主吧。{"\r\n"}是否继续？",
                 "锁定验证方式确认", "确定", "取消", IsWarn: true) == 1)
         {
-            Config.Instance.AuthTypeLucked[PageInstanceLeft.Instance] = true;
+            Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance] = true;
             Reload();
         }
     }
