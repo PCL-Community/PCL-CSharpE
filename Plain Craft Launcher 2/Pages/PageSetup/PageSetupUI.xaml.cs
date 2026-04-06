@@ -21,14 +21,6 @@ public partial class PageSetupUI
     public PageSetupUI()
     {
         InitializeComponent();
-        // 还是石山控件，不支持 ItemsSource Binding，虽然龙猫确实就没考虑 MVVM
-        // 或者说，支持了一半（内容用了原生的 ComboBoxItem 而不是自定义的 MyComboBoxItem）
-        foreach (var color in ThemeColors)
-        {
-            ComboLightColor.Items.Add(new MyComboBoxItem { Content = color });
-            ComboDarkColor.Items.Add(new MyComboBoxItem { Content = color });
-        }
-
         Loaded += PageSetupUI_Loaded;
         Loaded += (_, __) => HiddenRefresh();
     }
