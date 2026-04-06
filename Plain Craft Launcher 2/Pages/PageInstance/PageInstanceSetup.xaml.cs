@@ -116,6 +116,7 @@ public partial class PageInstanceSetup
                 CheckAdvanceDisableJLW.Checked =
                     (bool?)ModBase.Setup.Get("VersionAdvanceDisableJLW", PageInstanceLeft.Instance);
             }
+            CheckAdvanceDisableRW.Checked = Config.Instance.DisableRw[PageInstanceLeft.Instance];
         }
 
         catch (Exception ex)
