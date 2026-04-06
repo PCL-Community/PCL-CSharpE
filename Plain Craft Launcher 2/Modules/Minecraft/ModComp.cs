@@ -2255,6 +2255,12 @@ public static class ModComp
         public string SearchText;
 
         /// <summary>
+        ///     在进行中文搜索时，CurseForge 的替代搜索文本。
+        ///     由于 CurseForge API 在有任意关键词未匹配的时候就不显示结果，所以不能使用与 Modrinth 相同的算法。
+        /// </summary>
+        public string CurseForgeAltSearchText;
+
+        /// <summary>
         ///     搜索结果排序方式。
         /// </summary>
         public CompSortType Sort = CompSortType.Default;
@@ -2372,8 +2378,8 @@ public static class ModComp
                 Address.Append("&modLoaderType=").Append(((int)ModLoader).ToString());
             if (!string.IsNullOrEmpty(GameVersion))
                 Address.Append("&gameVersion=").Append(GameVersion);
-            if (!string.IsNullOrEmpty(SearchText))
-                Address.Append("&searchFilter=").Append(WebUtility.UrlEncode(SearchText));
+            if (!string.IsNullOrEmpty(CurseForgeAltSearchText ?? SearchText))
+                Address.Append("&searchFilter=").Append(WebUtility.UrlEncode(CurseForgeAltSearchText ?? SearchText));
             if (Storage.CurseForgeOffset > 0)
                 Address.Append("&index=").Append(Storage.CurseForgeOffset);
             switch (Sort)
@@ -2580,76 +2586,114 @@ public static class ModComp
                 var sql =
                     "SELECT * FROM ModTranslation WHERE ChineseName LIKE @p OR CurseForgeSlug LIKE @p OR ModrinthSlug LIKE @p";
                 var searchRes = conn.Query<CompDatabaseEntry>(sql, new { p = $"%{rawFilter}%" });
-                foreach (var item in searchRes)
+                foreach (var searchItem in searchRes)
                 {
-                    if (item.ChineseName.Contains("动态的树")) continue;
+                    if (searchItem.ChineseName.Contains("动态的树")) continue;
                     searchEntries.Add(new ModBase.SearchEntry<CompDatabaseEntry>
                     {
-                        Item = item,
-                        SearchSource = new List<KeyValuePair<string, double>>
+                        Item = searchItem,
+                        SearchSource = new List<ModBase.SearchSource>
                         {
-                            new(item.ChineseName + (item.CurseForgeSlug ?? "") + (item.ModrinthSlug ?? ""), 1.0)
+                            new(searchItem.ChineseName.BeforeFirst(" (").Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), 1),
+                            new(searchItem.ChineseName.AfterFirst(" (") + (searchItem.CurseForgeSlug ?? "") + (searchItem.ModrinthSlug ?? ""), 0.5)
                         }
                     });
                 }
             }
 
-            var searchResults = ModBase.Search(searchEntries, request.SearchText, 3);
+            var searchResults = ModBase.Search(searchEntries, request.SearchText, 40, 0.2);
             if (!searchResults.Any()) throw new Exception("无搜索结果，请尝试搜索英文名称");
 
-            var searchResultText = "";
-            for (var i = 0; i < Math.Min(5, searchResults.Count); i++)
+            string[] ExtractWords(ModBase.SearchEntry<CompDatabaseEntry> Result)
             {
-                if (!searchResults[i].AbsoluteRight && i >= Math.Min(3, searchResults.Count)) break;
-                var item = searchResults[i].Item;
-                if (item.CurseForgeSlug != null)
-                    searchResultText += item.CurseForgeSlug.Replace("-", " ").Replace("/", " ") + " ";
-                if (item.ModrinthSlug != null)
-                    searchResultText += item.ModrinthSlug.Replace("-", " ").Replace("/", " ") + " ";
-                searchResultText += item.ChineseName.AfterLast(" (").TrimEnd(')', ' ').BeforeFirst(" - ")
-                    .Replace(":", "").Replace("(", "").Replace(")", "").ToLower().Replace("/", " ") + " ";
+                var Word = "";
+                if (Result.Item.CurseForgeSlug != null)
+                    Word += Result.Item.CurseForgeSlug.Replace("-", " ").Replace("/", " ") + " ";
+                if (Result.Item.ModrinthSlug != null)
+                    Word += Result.Item.ModrinthSlug.Replace("-", " ").Replace("/", " ") + " ";
+                Word += Result.Item.ChineseName.AfterLast(" (").TrimEnd(')', ' ').BeforeFirst(" - ")
+                    .Replace(":", "").Replace("(", "").Replace(")", "").ToLower().Replace("/", " ").Replace("-", " ");
+                var Words = Word.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                Words = Words.Select(w => w.TrimStart('{', '[', '(').TrimEnd('}', ']', ')')).Where(
+                    w =>
+                    {
+                        if (w.Length <= 1) return false;
+                        if (new[] { "the", "of", "mod", "and" }.Contains(w)) return false;
+                        if (ModBase.Val(w) > 0) return false;
+                        if (w.Split(' ').Length > 3 && w.Contains("ftb")) return false;
+                        return true;
+                    }).Distinct().ToArray();
+                return Words;
             }
 
-            var realFilter = "";
-            var words = searchResultText.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var word in words)
+            var WordWeights = new Dictionary<string, double>();
+            foreach (var Result in searchResults)
             {
-                var wordLower = word.ToLowerInvariant();
-                if (new[] { "the", "of", "a", "mod", "and" }.Contains(wordLower) ||
-                    double.TryParse(word, out _)) continue;
-                if (words.Length > 3 && wordLower == "ftb") continue;
-                realFilter += word.TrimStart('{', '[', '(').TrimEnd('}', ']', ')') + " ";
+                foreach (var Word in ExtractWords(Result))
+                {
+                    var Similarity = Result.SearchSource.Any(s => s.Aliases.Contains(request.SearchText))
+                        ? 100000
+                        : Result.Similarity;
+                    if (!WordWeights.ContainsKey(Word))
+                        WordWeights.Add(Word, 0);
+                    WordWeights[Word] += Similarity;
+                }
             }
 
-            request.SearchText = realFilter.Trim();
-            LogWrapper.Debug("[Comp] 中文搜索最终关键词：" + request.SearchText);
+            if (!WordWeights.Any()) throw new Exception("无搜索结果，请尝试搜索英文名称");
+
+            var SortedWords = WordWeights.OrderByDescending(w => w.Value).ToList();
+            if (SortedWords.First().Value >= 100000)
+            {
+                request.SearchText = string.Join(" ", SortedWords.Where(w => w.Value >= 100000).Select(w => w.Key));
+            }
+            else
+            {
+                request.SearchText = string.Join(" ", SortedWords.Take(5).Select(w => w.Key));
+                request.CurseForgeAltSearchText = string.Join(" ", ExtractWords(searchResults.First()));
+                LogWrapper.Debug("[Comp] 中文搜索基础关键词（CurseForge）：" + request.CurseForgeAltSearchText);
+            }
+
+            LogWrapper.Debug("[Comp] 中文搜索基础关键词：" + request.SearchText);
         }
 
-        // 驼峰与拼合逻辑处理
-        var spacedKeywords = RegexPatterns.EnglishSpacedKeywords.Replace(request.SearchText, "$& ");
-        var connectedKeywords = request.SearchText.Replace(" ", "");
-        var allPossibleKeywords =
-            (spacedKeywords + " " + (isChineseSearch ? request.SearchText : connectedKeywords + " " + rawFilter))
-            .ToLower();
-
-        var rightKeywords = new List<string>();
-        foreach (var keyword in allPossibleKeywords.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+        // 最终处理关键字：分割、去重
+        void processKeywords(ref string text)
         {
-            var cleanKeyword = keyword.Trim('[', ']');
-            if (string.IsNullOrEmpty(cleanKeyword)) continue;
-            if (new[] { "forge", "fabric", "for", "mod", "quilt" }.Contains(cleanKeyword)) continue;
-            rightKeywords.Add(cleanKeyword);
+            if (text is null) return;
+            text = text.ToLowerInvariant();
+            var words = new List<string>();
+            foreach (var keyword in text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var cleanKeyword = keyword.Trim('[', ']');
+                if (string.IsNullOrEmpty(cleanKeyword)) continue;
+                if (new[] { "forge", "fabric", "for", "mod", "quilt" }.Contains(cleanKeyword))
+                {
+                    LogWrapper.Debug("[Comp] 已跳过搜索关键词：" + cleanKeyword);
+                    continue;
+                }
+
+                words.Add(cleanKeyword);
+            }
+
+            if (rawFilter.Length > 0 && !words.Any())
+                text = rawFilter;
+            else
+                text = string.Join(" ", words.Distinct());
+
+            // 例外项：OptiForge、OptiFabric（拆词后因为包含 Forge/Fabric 导致无法搜到实际的 Mod）
+            if (rawFilter.Replace(" ", "").ContainsF("optiforge", true)) text = "optiforge";
+            if (rawFilter.Replace(" ", "").ContainsF("optifabric", true)) text = "optifabric";
         }
 
-        if (rawFilter.Length > 0 && !rightKeywords.Any())
-            request.SearchText = rawFilter;
-        else
-            request.SearchText = string.Join(" ", rightKeywords.Distinct()).ToLower();
+        if (request.CurseForgeAltSearchText is not null)
+        {
+            processKeywords(ref request.CurseForgeAltSearchText);
+            LogWrapper.Debug("[Comp] 工程列表搜索最终文本（CurseForge）：" + request.CurseForgeAltSearchText);
+        }
 
-        // 例外项处理
-        if (rawFilter.Replace(" ", "").ContainsF("optiforge", true)) request.SearchText = "optiforge";
-        if (rawFilter.Replace(" ", "").ContainsF("optifabric", true)) request.SearchText = "optifabric";
-
+        processKeywords(ref request.SearchText);
+        LogWrapper.Debug("[Comp] 工程列表搜索最终文本：" + request.SearchText);
         task.Progress = 0.1;
 
         #endregion
@@ -2749,7 +2793,7 @@ public static class ModComp
                 .ToList();
 
             realResults.AddRange(processedResults);
-            LogWrapper.Info($"[Comp] 去重后新增 {processedResults.Count} 个结果");
+            LogWrapper.Info($"[Comp] 去重、筛选后累计新增结果 {processedResults.Count} 个（目前已有结果 {storage.Results.Count} 个）");
 
             if (realResults.Count + storage.Results.Count < request.TargetResultCount && request.CanContinue &&
                 lastError == null)
@@ -2796,18 +2840,22 @@ public static class ModComp
                 searchEntries.Add(new ModBase.SearchEntry<CompProject>
                 {
                     Item = res,
-                    SearchSource = new List<KeyValuePair<string, double>>
+                    SearchSource = new List<ModBase.SearchSource>
                     {
-                        new(isChineseSearch ? res.TranslatedName : res.RawName, 1),
+                        new((isChineseSearch ? res.TranslatedName : res.RawName).Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries), 1),
                         new(res.Description, 0.05)
                     }
                 });
             }
 
             var searchRes = ModBase.Search(searchEntries, rawFilter, 101, -1);
-            foreach (var item in searchRes) scores[item.Item] += item.Similarity / searchRes[0].Similarity;
+            foreach (var item in searchRes)
+                scores[item.Item] +=
+                    (item.AbsoluteRight ? 10 : item.Similarity) /
+                    (searchRes.First().AbsoluteRight ? 10 : searchRes.First().Similarity);
         }
 
+        if (task.IsAborted) throw new ThreadInterruptedException();
         storage.Results.AddRange(scores.OrderByDescending(s => s.Value).Select(s => s.Key));
 
         #endregion
@@ -3016,7 +3064,7 @@ public static class ModComp
                     // GameVersions
                     var RawVersions = Data["gameVersions"].Select(t => t.ToString().Trim().ToLower()).ToList();
                     GameVersions = RawVersions.Where(v => ModMinecraft.McInstanceInfo.IsFormatFit(v))
-                        .Select(v => v.Replace("-snapshot", " 预览版")).ToList();
+                        .Select(v => v.Replace("-snapshot", " 预览版")).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
                         GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
@@ -3155,7 +3203,7 @@ public static class ModComp
                     // GameVersions
                     var RawVersions = Data["game_versions"].Select(t => t.ToString().Trim().ToLower()).ToList();
                     GameVersions = RawVersions.Where(v => v.Contains(".")).Select(v =>
-                        v.Contains("-") ? v.BeforeFirst("-") + " 预览版" : v.StartsWithF("b1.") ? "远古版本" : v).ToList();
+                        v.Contains("-") ? v.BeforeFirst("-") + " 预览版" : v.StartsWithF("b1.") ? "远古版本" : v).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
                         GameVersions = GameVersions.Sort(ModMinecraft.CompareVersionGe).ToList();
@@ -3387,7 +3435,7 @@ public static class ModComp
             else
             {
                 ResultJsonArray =
-                    (JArray)ModDownload.DlModRequest($"https://api.modrinth.com/v2/project/{ProjectId}/version", true);
+                    (JArray)ModDownload.DlModRequest($"https://api.modrinth.com/v2/project/{ProjectId}/version?include_changelog=false", true);
             }
 
             CompFilesCache[ProjectId] = ResultJsonArray.Select(a => new CompFile((JObject)a, TargetProject.Type))

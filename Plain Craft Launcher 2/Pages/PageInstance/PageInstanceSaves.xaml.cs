@@ -491,8 +491,8 @@ public partial class PageInstanceSaves : IRefreshable
                 foreach (var saveFolder in saveFolders)
                 {
                     var folderName = GetFolderNameFromPath(saveFolder);
-                    var searchSource = new List<KeyValuePair<string, double>>();
-                    searchSource.Add(new KeyValuePair<string, double>(folderName, 1d));
+                    var searchSource = new List<ModBase.SearchSource>();
+                    searchSource.Add(new ModBase.SearchSource(folderName, 1d));
                     queryList.Add(new ModBase.SearchEntry<string> { Item = saveFolder, SearchSource = searchSource });
                 }
 

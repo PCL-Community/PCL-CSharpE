@@ -893,13 +893,13 @@ public partial class PageDownloadCompFavorites
                 if (!(Item.Tag is ModComp.CompProject))
                     continue;
                 var Entry = (ModComp.CompProject)Item.Tag;
-                var SearchSource = new List<KeyValuePair<string, double>>();
-                SearchSource.Add(new KeyValuePair<string, double>(Entry.RawName, 1d));
+                var SearchSource = new List<ModBase.SearchSource>();
+                SearchSource.Add(new ModBase.SearchSource(Entry.RawName, 1d));
                 if (Entry.Description is not null && !string.IsNullOrEmpty(Entry.Description))
-                    SearchSource.Add(new KeyValuePair<string, double>(Entry.Description, 0.4d));
+                    SearchSource.Add(new ModBase.SearchSource(Entry.Description, 0.4d));
                 if ((Entry.TranslatedName ?? "") != (Entry.RawName ?? ""))
-                    SearchSource.Add(new KeyValuePair<string, double>(Entry.TranslatedName, 1d));
-                SearchSource.Add(new KeyValuePair<string, double>(string.Join("", Entry.Tags), 0.2d));
+                    SearchSource.Add(new ModBase.SearchSource(Entry.TranslatedName, 1d));
+                SearchSource.Add(new ModBase.SearchSource(string.Join("", Entry.Tags), 0.2d));
                 QueryList.Add(new ModBase.SearchEntry<MyListItem> { Item = Item, SearchSource = SearchSource });
             }
 

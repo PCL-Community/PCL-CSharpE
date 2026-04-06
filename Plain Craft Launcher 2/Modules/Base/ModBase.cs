@@ -2400,17 +2400,18 @@ public static class ModBase
     /// <summary>
     ///     获取多段文本加权后的相似度。
     /// </summary>
-    private static double SearchSimilarityWeighted(List<KeyValuePair<string, double>> Source, string Query)
+    private static double SearchSimilarityWeighted(List<SearchSource> source, string query)
     {
-        var TotalWeight = 0d;
-        var Sum = 0d;
-        foreach (var Pair in Source)
+        var totalWeight = 0d;
+        var sum = 0d;
+        foreach (var Pair in source)
         {
-            Sum += SearchSimilarity(Pair.Key, Query) * Pair.Value;
-            TotalWeight += Pair.Value;
+            if (Pair.Aliases.Any())
+                sum += Pair.Aliases.Max(a => SearchSimilarity(a, query)) * Pair.Weight;
+            totalWeight += Pair.Weight;
         }
 
-        return Sum / TotalWeight;
+        return sum / totalWeight;
     }
 
     /// <summary>
@@ -2429,14 +2430,36 @@ public static class ModBase
         public T Item;
 
         /// <summary>
-        ///     该项目用于搜索的源。
+        ///     该项目用于搜索的文本源。
+        ///     在搜索时，会对每个文本源单独加权，但单个文本源内的多个别名只取最高的一个的相似度。
         /// </summary>
-        public List<KeyValuePair<string, double>> SearchSource;
+        public List<SearchSource> SearchSource;
 
         /// <summary>
         ///     相似度。
         /// </summary>
         public double Similarity;
+    }
+
+    /// <summary>
+    ///     单个用于搜索的文本源。
+    /// </summary>
+    public class SearchSource
+    {
+        public string[] Aliases;
+        public double Weight;
+
+        public SearchSource(string[] aliases, double weight = 1)
+        {
+            Aliases = aliases;
+            Weight = weight;
+        }
+
+        public SearchSource(string text, double weight = 1)
+        {
+            Aliases = new[] { text };
+            Weight = weight;
+        }
     }
 
     /// <summary>
@@ -2468,7 +2491,12 @@ public static class ModBase
             Entry.Similarity = SearchSimilarityWeighted(Entry.SearchSource, Query);
 
             // Preprocess search source keys: remove spaces and convert to lowercase
-            var processedSources = Entry.SearchSource.Select(s => s.Key.Replace(" ", "").ToLower()).ToList();
+            var processedSources = Entry.SearchSource.Select(s =>
+            {
+                for (var i = 0; i < s.Aliases.Length; i++)
+                    s.Aliases[i] = s.Aliases[i].Replace(" ", "").ToLower();
+                return s.Aliases;
+            }).ToList();
 
             // Check if all query parts are matched exactly by at least one source
             var isAbsoluteRight = true;
@@ -2476,7 +2504,7 @@ public static class ModBase
             {
                 var found = false;
                 foreach (var ps in processedSources)
-                    if (ps.Contains(qp))
+                    if (ps.Any(p => p.Contains(qp)))
                     {
                         found = true;
                         break;

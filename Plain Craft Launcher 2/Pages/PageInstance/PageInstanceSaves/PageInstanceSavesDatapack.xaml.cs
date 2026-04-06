@@ -1555,22 +1555,22 @@ public partial class PageInstanceSavesDatapack : IRefreshable
                 var QueryList = new List<ModBase.SearchEntry<ModLocalComp.LocalCompFile>>();
                 foreach (var Entry in ModLocalComp.CompResourceListLoader.Output)
                 {
-                    var SearchSource = new List<KeyValuePair<string, double>>();
-                    SearchSource.Add(new KeyValuePair<string, double>(Entry.Name, 1d));
-                    SearchSource.Add(new KeyValuePair<string, double>(Entry.FileName, 1d));
+                    var SearchSource = new List<ModBase.SearchSource>();
+                    SearchSource.Add(new ModBase.SearchSource(Entry.Name, 1d));
+                    SearchSource.Add(new ModBase.SearchSource(Entry.FileName, 1d));
                     if (Entry.Version is not null)
-                        SearchSource.Add(new KeyValuePair<string, double>(Entry.Version, 0.2d));
+                        SearchSource.Add(new ModBase.SearchSource(Entry.Version, 0.2d));
                     if (Entry.Description is not null && !string.IsNullOrEmpty(Entry.Description))
-                        SearchSource.Add(new KeyValuePair<string, double>(Entry.Description, 0.4d));
+                        SearchSource.Add(new ModBase.SearchSource(Entry.Description, 0.4d));
                     if (Entry.Comp is not null)
                     {
                         if ((Entry.Comp.RawName ?? "") != (Entry.Name ?? ""))
-                            SearchSource.Add(new KeyValuePair<string, double>(Entry.Comp.RawName, 1d));
+                            SearchSource.Add(new ModBase.SearchSource(Entry.Comp.RawName, 1d));
                         if ((Entry.Comp.TranslatedName ?? "") != (Entry.Comp.RawName ?? ""))
-                            SearchSource.Add(new KeyValuePair<string, double>(Entry.Comp.TranslatedName, 1d));
+                            SearchSource.Add(new ModBase.SearchSource(Entry.Comp.TranslatedName, 1d));
                         if ((Entry.Comp.Description ?? "") != (Entry.Description ?? ""))
-                            SearchSource.Add(new KeyValuePair<string, double>(Entry.Comp.Description, 0.4d));
-                        SearchSource.Add(new KeyValuePair<string, double>(string.Join("", Entry.Comp.Tags), 0.2d));
+                            SearchSource.Add(new ModBase.SearchSource(Entry.Comp.Description, 0.4d));
+                        SearchSource.Add(new ModBase.SearchSource(string.Join("", Entry.Comp.Tags), 0.2d));
                     }
 
                     QueryList.Add(new ModBase.SearchEntry<ModLocalComp.LocalCompFile>

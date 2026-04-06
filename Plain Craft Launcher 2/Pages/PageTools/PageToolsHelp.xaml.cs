@@ -183,7 +183,7 @@ public partial class PageToolsHelp : IRefreshable
                 QueryList.Add(new ModBase.SearchEntry<ModMain.HelpEntry>
                 {
                     Item = Entry,
-                    SearchSource = new List<KeyValuePair<string, double>>
+                    SearchSource = new List<ModBase.SearchSource>
                         { new(Entry.Title, 1d), new(Entry.Desc, 0.5d), new(Entry.Search, 1.5d) }
                 });
                 // New KeyValuePair(Of String, Double)(If(Entry.IsEvent, If(Entry.EventData, ""), Entry.XamlContent), 0.2)
