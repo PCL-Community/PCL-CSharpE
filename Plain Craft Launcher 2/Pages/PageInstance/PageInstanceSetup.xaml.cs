@@ -196,8 +196,8 @@ public partial class PageInstanceSetup
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-
-        var checkBox = (MyCheckBox)sender;
+        if (sender is not MyCheckBox checkBox) return;
+        
         var tag = Conversions.ToString(checkBox.Tag);
         var value = checkBox.Checked.GetValueOrDefault();
         ArgConfig<bool> setting = tag switch
