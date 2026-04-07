@@ -188,13 +188,6 @@ public partial class PageInstanceSetup
                 instance: PageInstanceLeft.Instance);
     }
 
-    private static void CheckBoxLikeComboChange(MyComboBox sender, object e)
-    {
-        if (ModAnimation.AniControlEnabled == 0)
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex == 0,
-                instance: PageInstanceLeft.Instance);
-    }
-
     private void CheckBoxChange(object sender, bool user)
     {
         if (ModAnimation.AniControlEnabled != 0)
