@@ -173,6 +173,18 @@ public partial class PageInstanceSetup
                 case "VersionServerEnter":
                     Config.Instance.ServerToEnter[PageInstanceLeft.Instance.PathInstance] = value;
                     break;
+                case "VersionAdvanceJvm":
+                    Config.Instance.JvmArgs[PageInstanceLeft.Instance.PathInstance] = value;
+                    break;
+                case "VersionAdvanceGame":
+                    Config.Instance.GameArgs[PageInstanceLeft.Instance.PathInstance] = value;
+                    break;
+                case "VersionAdvanceClasspathHead":
+                    Config.Instance.ClasspathHead[PageInstanceLeft.Instance.PathInstance] = value;
+                    break;
+                case "VersionAdvanceRun":
+                    Config.Instance.PreLaunchCommand[PageInstanceLeft.Instance.PathInstance] = value;
+                    break;
             }
         }
     }
