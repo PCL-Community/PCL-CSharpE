@@ -11,6 +11,7 @@ using PCL.Core.App.Configuration;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
+using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.UI;
 using PCL.Core.Utils.OS;
 
@@ -38,6 +39,7 @@ public partial class PageInstanceSetup
 
         ComboServerLoginRequire.SelectionChanged += ComboServerLogin_Changed;
         TextServerAuthServer.TextChanged += TextBoxChange;
+        TextServerAuthServer.LostFocus += TextServerAuthServer_MouseLeave;
         TextServerAuthRegister.TextChanged += TextBoxChange;
         TextServerAuthName.TextChanged += TextBoxChange;
         TextServerEnter.TextChanged += TextBoxChange;
@@ -583,33 +585,48 @@ public partial class PageInstanceSetup
         Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.Instance.PathInstance] = ComboServerLoginRequire.SelectedIndex;
     }
 
-    private void TextServerAuthServer_MouseLeave()
+    private void TextServerAuthServer_MouseLeave(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(TextServerAuthServer.Text))
             return;
-        if (!(TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/") ||
-              TextServerAuthServer.Text.EndsWithF("/api/yggdrasil")))
-        {
-            if (TextServerAuthServer.Text.EndsWithF("/"))
-            {
-                TextServerAuthServer.Text = $"{TextServerAuthServer.Text}api/yggdrasil";
-                ModMain.Hint("已自动格式化验证服务器地址！");
-            }
-            else
-            {
-                TextServerAuthServer.Text = $"{TextServerAuthServer.Text}/api/yggdrasil";
-                ModMain.Hint("已自动格式化验证服务器地址！");
-            }
-        }
+        ModMain.Hint("正在检查 API 地址信息，请稍后！");
 
-        if (TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/"))
-        {
-            TextServerAuthServer.Text = TextServerAuthServer.Text.BeforeLast("/");
-            ModMain.Hint("已自动格式化验证服务器地址！");
-        }
+        // 写这个的拉出去炖了
+        //
+        // if (!(TextServerAuthServer.Text.EndsWithF("/api/yggdrasil/") ||
+        //       TextServerAuthServer.Text.EndsWithF("/api/yggdrasil")))
+        // {
+        //     if (TextServerAuthServer.Text.EndsWithF("/"))
+        //     {
+        //         TextServerAuthServer.Text = $"{TextServerAuthServer.Text}api/yggdrasil";
+        //         ModMain.Hint("已自动格式化验证服务器地址！");
+        //     }
+        //     else
+        //     {
+        //         TextServerAuthServer.Text = $"{TextServerAuthServer.Text}/api/yggdrasil";
+        //         ModMain.Hint("已自动格式化验证服务器地址！");
+        //     }
+        // }
 
-        ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
-        ComboChange(ComboServerLoginRequire, null);
+        Dispatcher.BeginInvoke(new Func<Task>(async () =>
+        {
+            var originAddress = TextServerAuthServer.Text;
+            try
+            {
+                TextServerAuthServer.Text = await ApiLocation.TryRequestAsync(TextServerAuthServer.Text);
+                ModMain.Hint("检查 API 地址信息成功，验证服务器地址已更新", ModMain.HintType.Finish);
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "检查验证服务器地址失败", ModBase.LogLevel.Hint);
+                TextServerAuthServer.Text = originAddress;
+            }
+            finally
+            {
+                ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
+                ComboChange(ComboServerLoginRequire, null);
+            }
+        }));
     }
 
     public void ServerLogin(int Type)
