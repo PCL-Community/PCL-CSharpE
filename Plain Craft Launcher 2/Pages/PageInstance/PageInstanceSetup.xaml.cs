@@ -202,7 +202,12 @@ public partial class PageInstanceSetup
     }
 
     #region 游戏内存
-
+    private void ComboRamOptimize_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ModAnimation.AniControlEnabled != 0) return;
+        Config.Instance.OptimizeMemoryResolution[PageInstanceLeft.Instance] = ComboRamOptimize.SelectedIndex;
+    }
+    
     public void RamType(int Type)
     {
         if (SliderRamCustom is null)
@@ -508,12 +513,11 @@ public partial class PageInstanceSetup
     // 全局
     private int ComboServerLoginLast;
 
-    private void ComboServerLogin_Changed()
+    private void ComboServerLogin_Changed(object sender, SelectionChangedEventArgs e)
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
         ServerLogin(ComboServerLoginRequire.SelectedIndex);
-        // 检查是否输入正确，正确才触发设置改变
         if (TextServerAuthServer.IsValidated)
             BtnServerAuthLock.IsEnabled = true;
         else
@@ -521,12 +525,10 @@ public partial class PageInstanceSetup
         if ((ComboServerLoginRequire.SelectedIndex == 2 || ComboServerLoginRequire.SelectedIndex == 3) &&
             !TextServerAuthServer.IsValidated)
             return;
-        // 检查结果是否发生改变，未改变则不触发设置改变
         if (ComboServerLoginLast == ComboServerLoginRequire.SelectedIndex)
             return;
-        // 触发
         ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
-        ComboChange(ComboServerLoginRequire, null);
+        Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.Instance] = ComboServerLoginRequire.SelectedIndex;
     }
 
     private void TextServerAuthServer_MouseLeave()
@@ -935,6 +937,11 @@ public partial class PageInstanceSetup
             ComboArgumentIndieV2.SelectedItem = e.RemovedItems[0];
             IsReverting = false;
         }
+        else
+        {
+            bool newValue = ComboArgumentIndieV2.SelectedIndex == 0;
+            Config.Instance.IndieV2[PageInstanceLeft.Instance] = newValue;
+        }
     }
 
     // 游戏窗口
@@ -959,10 +966,13 @@ public partial class PageInstanceSetup
             string.IsNullOrEmpty(TextAdvanceRun.Text) ? Visibility.Collapsed : Visibility.Visible;
     }
 
-    private void ComboAdvanceRenderer_SelectionChanged(MyComboBox sender, object e)
+    private void ComboAdvanceRenderer_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
+
+        var args = (SelectionChangedEventArgs)e; // 转换事件参数
+
         if (Conversions.ToBoolean(!(bool)States.Hint.Renderer && ComboAdvanceRenderer.SelectedIndex != 0))
         {
             if (ModMain.MyMsgBox("""
@@ -971,19 +981,17 @@ public partial class PageInstanceSetup
                                  """, "警告",
                     "我知道我在做什么", "取消", IsWarn: true) == 2)
             {
-                ComboAdvanceRenderer.SelectedItem = ((SelectionChangedEventArgs)e).RemovedItems[0];
+                ComboAdvanceRenderer.SelectedItem = args.RemovedItems[0];
             }
             else
             {
-                ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex,
-                    instance: PageInstanceLeft.Instance);
+                Config.Instance.Renderer[PageInstanceLeft.Instance] = ComboAdvanceRenderer.SelectedIndex;
                 States.Hint.Renderer = true;
             }
         }
         else
         {
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.SelectedIndex,
-                instance: PageInstanceLeft.Instance);
+            Config.Instance.Renderer[PageInstanceLeft.Instance] = ComboAdvanceRenderer.SelectedIndex;
         }
     }
 
