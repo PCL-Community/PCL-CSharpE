@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -201,33 +201,19 @@ public partial class PageInstanceSetup
         var checkBox = (MyCheckBox)sender;
         var tag = Conversions.ToString(checkBox.Tag);
         var value = checkBox.Checked.GetValueOrDefault();
-        switch (tag)
+        ArgConfig<bool> setting = tag switch
         {
-            case "VersionAdvanceRunWait":
-                Config.Instance.PreLaunchCommandWait[PageInstanceLeft.Instance.PathInstance] = value;
-                break;
-            case "VersionAdvanceJava":
-                Config.Instance.IgnoreJavaCompatibility[PageInstanceLeft.Instance.PathInstance] = value;
-                break;
-            case "VersionAdvanceAssetsV2":
-                Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance] = value;
-                break;
-            case "VersionAdvanceUseProxyV2":
-                Config.Instance.UseProxy[PageInstanceLeft.Instance.PathInstance] = value;
-                break;
-            case "VersionAdvanceDisableJLW":
-                Config.Instance.DisableJlw[PageInstanceLeft.Instance.PathInstance] = value;
-                break;
-            case "VersionAdvanceDisableRW":
-                Config.Instance.DisableRw[PageInstanceLeft.Instance.PathInstance] = value;
-                break;
-            case "VersionUseDebugLog4j2Config":
-                Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance.PathInstance] = value;
-                break;
-            case "VersionAdvanceDisableLwjglUnsafeAgent":
-                Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.Instance.PathInstance] = value;
-                break;
-        }
+            "VersionAdvanceRunWait" => Config.Instance.PreLaunchCommandWait,
+            "VersionAdvanceJava" => Config.Instance.IgnoreJavaCompatibility,
+            "VersionAdvanceAssetsV2" => Config.Instance.DisableAssetVerifyV2,
+            "VersionAdvanceUseProxyV2" => Config.Instance.UseProxy,
+            "VersionAdvanceDisableJLW" => Config.Instance.DisableJlw,
+            "VersionAdvanceDisableRW" => Config.Instance.DisableRw,
+            "VersionUseDebugLog4j2Config" => Config.Instance.UseDebugLof4j2Config,
+            "VersionAdvanceDisableLwjglUnsafeAgent" => Config.Instance.DisableLwjglUnsafeAgent,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        setting[PageInstanceLeft.Instance.PathInstance] = value;
     }
 
     // 切换到全局设置
