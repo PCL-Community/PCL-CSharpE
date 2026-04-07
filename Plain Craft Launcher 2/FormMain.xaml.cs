@@ -1939,8 +1939,8 @@ public partial class FormMain
                     }
                 case PageType.InstanceSetup: // 实例设置
                     {
-                        if (ModMain.FrmInstanceLeft is null)
-                            ModMain.FrmInstanceLeft = new PageInstanceLeft();
+                        ModMain.FrmInstanceLeft ??= new PageInstanceLeft();
+                        SubType = ModMain.FrmInstanceLeft.PageID;
                         PageChangeAnim(ModMain.FrmInstanceLeft, (FrameworkElement)ModMain.FrmInstanceLeft.PageGet(SubType));
                         break;
                     }
