@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -82,6 +83,9 @@ public static partial class ModAnimation
                                         ModBase.GetString(ModNet.NetManager.Speed) + "/s）");
                     });
                 }
+            }
+            catch (OperationCanceledException)
+            {
             }
             catch (Exception ex)
             {
@@ -171,7 +175,7 @@ public static partial class ModAnimation
                     for (int Current = 0, loopTo = AniGroups.Count - 1; Current <= loopTo; Current++)
                         if (AniGroups.ElementAt(Current).Value.Uuid == Entry.Uuid)
                         {
-                            AniGroups.Remove(AniGroups.ElementAt(Current).Key);
+                            AniGroups.Remove(AniGroups.ElementAt(Current).Key, out _);
                             break;
                         }
 
@@ -428,7 +432,7 @@ public static partial class ModAnimation
     /// <summary>
     ///     动画组列表。
     /// </summary>
-    public static Dictionary<string, AniGroupEntry> AniGroups = new();
+    public static ConcurrentDictionary<string, AniGroupEntry> AniGroups = new();
 
     public class AniGroupEntry
     {
@@ -1475,7 +1479,7 @@ public static partial class ModAnimation
             Name = NewEntry.Uuid.ToString();
         else
             AniStop(Name);
-        AniGroups.Add(Name, NewEntry);
+        AniGroups.TryAdd(Name, NewEntry);
     }
 
     /// <summary>
@@ -1492,7 +1496,7 @@ public static partial class ModAnimation
     /// <param name="name">需要停止的动画组的名称。</param>
     public static void AniStop(string Name)
     {
-        AniGroups.Remove(Name);
+        AniGroups.Remove(Name, out _);
     }
 
     /// <summary>
