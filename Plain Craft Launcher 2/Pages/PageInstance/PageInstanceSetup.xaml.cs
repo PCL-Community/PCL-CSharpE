@@ -80,6 +80,7 @@ public partial class PageInstanceSetup
 
             // 高级设置
             ComboAdvanceRenderer.SelectedIndex = Config.Instance.Renderer[PageInstanceLeft.Instance.PathInstance];
+            TextAdvanceClasspathHead.Text = Config.Instance.ClasspathHead[PageInstanceLeft.Instance.PathInstance];
             TextAdvanceJvm.Text = Config.Instance.JvmArgs[PageInstanceLeft.Instance.PathInstance];
             TextAdvanceGame.Text = Config.Instance.GameArgs[PageInstanceLeft.Instance.PathInstance];
             TextAdvanceRun.Text = Config.Instance.PreLaunchCommand[PageInstanceLeft.Instance.PathInstance];
@@ -105,8 +106,10 @@ public partial class PageInstanceSetup
             }
             else
             {
-                CheckAdvanceDisableRW.Checked = Config.Instance.DisableRw[PageInstanceLeft.Instance.PathInstance];
+                CheckAdvanceDisableJLW.Checked = Config.Instance.DisableJlw[PageInstanceLeft.Instance.PathInstance];
             }
+            CheckUseDebugLog4j2Config.Checked = Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance.PathInstance];
+            CheckAdvanceDisableRW.Checked = Config.Instance.DisableRw[PageInstanceLeft.Instance.PathInstance];
         }
 
         catch (Exception ex)
