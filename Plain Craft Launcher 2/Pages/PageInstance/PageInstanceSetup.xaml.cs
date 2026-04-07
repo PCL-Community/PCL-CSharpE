@@ -24,6 +24,42 @@ public partial class PageInstanceSetup
     {     
         Loaded += PageSetupSystem_Loaded;
         InitializeComponent();
+
+        ComboArgumentIndieV2.SelectionChanged += ComboArgumentIndieV2_SelectionChanged;
+        TextArgumentTitle.TextChanged += TextBoxChange;
+        TextArgumentInfo.TextChanged += TextBoxChange;
+        ComboArgumentJava.SelectionChanged += JavaSelectionUpdate;
+
+        RadioRamType2.Check += RadioBoxChange;
+        RadioRamType0.Check += RadioBoxChange;
+        RadioRamType1.Check += RadioBoxChange;
+        SliderRamCustom.Change += SliderChange;
+        ComboRamOptimize.SelectionChanged += ComboRamOptimize_SelectionChanged;
+
+        ComboServerLoginRequire.SelectionChanged += ComboServerLogin_Changed;
+        TextServerAuthServer.TextChanged += TextBoxChange;
+        TextServerAuthRegister.TextChanged += TextBoxChange;
+        TextServerAuthName.TextChanged += TextBoxChange;
+        TextServerEnter.TextChanged += TextBoxChange;
+        BtnServerAuthLittle.Click += BtnServerAuthLittle_Click;
+        BtnServerAuthLock.Click += BtnServerAuthLock_Click;
+        BtnServerNewProfile.Click += BtnServerNewProfile_Click;
+
+        ComboAdvanceRenderer.SelectionChanged += ComboAdvanceRenderer_SelectionChanged;
+        TextAdvanceJvm.TextChanged += TextBoxChange;
+        TextAdvanceGame.TextChanged += TextBoxChange;
+        TextAdvanceClasspathHead.TextChanged += TextBoxChange;
+        TextAdvanceRun.TextChanged += TextBoxChange;
+        CheckAdvanceRunWait.Change += CheckBoxChange;
+        CheckAdvanceJava.Change += CheckBoxChange;
+        CheckAdvanceAssetsV2.Change += CheckBoxChange;
+        CheckAdvanceUseProxyV2.Change += CheckBoxChange;
+        CheckAdvanceDisableJLW.Change += CheckBoxChange;
+        CheckAdvanceDisableRW.Change += CheckBoxChange;
+        CheckUseDebugLog4j2Config.Change += CheckBoxChange;
+        CheckAdvanceDisableLwjglUnsafeAgent.Change += CheckBoxChange;
+
+        BtnSwitch.Click += BtnSwitch_Click;
     }
 
     private void PageSetupSystem_Loaded(object sender, RoutedEventArgs e)
