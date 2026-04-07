@@ -23,12 +23,6 @@ public partial class PageInstanceSetup
     {     
         Loaded += PageSetupSystem_Loaded;
         InitializeComponent();
-        CheckAdvanceRunWait.Change += CheckBoxChange;
-        CheckAdvanceJava.Change += CheckBoxChange;
-        CheckAdvanceAssetsV2.Change += CheckBoxChange;
-        CheckAdvanceUseProxyV2.Change += CheckBoxChange;
-        CheckAdvanceDisableJLW.Change += CheckBoxChange;
-        CheckArgumentTitleEmpty.Change += CheckBoxChange;
     }
 
     private void PageSetupSystem_Loaded(object sender, RoutedEventArgs e)
@@ -59,52 +53,49 @@ public partial class PageInstanceSetup
         try
         {
             // 启动参数
-            TextArgumentTitle.Text = Config.Instance.Title[PageInstanceLeft.Instance];
-            CheckArgumentTitleEmpty.Checked = Config.Instance.UseGlobalTitle[PageInstanceLeft.Instance];
-            TextArgumentInfo.Text = Config.Instance.TypeInfo[PageInstanceLeft.Instance];
+            TextArgumentTitle.Text = Config.Instance.Title[PageInstanceLeft.Instance.PathInstance];
+            CheckArgumentTitleEmpty.Checked = Config.Instance.UseGlobalTitle[PageInstanceLeft.Instance.PathInstance];
+            TextArgumentInfo.Text = Config.Instance.TypeInfo[PageInstanceLeft.Instance.PathInstance];
             var _unused = PageInstanceLeft.Instance.PathIndie; // 触发自动判定
-            ComboArgumentIndieV2.SelectedIndex = Config.Instance.IndieV2[PageInstanceLeft.Instance] ? 0 : 1;
-            CheckArgumentTitleEmpty.Visibility =
-                TextArgumentTitle.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
+            ComboArgumentIndieV2.SelectedIndex = Config.Instance.IndieV2[PageInstanceLeft.Instance.PathInstance] ? 0 : 1;
+            CheckArgumentTitleEmpty.Visibility = TextArgumentTitle.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
             TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? "默认" : "跟随全局设置";
             RefreshJavaComboBox();
 
             // 游戏内存
             ((MyRadioBox)FindName(Conversions.ToString(Operators.ConcatenateObject("RadioRamType",
                 ModBase.Setup.Load("VersionRamType", instance: PageInstanceLeft.Instance))))).Checked = true;
-            SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.Instance];
-            ComboRamOptimize.SelectedIndex = Config.Instance.OptimizeMemoryResolution[PageInstanceLeft.Instance];
+            SliderRamCustom.Value = Config.Instance.CustomMemorySize[PageInstanceLeft.Instance.PathInstance];
+            ComboRamOptimize.SelectedIndex = Config.Instance.OptimizeMemoryResolution[PageInstanceLeft.Instance.PathInstance];
 
             // 服务器
-            TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.Instance];
-            ComboServerLoginRequire.SelectedIndex = Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.Instance];
+            TextServerEnter.Text = Config.Instance.ServerToEnter[PageInstanceLeft.Instance.PathInstance];
+            ComboServerLoginRequire.SelectedIndex = Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.Instance.PathInstance];
             ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
             ServerLogin(ComboServerLoginRequire.SelectedIndex);
-            TextServerAuthServer.Text = Config.InstanceAuth.AuthServerAddress[PageInstanceLeft.Instance];
-            TextServerAuthName.Text = Config.InstanceAuth.AuthServerDisplayName[PageInstanceLeft.Instance];
-            TextServerAuthRegister.Text = Config.InstanceAuth.AuthRegisterAddress[PageInstanceLeft.Instance];
+            TextServerAuthServer.Text = Config.InstanceAuth.AuthServerAddress[PageInstanceLeft.Instance.PathInstance];
+            TextServerAuthName.Text = Config.InstanceAuth.AuthServerDisplayName[PageInstanceLeft.Instance.PathInstance];
+            TextServerAuthRegister.Text = Config.InstanceAuth.AuthRegisterAddress[PageInstanceLeft.Instance.PathInstance];
 
             // 高级设置
-            ComboAdvanceRenderer.SelectedIndex = Config.Instance.Renderer[PageInstanceLeft.Instance];
-            TextAdvanceJvm.Text = Config.Instance.JvmArgs[PageInstanceLeft.Instance];
-            TextAdvanceGame.Text = Config.Instance.GameArgs[PageInstanceLeft.Instance];
-            TextAdvanceRun.Text = Config.Instance.PreLaunchCommand[PageInstanceLeft.Instance];
-            CheckAdvanceRunWait.Checked = (bool?)ModBase.Setup.Get("VersionAdvanceRunWait", PageInstanceLeft.Instance);
-            CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.Instance];
+            ComboAdvanceRenderer.SelectedIndex = Config.Instance.Renderer[PageInstanceLeft.Instance.PathInstance];
+            TextAdvanceJvm.Text = Config.Instance.JvmArgs[PageInstanceLeft.Instance.PathInstance];
+            TextAdvanceGame.Text = Config.Instance.GameArgs[PageInstanceLeft.Instance.PathInstance];
+            TextAdvanceRun.Text = Config.Instance.PreLaunchCommand[PageInstanceLeft.Instance.PathInstance];
+            CheckAdvanceRunWait.Checked = Config.Instance.PreLaunchCommandWait[PageInstanceLeft.Instance.PathInstance];
+            CheckAdvanceDisableLwjglUnsafeAgent.Checked = Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.Instance.PathInstance];
             if (Conversions.ToBoolean(
                     Operators.ConditionalCompareObjectEqual(
                         ModBase.Setup.Get("VersionAdvanceAssets", PageInstanceLeft.Instance), 2, false)))
             {
                 ModBase.Log("[Setup] 已迁移老版本的关闭文件校验设置");
                 ModBase.Setup.Reset("VersionAdvanceAssets", instance: PageInstanceLeft.Instance);
-                Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance] = true;
+                Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance] = true;
             }
 
-            CheckAdvanceAssetsV2.Checked =
-                (bool?)ModBase.Setup.Get("VersionAdvanceAssetsV2", PageInstanceLeft.Instance);
-            CheckAdvanceUseProxyV2.Checked =
-                (bool?)ModBase.Setup.Get("VersionAdvanceUseProxyV2", PageInstanceLeft.Instance);
-            CheckAdvanceJava.Checked = (bool?)ModBase.Setup.Get("VersionAdvanceJava", PageInstanceLeft.Instance);
+            CheckAdvanceAssetsV2.Checked = Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance];
+            CheckAdvanceUseProxyV2.Checked = Config.Instance.UseProxy[PageInstanceLeft.Instance.PathInstance];
+            CheckAdvanceJava.Checked = Config.Instance.IgnoreJavaCompatibility[PageInstanceLeft.Instance.PathInstance];
             if (ModBase.IsArm64System)
             {
                 CheckAdvanceDisableJLW.Checked = true;
@@ -113,10 +104,8 @@ public partial class PageInstanceSetup
             }
             else
             {
-                CheckAdvanceDisableJLW.Checked =
-                    (bool?)ModBase.Setup.Get("VersionAdvanceDisableJLW", PageInstanceLeft.Instance);
+                CheckAdvanceDisableRW.Checked = Config.Instance.DisableRw[PageInstanceLeft.Instance.PathInstance];
             }
-            CheckAdvanceDisableRW.Checked = Config.Instance.DisableRw[PageInstanceLeft.Instance];
         }
 
         catch (Exception ex)
@@ -157,12 +146,35 @@ public partial class PageInstanceSetup
 
     private void TextBoxChange(object o, TextChangedEventArgs textChangedEventArgs)
     {
-        var sender = (MyComboBox)o;
-        if (ModAnimation.AniControlEnabled == 0)
-            // #3194，不能删减 /
-            // Dim HandledText As String = sender.Text
-            // If sender.Tag = "VersionServerAuthServer" OrElse sender.Tag = "VersionServerAuthRegister" Then HandledText = HandledText.TrimEnd("/")
-            ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Text, instance: PageInstanceLeft.Instance);
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
+        else if (o is MyTextBox textBox)
+        {
+            // 使用新配置系统保存
+            var tag = Conversions.ToString(textBox.Tag);
+            var value = textBox.Text;
+            switch (tag)
+            {
+                case "VersionArgumentTitle":
+                    Config.Instance.Title[PageInstanceLeft.Instance.PathInstance] = value;
+                    break;
+                case "VersionArgumentInfo":
+                    Config.Instance.TypeInfo[PageInstanceLeft.Instance.PathInstance] = value;
+                    break;
+                case "VersionServerAuthServer":
+                    Config.InstanceAuth.AuthServerAddress[PageInstanceLeft.Instance.PathInstance] = value;
+                    break;
+                case "VersionServerAuthRegister":
+                    Config.InstanceAuth.AuthRegisterAddress[PageInstanceLeft.Instance.PathInstance] = value;
+                    break;
+                case "VersionServerAuthName":
+                    Config.InstanceAuth.AuthServerDisplayName[PageInstanceLeft.Instance.PathInstance] = value;
+                    break;
+                case "VersionServerEnter":
+                    Config.Instance.ServerToEnter[PageInstanceLeft.Instance.PathInstance] = value;
+                    break;
+            }
+        }
     }
 
     private void SliderChange(object o, bool user)
@@ -186,12 +198,40 @@ public partial class PageInstanceSetup
                 instance: PageInstanceLeft.Instance);
     }
 
-    private static void CheckBoxChange(object sender, bool user)
+    private void CheckBoxChange(object sender, bool user)
     {
-        if (ModAnimation.AniControlEnabled == 0)
+        if (ModAnimation.AniControlEnabled != 0)
+            return;
+
+        var checkBox = (MyCheckBox)sender;
+        var tag = Conversions.ToString(checkBox.Tag);
+        var value = checkBox.Checked.GetValueOrDefault();
+        switch (tag)
         {
-            var checkBox = (MyCheckBox)sender;
-            ModBase.Setup.Set(Conversions.ToString(checkBox.Tag), checkBox.Checked, instance: PageInstanceLeft.Instance);
+            case "VersionAdvanceRunWait":
+                Config.Instance.PreLaunchCommandWait[PageInstanceLeft.Instance.PathInstance] = value;
+                break;
+            case "VersionAdvanceJava":
+                Config.Instance.IgnoreJavaCompatibility[PageInstanceLeft.Instance.PathInstance] = value;
+                break;
+            case "VersionAdvanceAssetsV2":
+                Config.Instance.DisableAssetVerifyV2[PageInstanceLeft.Instance.PathInstance] = value;
+                break;
+            case "VersionAdvanceUseProxyV2":
+                Config.Instance.UseProxy[PageInstanceLeft.Instance.PathInstance] = value;
+                break;
+            case "VersionAdvanceDisableJLW":
+                Config.Instance.DisableJlw[PageInstanceLeft.Instance.PathInstance] = value;
+                break;
+            case "VersionAdvanceDisableRW":
+                Config.Instance.DisableRw[PageInstanceLeft.Instance.PathInstance] = value;
+                break;
+            case "VersionUseDebugLog4j2Config":
+                Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance.PathInstance] = value;
+                break;
+            case "VersionAdvanceDisableLwjglUnsafeAgent":
+                Config.Instance.DisableLwjglUnsafeAgent[PageInstanceLeft.Instance.PathInstance] = value;
+                break;
         }
     }
 
@@ -205,7 +245,7 @@ public partial class PageInstanceSetup
     private void ComboRamOptimize_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (ModAnimation.AniControlEnabled != 0) return;
-        Config.Instance.OptimizeMemoryResolution[PageInstanceLeft.Instance] = ComboRamOptimize.SelectedIndex;
+        Config.Instance.OptimizeMemoryResolution[PageInstanceLeft.Instance.PathInstance] = ComboRamOptimize.SelectedIndex;
     }
     
     public void RamType(int Type)
@@ -528,7 +568,7 @@ public partial class PageInstanceSetup
         if (ComboServerLoginLast == ComboServerLoginRequire.SelectedIndex)
             return;
         ComboServerLoginLast = ComboServerLoginRequire.SelectedIndex;
-        Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.Instance] = ComboServerLoginRequire.SelectedIndex;
+        Config.InstanceAuth.LoginRequirementSolution[PageInstanceLeft.Instance.PathInstance] = ComboServerLoginRequire.SelectedIndex;
     }
 
     private void TextServerAuthServer_MouseLeave()
@@ -623,7 +663,7 @@ public partial class PageInstanceSetup
     }
 
     // LittleSkin
-    private void BtnServerAuthLittle_Click(object sender, EventArgs e)
+    private void BtnServerAuthLittle_Click(object sender, MouseButtonEventArgs e)
     {
         if (!string.IsNullOrEmpty(TextServerAuthServer.Text) &&
             TextServerAuthServer.Text != "https://littleskin.cn/api/yggdrasil" && ModMain.MyMsgBox(
@@ -640,19 +680,19 @@ public partial class PageInstanceSetup
     }
 
     // 锁定设置
-    private void BtnServerAuthLock_Click()
+    private void BtnServerAuthLock_Click(object sender, MouseButtonEventArgs e)
     {
         if (ModMain.MyMsgBox(
                 $"你正在选择锁定此实例的验证方式。锁定之后，将无法再更改此实例的验证方式要求，启动此实例将必须使用指定的验证方式。{"\r\n"}此功能可能会帮助一些服主吧。{"\r\n"}是否继续？",
                 "锁定验证方式确认", "确定", "取消", IsWarn: true) == 1)
         {
-            Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance] = true;
+            Config.InstanceAuth.AuthLocked[PageInstanceLeft.Instance.PathInstance] = true;
             Reload();
         }
     }
 
     // 跳转新建档案
-    private void BtnServerNewProfile_Click()
+    private void BtnServerNewProfile_Click(object sender, MouseButtonEventArgs e)
     {
         ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.Launch });
         PageLoginAuth.DraggedAuthServer = TextServerAuthServer.Text;
@@ -757,7 +797,7 @@ public partial class PageInstanceSetup
         }
         catch (Exception ex)
         {
-            Config.Instance.SelectedJava[PageInstanceLeft.Instance] = "使用全局设置";
+            Config.Instance.SelectedJava[PageInstanceLeft.Instance.PathInstance] = "使用全局设置";
             ModBase.Log(ex, "更新实例设置 Java 下拉框失败", ModBase.LogLevel.Feedback);
             ComboArgumentJava.Items.Clear();
             ComboArgumentJava.Items.Add(new MyComboBoxItem
@@ -940,7 +980,7 @@ public partial class PageInstanceSetup
         else
         {
             bool newValue = ComboArgumentIndieV2.SelectedIndex == 0;
-            Config.Instance.IndieV2[PageInstanceLeft.Instance] = newValue;
+            Config.Instance.IndieV2[PageInstanceLeft.Instance.PathInstance] = newValue;
         }
     }
 
@@ -985,13 +1025,13 @@ public partial class PageInstanceSetup
             }
             else
             {
-                Config.Instance.Renderer[PageInstanceLeft.Instance] = ComboAdvanceRenderer.SelectedIndex;
+                Config.Instance.Renderer[PageInstanceLeft.Instance.PathInstance] = ComboAdvanceRenderer.SelectedIndex;
                 States.Hint.Renderer = true;
             }
         }
         else
         {
-            Config.Instance.Renderer[PageInstanceLeft.Instance] = ComboAdvanceRenderer.SelectedIndex;
+            Config.Instance.Renderer[PageInstanceLeft.Instance.PathInstance] = ComboAdvanceRenderer.SelectedIndex;
         }
     }
 
@@ -1011,7 +1051,7 @@ public partial class PageInstanceSetup
             }
             else
             {
-                Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance] = sender.Checked.GetValueOrDefault();
+                Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance.PathInstance] = sender.Checked.GetValueOrDefault();
                 ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Checked,
                     instance: PageInstanceLeft.Instance);
                 States.Hint.DebugLog4j2Config = true;
@@ -1019,7 +1059,7 @@ public partial class PageInstanceSetup
         }
         else
         {
-            Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance] = sender.Checked.GetValueOrDefault();
+            Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance.PathInstance] = sender.Checked.GetValueOrDefault();
         }
     }
 
