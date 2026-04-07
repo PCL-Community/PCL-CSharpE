@@ -149,27 +149,26 @@ public partial class PageInstanceSetup
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        else if (o is MyTextBox textBox)
+        if (o is not MyTextBox textBox) return;
+        
+        // 使用新配置系统保存
+        var tag = Conversions.ToString(textBox.Tag);
+        var value = textBox.Text;
+        ArgConfig<string> setting = tag switch 
         {
-            // 使用新配置系统保存
-            var tag = Conversions.ToString(textBox.Tag);
-            var value = textBox.Text;
-            ArgConfig<string> setting = tag switch 
-            {
-                "VersionArgumentTitle" => Config.Instance.Title,
-                "VersionArgumentInfo" => Config.Instance.TypeInfo,
-                "VersionServerAuthServer" => Config.InstanceAuth.AuthServerAddress,
-                "VersionServerAuthRegister" => Config.InstanceAuth.AuthRegisterAddress,
-                "VersionServerAuthName" => Config.InstanceAuth.AuthServerDisplayName,
-                "VersionServerEnter" => Config.Instance.ServerToEnter,
-                "VersionAdvanceJvm" => Config.Instance.JvmArgs,
-                "VersionAdvanceGame" => Config.Instance.GameArgs,
-                "VersionAdvanceClasspathHead" => Config.Instance.ClasspathHead,
-                "VersionAdvanceRun" => Config.Instance.PreLaunchCommand,
-                _ => throw new ArgumentOutOfRangeException()
-            };
-            setting[PageInstanceLeft.Instance.PathInstance] = value;
-        }
+            "VersionArgumentTitle" => Config.Instance.Title,
+            "VersionArgumentInfo" => Config.Instance.TypeInfo,
+            "VersionServerAuthServer" => Config.InstanceAuth.AuthServerAddress,
+            "VersionServerAuthRegister" => Config.InstanceAuth.AuthRegisterAddress,
+            "VersionServerAuthName" => Config.InstanceAuth.AuthServerDisplayName,
+            "VersionServerEnter" => Config.Instance.ServerToEnter,
+            "VersionAdvanceJvm" => Config.Instance.JvmArgs,
+            "VersionAdvanceGame" => Config.Instance.GameArgs,
+            "VersionAdvanceClasspathHead" => Config.Instance.ClasspathHead,
+            "VersionAdvanceRun" => Config.Instance.PreLaunchCommand,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        setting[PageInstanceLeft.Instance.PathInstance] = value;
     }
 
     private void SliderChange(object o, bool user)
