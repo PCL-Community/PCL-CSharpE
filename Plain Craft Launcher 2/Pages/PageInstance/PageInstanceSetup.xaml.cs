@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,6 +7,7 @@ using System.Windows.Threading;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
+using PCL.Core.App.Configuration;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
@@ -153,39 +154,21 @@ public partial class PageInstanceSetup
             // 使用新配置系统保存
             var tag = Conversions.ToString(textBox.Tag);
             var value = textBox.Text;
-            switch (tag)
+            ArgConfig<string> setting = tag switch 
             {
-                case "VersionArgumentTitle":
-                    Config.Instance.Title[PageInstanceLeft.Instance.PathInstance] = value;
-                    break;
-                case "VersionArgumentInfo":
-                    Config.Instance.TypeInfo[PageInstanceLeft.Instance.PathInstance] = value;
-                    break;
-                case "VersionServerAuthServer":
-                    Config.InstanceAuth.AuthServerAddress[PageInstanceLeft.Instance.PathInstance] = value;
-                    break;
-                case "VersionServerAuthRegister":
-                    Config.InstanceAuth.AuthRegisterAddress[PageInstanceLeft.Instance.PathInstance] = value;
-                    break;
-                case "VersionServerAuthName":
-                    Config.InstanceAuth.AuthServerDisplayName[PageInstanceLeft.Instance.PathInstance] = value;
-                    break;
-                case "VersionServerEnter":
-                    Config.Instance.ServerToEnter[PageInstanceLeft.Instance.PathInstance] = value;
-                    break;
-                case "VersionAdvanceJvm":
-                    Config.Instance.JvmArgs[PageInstanceLeft.Instance.PathInstance] = value;
-                    break;
-                case "VersionAdvanceGame":
-                    Config.Instance.GameArgs[PageInstanceLeft.Instance.PathInstance] = value;
-                    break;
-                case "VersionAdvanceClasspathHead":
-                    Config.Instance.ClasspathHead[PageInstanceLeft.Instance.PathInstance] = value;
-                    break;
-                case "VersionAdvanceRun":
-                    Config.Instance.PreLaunchCommand[PageInstanceLeft.Instance.PathInstance] = value;
-                    break;
-            }
+                "VersionArgumentTitle" => Config.Instance.Title,
+                "VersionArgumentInfo" => Config.Instance.TypeInfo,
+                "VersionServerAuthServer" => Config.InstanceAuth.AuthServerAddress,
+                "VersionServerAuthRegister" => Config.InstanceAuth.AuthRegisterAddress,
+                "VersionServerAuthName" => Config.InstanceAuth.AuthServerDisplayName,
+                "VersionServerEnter" => Config.Instance.ServerToEnter,
+                "VersionAdvanceJvm" => Config.Instance.JvmArgs,
+                "VersionAdvanceGame" => Config.Instance.GameArgs,
+                "VersionAdvanceClasspathHead" => Config.Instance.ClasspathHead,
+                "VersionAdvanceRun" => Config.Instance.PreLaunchCommand,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            setting[PageInstanceLeft.Instance.PathInstance] = value;
         }
     }
 
