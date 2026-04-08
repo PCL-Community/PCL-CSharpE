@@ -111,7 +111,7 @@ public partial class PageInstanceLeft : IRefreshable
             }
             case FormMain.PageSubType.VersionScreenshot:
             {
-                PageInstanceScreenshot.Refresh();
+                var ignore= PageInstanceScreenshot.Refresh();
                 break;
             }
             case FormMain.PageSubType.VersionWorld:

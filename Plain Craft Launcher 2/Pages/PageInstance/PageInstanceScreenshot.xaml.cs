@@ -37,10 +37,10 @@ public partial class PageInstanceScreenshot : IRefreshable
 
     private void RefreshSelf()
     {
-        Refresh();
+        var ignore = Refresh();
     }
 
-    public static async void Refresh()
+    public static async Task Refresh()
     {
         if (ModMain.FrmInstanceScreenshot is not null)
             await ModMain.FrmInstanceScreenshot.Reload();
@@ -48,14 +48,14 @@ public partial class PageInstanceScreenshot : IRefreshable
         ModMain.Hint("正在刷新……", Log: false);
     }
 
-    private async void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
+    private void PageSetupLaunch_Loaded(object sender, RoutedEventArgs e)
     {
         // 重复加载部分
         PanBack.ScrollToHome();
         ScreenshotPath = PageInstanceLeft.Instance.PathIndie + @"screenshots\";
         if (!Directory.Exists(ScreenshotPath))
             Directory.CreateDirectory(ScreenshotPath);
-        await Reload();
+        Dispatcher.BeginInvoke(new Func<Task>(Reload));
 
         // 非重复加载部分
         if (IsLoad)
@@ -87,28 +87,36 @@ public partial class PageInstanceScreenshot : IRefreshable
             PanContent.Visibility = Visibility.Visible;
         }
     }
-
+    
+    private static string[] AllowedSuffix = { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.tiff" };
+    
     private async Task LoadFileList()
     {
         ModBase.Log("[Screenshot] 刷新截图文件");
         FileList.Clear();
         if (Directory.Exists(ScreenshotPath))
-            FileList = Directory.EnumerateFiles(ScreenshotPath, "*", SearchOption.TopDirectoryOnly).ToList();
-        var AllowedSuffix = new[] { ".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tiff" };
-        FileList = FileList.Where(e => AllowedSuffix.Contains(new FileInfo(e).Extension.ToLower())).ToList();
+        {
+            FileList = AllowedSuffix
+                .SelectMany(suffix => Directory.EnumerateFiles(ScreenshotPath, suffix, SearchOption.TopDirectoryOnly))
+                .OrderByDescending(f => File.GetCreationTime(f))
+                .ToList();
+        }
         PanList.Children.Clear();
         RefreshTip();
-        FileList = FileList.Where(e => !e.ContainsF(@"\debug\")).ToList(); // 排除资源包调试输出
-        FileList.Sort((a, b) => new FileInfo(a).CreationTime > new FileInfo(b).CreationTime);
+        //FileList = FileList.Where(e => !e.ContainsF(@"\debug\")).ToList(); // 排除资源包调试输出
+        //FileList.Sort((a, b) => new FileInfo(a).CreationTime > new FileInfo(b).CreationTime);
         ModBase.Log("[Screenshot] 共发现 " + FileList.Count + " 个截图文件");
         if (FileList.Count == 0)
             return;
         await ListAppend(20, 0);
     }
 
-    private async void RequireAppend(object sender, ScrollChangedEventArgs e)
+    private void RequireAppend(object sender, ScrollChangedEventArgs e)
     {
-        if (!_AppendLock && PanBack.VerticalOffset + PanBack.ViewportHeight >= PanBack.ExtentHeight) await ListAppend();
+        if (FileList.Count != 0 && !_AppendLock && PanBack.VerticalOffset + PanBack.ViewportHeight >= PanBack.ExtentHeight)
+        {
+            Dispatcher.BeginInvoke(new Func<Task>(async () => await ListAppend()));
+        }
     }
 
     private async Task ListAppend(int Count = 20, int Offset = -1)
@@ -143,9 +151,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     continue; // 空文件
                 var myCard = new MyCard
                 {
-                    Height = double.NaN, // 允许高度自适应
-                    Width = double.NaN, // 允许宽度自适应
-                    Margin = new Thickness(7d),
+                    Margin = new Thickness(7),
                     Tag = i,
                     ToolTip = i.Replace(ScreenshotPath, "") // 适配高清截图模组
                 };
@@ -207,7 +213,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Logo = ModBase.Logo.IconButtonOpen,
                     Tag = i
                 };
-                btnOpen.Click += (s, ev) => btnOpen_Click((MyIconTextButton)s, ev);
+                btnOpen.Click += (s, ev) => BtnOpen_Click((MyIconTextButton)s, ev);
                 stackPanel.Children.Add(btnOpen);
                 var btnDelete = new MyIconTextButton
                 {
@@ -217,7 +223,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Logo = ModBase.Logo.IconButtonDelete,
                     Tag = i
                 };
-                btnDelete.Click += (s, ev) => btnDelete_Click((MyIconTextButton)s, ev);
+                btnDelete.Click += (s, ev) => BtnDelete_Click((MyIconTextButton)s, ev);
                 stackPanel.Children.Add(btnDelete);
                 var btnCopy = new MyIconTextButton
                 {
@@ -227,7 +233,7 @@ public partial class PageInstanceScreenshot : IRefreshable
                     Logo = ModBase.Logo.IconButtonCopy,
                     Tag = i
                 };
-                btnDelete.Click += (s, ev) => btnDelete_Click((MyIconTextButton)s, ev);
+                btnCopy.Click += (s, ev) => BtnCopy_Click((MyIconTextButton)s, ev);
                 stackPanel.Children.Add(btnCopy);
                 PanList.Children.Add(myCard);
                 myCard.Opacity = 0d;
@@ -266,12 +272,12 @@ public partial class PageInstanceScreenshot : IRefreshable
         return Conversions.ToString(sender.Tag);
     }
 
-    private void btnOpen_Click(MyIconTextButton sender, EventArgs e)
+    private void BtnOpen_Click(MyIconTextButton sender, EventArgs e)
     {
         ModBase.OpenExplorer(GetPathFromSender(sender));
     }
 
-    private void btnDelete_Click(MyIconTextButton sender, EventArgs e)
+    private void BtnDelete_Click(MyIconTextButton sender, EventArgs e)
     {
         var path = GetPathFromSender(sender);
         try
