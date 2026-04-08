@@ -53,19 +53,19 @@ public partial class PageInstanceSavesBackup : IRefreshable
             using (var snap = new SnapLiteVersionControl(PageInstanceSavesLeft.CurrentSave))
             {
                 versions = snap.GetVersions();
-                if (versions.Count != 0)
-                {
-                    PanDisplay.Visibility = Visibility.Visible;
-                    PanEmpty.Visibility = Visibility.Collapsed;
-                }
-                else
+                if (versions.Count == 0)
                 {
                     PanDisplay.Visibility = Visibility.Collapsed;
                     PanEmpty.Visibility = Visibility.Visible;
                 }
+                else
+                {
+                    PanDisplay.Visibility = Visibility.Visible;
+                    PanEmpty.Visibility = Visibility.Collapsed;
+                }
             }
 
-            if (versions.Count != 0) return;
+            if (versions.Count == 0) return;
             foreach (var item in versions)
             {
                 var newItem = new MyListItem
@@ -211,7 +211,7 @@ public partial class PageInstanceSavesBackup : IRefreshable
     {
         try
         {
-            var input = ModMain.MyMsgBoxInput("请输入名称", DefaultInput: $"{DateTime.Now:yyyy/dd/MM-HH:mm:ss}");
+            var input = ModMain.MyMsgBoxInput("请输入名称", DefaultInput: $"{DateTime.Now:yyyy/MM/dd-HH:mm:ss}");
             if (input is null)
                 return;
             if (string.IsNullOrWhiteSpace(input))
