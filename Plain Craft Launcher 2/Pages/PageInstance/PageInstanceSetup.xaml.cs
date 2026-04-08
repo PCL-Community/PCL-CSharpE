@@ -27,7 +27,7 @@ public partial class PageInstanceSetup
         InitializeComponent();
 
         ComboArgumentIndieV2.SelectionChanged += ComboArgumentIndieV2_SelectionChanged;
-        TextArgumentTitle.TextChanged += TextBoxChange;
+        TextArgumentTitle.TextChanged += TextArgumentTitle_TextChanged;
         TextArgumentInfo.TextChanged += TextBoxChange;
         ComboArgumentJava.SelectionChanged += JavaSelectionUpdate;
 
@@ -51,17 +51,21 @@ public partial class PageInstanceSetup
         TextAdvanceJvm.TextChanged += TextBoxChange;
         TextAdvanceGame.TextChanged += TextBoxChange;
         TextAdvanceClasspathHead.TextChanged += TextBoxChange;
-        TextAdvanceRun.TextChanged += TextBoxChange;
+        TextAdvanceRun.TextChanged += TextAdvanceRun_TextChanged;
         CheckAdvanceRunWait.Change += CheckBoxChange;
         CheckAdvanceJava.Change += CheckBoxChange;
         CheckAdvanceAssetsV2.Change += CheckBoxChange;
         CheckAdvanceUseProxyV2.Change += CheckBoxChange;
         CheckAdvanceDisableJLW.Change += CheckBoxChange;
         CheckAdvanceDisableRW.Change += CheckBoxChange;
-        CheckUseDebugLog4j2Config.Change += CheckBoxChange;
+        CheckUseDebugLog4j2Config.Change += CheckUseDebugLog4j2Config_CheckChanged;
         CheckAdvanceDisableLwjglUnsafeAgent.Change += CheckBoxChange;
 
         BtnSwitch.Click += BtnSwitch_Click;
+        
+        TextServerEnter.TextChanged += TextServerEnter_Change;
+        ComboArgumentJava.DropDownOpened += ComboArgumentJava_DropDownOpened;
+        CheckArgumentTitleEmpty.Change += CheckArgumentTitleEmpty_Change;
     }
 
     private void PageSetupSystem_Loaded(object sender, RoutedEventArgs e)
@@ -236,6 +240,7 @@ public partial class PageInstanceSetup
         var value = checkBox.Checked.GetValueOrDefault();
         ArgConfig<bool> setting = tag switch
         {
+            "VersionArgumentTitleEmpty" => Config.Instance.UseGlobalTitle,
             "VersionAdvanceRunWait" => Config.Instance.PreLaunchCommandWait,
             "VersionAdvanceJava" => Config.Instance.IgnoreJavaCompatibility,
             "VersionAdvanceAssetsV2" => Config.Instance.DisableAssetVerifyV2,
@@ -732,9 +737,9 @@ public partial class PageInstanceSetup
         });
     }
 
-    private static void TextServerEnter_Change(MyTextBox sender, object e)
+    private static void TextServerEnter_Change(object sender, TextChangedEventArgs e)
     {
-        sender.Text = sender.Text.Replace("：", ":");
+        if (sender is MyTextBox textBox) textBox.Text = textBox.Text.Replace("：", ":");
     }
 
     #endregion
@@ -899,7 +904,7 @@ public partial class PageInstanceSetup
     }
 
     // 阻止在无效状态下展开下拉框
-    private void ComboArgumentJava_DropDownOpened(object sender, EventArgs e)
+    private void ComboArgumentJava_DropDownOpened(object? sender, EventArgs e)
     {
         if (ComboArgumentJava.SelectedItem is null)
         {
@@ -1014,15 +1019,16 @@ public partial class PageInstanceSetup
     }
 
     // 游戏窗口
-    private void CheckArgumentTitleEmpty_Change(MyCheckBox sender, object e)
+    private void CheckArgumentTitleEmpty_Change(object sender, bool e)
     {
         TextArgumentTitle.HintText = CheckArgumentTitleEmpty.Checked == true ? "默认" : "跟随全局设置";
+        CheckBoxChange(sender,e);
     }
 
     private void TextArgumentTitle_TextChanged(object sender, TextChangedEventArgs e)
     {
-        CheckArgumentTitleEmpty.Visibility =
-            TextArgumentTitle.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
+        CheckArgumentTitleEmpty.Visibility = TextArgumentTitle.Text.Length > 0 ? Visibility.Collapsed : Visibility.Visible;
+        TextBoxChange(sender,e);
     }
 
     #endregion
@@ -1031,8 +1037,8 @@ public partial class PageInstanceSetup
 
     private void TextAdvanceRun_TextChanged(object sender, TextChangedEventArgs e)
     {
-        CheckAdvanceRunWait.Visibility =
-            string.IsNullOrEmpty(TextAdvanceRun.Text) ? Visibility.Collapsed : Visibility.Visible;
+        CheckAdvanceRunWait.Visibility = string.IsNullOrEmpty(TextAdvanceRun.Text) ? Visibility.Collapsed : Visibility.Visible;
+        TextBoxChange(sender,e);
     }
 
     private void ComboAdvanceRenderer_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1054,21 +1060,24 @@ public partial class PageInstanceSetup
             }
             else
             {
-                Config.Instance.Renderer[PageInstanceLeft.Instance.PathInstance] = ComboAdvanceRenderer.SelectedIndex;
+                ComboChange(ComboAdvanceRenderer, e);
                 States.Hint.Renderer = true;
             }
         }
         else
         {
-            Config.Instance.Renderer[PageInstanceLeft.Instance.PathInstance] = ComboAdvanceRenderer.SelectedIndex;
+            ComboChange(ComboAdvanceRenderer, e);
         }
     }
 
-    private void CheckAdvanceRenderer_CheckChanged(MyCheckBox sender, object e)
+    private void CheckUseDebugLog4j2Config_CheckChanged(object sender, bool e)
     {
         if (ModAnimation.AniControlEnabled != 0)
             return;
-        if (CheckUseDebugLog4j2Config.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
+        var checkBox = sender as MyCheckBox;
+        if (checkBox == null) return;
+    
+        if (checkBox.Checked.GetValueOrDefault() && !States.Hint.DebugLog4j2Config)
         {
             if (ModMain.MyMsgBox(
                     """
@@ -1076,19 +1085,17 @@ public partial class PageInstanceSetup
                     你确定要继续修改吗？
                     """, "警告", "我知道我在做什么", "取消", IsWarn: true) == 2)
             {
-                sender.Checked = false;
+                checkBox.Checked = false;
             }
             else
             {
-                Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance.PathInstance] = sender.Checked.GetValueOrDefault();
-                ModBase.Setup.Set(Conversions.ToString(sender.Tag), sender.Checked,
-                    instance: PageInstanceLeft.Instance);
+                CheckBoxChange(sender, e);
                 States.Hint.DebugLog4j2Config = true;
             }
         }
         else
         {
-            Config.Instance.UseDebugLof4j2Config[PageInstanceLeft.Instance.PathInstance] = sender.Checked.GetValueOrDefault();
+            CheckBoxChange(sender, e);
         }
     }
 
