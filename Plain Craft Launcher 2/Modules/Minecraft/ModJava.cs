@@ -176,20 +176,35 @@ public static class ModJava
         var rawPreference = Config.Instance.SelectedJava[instance.PathInstance];
 
         JavaPreference preference = default;
-
-        try
+        
+        // 尝试读取 JSON 配置
+        if (!string.IsNullOrEmpty(rawPreference))
         {
-            preference = JsonSerializer.Deserialize<JavaPreference>(rawPreference.Trim());
+            try
+            {
+                preference = JsonSerializer.Deserialize<JavaPreference>(rawPreference);
+            }
+            catch (JsonException)
+            {
+                // ignored
+            }
         }
-        catch (JsonException ex)
+        // 以旧方式读取配置
+        if (preference == null)
         {
-            var trimmed = rawPreference.Trim();
-            if (trimmed == "使用全局设置") // 全局设置
-                preference = new UseGlobalPreference();
-            else if (string.IsNullOrEmpty(trimmed))
+            var trimmed = rawPreference?.Trim();
+            if (string.IsNullOrEmpty(trimmed))
+            {
                 preference = new AutoSelect();
+            }
+            else if (trimmed == "使用全局设置")
+            {
+                preference = new UseGlobalPreference();
+            }
             else
+            {
                 preference = new ExistingJava(trimmed);
+            }
         }
 
         switch (true)
