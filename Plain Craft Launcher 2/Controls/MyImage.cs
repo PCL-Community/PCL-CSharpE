@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -55,23 +56,20 @@ public class MyImage : Image
         }
     }
 
-    private async void Load() // 属性读取顺序修正：在完成 XAML 属性读取后再触发图片加载（#4868）
+    private void Load() // 属性读取顺序修正：在完成 XAML 属性读取后再触发图片加载（#4868）
     {
-        // 空
         if (Source is null)
         {
             ActualSource = null;
             return;
         }
 
-        // 本地图片
         if (!Source.StartsWithF("http"))
         {
             ActualSource = Source;
             return;
         }
 
-        // 从缓存加载网络图片
         var Url = Source;
         var TempPath = GetTempPath(Url);
         var TempFile = new FileInfo(TempPath);
@@ -83,91 +81,51 @@ public class MyImage : Image
                 return; // 无需刷新缓存
         }
 
-        string TempDownloadingPath = null;
-        try
-        {
-            // 下载
-            ActualSource = LoadingSource; // 显示加载中图片
-            TempDownloadingPath = TempPath + RandomUtils.NextInt(0, 1000000);
-            Directory.CreateDirectory(ModBase.GetPathFromFullPath(TempPath)); // 重新实现下载，以避免携带 Header（#5072）
-            using (var fs = new FileStream(TempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
-            {
-                using (var response = await  HttpRequest.Create(Url)
-                           .WithHttpVersionOption(HttpVersion.Version30).SendAsync(addMetedata:false).ConfigureAwait(false))
-                {
-                    if (response.IsSuccessStatusCode)
-                    {
-                        using (var nfs = await response.AsStreamAsync())
-                        {
-                            fs.SetLength(0L);
-                            await nfs.CopyToAsync(fs);
-                        }
-                    }
-                    else if (!string.IsNullOrWhiteSpace(FallbackSource))
-                    {
-                        using (var fallbackResponse = await HttpRequest.Create(FallbackSource)
-                                   .WithHttpVersionOption(HttpVersion.Version30). SendAsync(addMetedata:false)
-                                   .ConfigureAwait(false))
-                        {
-                            if (fallbackResponse.IsSuccessStatusCode)
-                                using (var fallbackNfs = await fallbackResponse.AsStreamAsync())
-                                {
-                                    fs.SetLength(0L);
-                                    await fallbackNfs.CopyToAsync(fs);
-                                }
-                        }
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-            }
-
-            if ((Url ?? "") != (Source ?? "") && (Url ?? "") != (FallbackSource ?? ""))
-            {
-                // 已经更换了地址
-                File.Delete(TempDownloadingPath);
-            }
-            else if (EnableCache)
-            {
-                // 保存缓存并显示
-                if (File.Exists(TempPath))
-                    File.Delete(TempPath);
-                File.Move(TempDownloadingPath, TempPath, true);
-                ActualSource = TempPath;
-            }
-            else
-            {
-                // 直接显示
-                ActualSource = TempDownloadingPath;
-            }
-        }
-        catch (Exception ex)
+        Dispatcher.BeginInvoke(new Func<Task>(async () =>
         {
             try
             {
-                if (TempPath is not null && File.Exists(TempPath))
-                    File.Delete(TempPath);
-                if (TempDownloadingPath is not null && File.Exists(TempDownloadingPath))
-                    File.Delete(TempDownloadingPath);
-            }
-            catch
-            {
-            }
+                // 下载
+                ActualSource = LoadingSource;
 
-            // 更换备用地址
-            ModBase.Log(ex, $"下载图片失败（Base = {Url}, Fallback = {FallbackSource}）", ModBase.LogLevel.Developer);
-            // 从缓存加载网络图片
-            TempPath = GetTempPath(Url);
-            TempFile = new FileInfo(TempPath);
-            if (EnableCache && TempFile.Exists)
-            {
-                ActualSource = TempPath;
-                if (DateTime.Now - TempFile.LastWriteTime < FileCacheExpiredTime)
-                    return; // 无需刷新缓存
+                var resp = await DownloadImageAsync(Url);
+                if (!string.IsNullOrEmpty(resp))
+                {
+                    ActualSource = resp;
+                    return;
+                }
+
+                resp = await DownloadImageAsync(FallbackSource);
+                if (!string.IsNullOrEmpty(resp))
+                {
+                    ActualSource = resp;
+                    return;
+                }
             }
-        }
+            catch (Exception ex)
+            {
+                // 更换备用地址
+                ModBase.Log(ex, $"Online image get fail（source = {Url}, fallback = {FallbackSource}）", ModBase.LogLevel.Developer);
+                TempPath = GetTempPath(Url);
+                TempFile = new FileInfo(TempPath);
+                if (EnableCache && TempFile.Exists)
+                {
+                    ActualSource = TempPath;
+                    if (DateTime.Now - TempFile.LastWriteTime < FileCacheExpiredTime)
+                        return;
+                }
+            }
+        }));
+    }
+
+    public static Task<string> DownloadImageAsync(string url)
+    {
+        return _downloadTasks.GetOrAdd(url, key =>
+        {
+            var t = DownloadImageInternalAsync(key);
+            t.ContinueWith(_ => _downloadTasks.TryRemove(url, out _));
+            return t;
+        });
     }
 
     public static string GetTempPath(string Url)
@@ -175,17 +133,49 @@ public class MyImage : Image
         return Path.Combine(ModBase.PathTemp, "Cache", "Images", $"{ModBase.GetStringMD5(Url)}.png");
     }
 
+    private static readonly ConcurrentDictionary<string, Task<string>> _downloadTasks = new();
+
+    private static async Task<string> DownloadImageInternalAsync(string url)
+    {
+        var tempPath = GetTempPath(url);
+        var tempDownloadingPath = tempPath + RandomUtils.NextInt(0, 1000000);
+
+        try
+        {
+            Directory.CreateDirectory(ModBase.GetPathFromFullPath(tempPath)); // 重新实现下载，以避免携带 Header（#5072）
+            using (var fs = new FileStream(tempDownloadingPath, FileMode.Create, FileAccess.ReadWrite, FileShare.Read))
+            {
+                using (var response = await HttpRequest.Create(url)
+                           .WithHttpVersionOption(HttpVersion.Version30)
+                           .SendAsync(addMetedata: false))
+                {
+                    response.EnsureSuccessStatusCode();
+
+                    using (var nfs = await response.AsStreamAsync())
+                    {
+                        fs.SetLength(0L);
+                        await nfs.CopyToAsync(fs);
+                    }
+                }
+            }
+
+            File.Move(tempDownloadingPath, tempPath, true);
+            return tempPath;
+        }
+        catch (Exception ex)
+        {
+            if (File.Exists(tempPath)) File.Delete(tempPath);
+            if (File.Exists(tempDownloadingPath)) File.Delete(tempDownloadingPath);
+
+            ModBase.Log(ex, $"Try to get online image fail (url = {url}, dest = {tempPath})");
+            return string.Empty;
+        }
+    }
+
     #region 公开属性
 
-    /// <summary>
-    ///     网络图片的缓存有效期。
-    ///     在这个时间后，才会重新尝试下载图片。
-    /// </summary>
     public TimeSpan FileCacheExpiredTime = TimeSpan.FromDays(14d);
 
-    /// <summary>
-    ///     是否允许将网络图片存储到本地用作缓存。
-    /// </summary>
     public bool EnableCache
     {
         get => (bool)GetValue(EnableCacheProperty);
@@ -244,7 +234,7 @@ public class MyImage : Image
             typeof(CornerRadius),
             typeof(MyImage),
             new FrameworkPropertyMetadata(
-                new CornerRadius(0),
+                new CornerRadius(-1),
                 OnCornerRadiusChanged)
         );
 
@@ -255,7 +245,8 @@ public class MyImage : Image
 
     private void UpdateClip() // Handles Me.SizeChanged will be added separately
     {
-        if (ActualWidth > 0 && ActualHeight > 0)
+        if (ActualWidth > 0 && ActualHeight > 0 &&
+            CornerRadius.TopLeft >= 0 && CornerRadius.TopRight >= 0)
         {
             Clip = new RectangleGeometry(
                 new Rect(0, 0, ActualWidth, ActualHeight),

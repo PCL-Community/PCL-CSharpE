@@ -2079,12 +2079,18 @@ public static class ModComp
 
         public MyListItem ToListItem()
         {
-            var result = new MyListItem();
-            result.Title = TranslatedName;
-            result.Info = Description.Replace("\r", "").Replace("\n", "");
-            result.Logo = LogoUrl;
-            result.Tags = Tags;
-            result.Tag = this;
+            var result = new MyListItem
+            {
+                Title = TranslatedName,
+                Info = Description.Replace("\r", "").Replace("\n", ""),
+                Logo = LogoUrl,
+                Tags = Tags,
+                Tag = this
+            };
+
+            var img = (MyImage)result.PathLogo;
+            img.CornerRadius = new CornerRadius(6);
+            img.SnapsToDevicePixels = true;
             return result;
         }
 

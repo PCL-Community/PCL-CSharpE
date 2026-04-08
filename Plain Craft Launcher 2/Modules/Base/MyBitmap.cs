@@ -51,7 +51,7 @@ public class MyBitmap
                 else
                 {
                     // 使用这种自己接管 FileStream 的方法加载才能解除文件占用
-                    using (var picStream = new FileStream(FilePathOrResourceName, FileMode.Open))
+                    using (var picStream = new FileStream(FilePathOrResourceName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
                         if (picStream.Length > 2L && picStream.ReadByte() == 82 && picStream.ReadByte() == 73)
                         {
