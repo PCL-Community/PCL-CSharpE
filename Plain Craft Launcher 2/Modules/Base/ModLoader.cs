@@ -686,9 +686,9 @@ public static class ModLoader
     /// <summary>
     ///     支持多个加载器连续运作的复合加载器。
     /// </summary>
-    public class LoaderCombo<InputType> : LoaderBase
+    public class LoaderCombo : LoaderBase
     {
-        public InputType Input;
+        public object? Input;
 
         public List<LoaderBase> Loaders = new();
 
@@ -751,7 +751,6 @@ public static class ModLoader
         public override void Start(object Input = null, bool IsForceRestart = false)
         {
             IsForceRestarting = IsForceRestart;
-            // 改变状态
             lock (LockState)
             {
                 if (State == ModBase.LoadState.Loading) return;
@@ -760,7 +759,7 @@ public static class ModLoader
             }
 
             // 启动加载
-            this.Input = Conversions.ToGenericParameter<InputType>(Input);
+            this.Input = Input;
             if (IsForceRestart)
                 foreach (var Loader in Loaders)
                     Loader.State = ModBase.LoadState.Waiting;
@@ -769,7 +768,6 @@ public static class ModLoader
 
         public override void Abort()
         {
-            // 改变状态
             lock (LockState)
             {
                 if (State == ModBase.LoadState.Loading || State == ModBase.LoadState.Waiting)
@@ -778,7 +776,6 @@ public static class ModLoader
                     return;
             }
 
-            // 中断加载器
             ModBase.RunInThread(() =>
             {
                 foreach (var Loader in Loaders) Loader.Abort();
@@ -958,14 +955,14 @@ public static class ModLoader
         /// <summary>
         ///     获得最底层的，应被显示给用户的加载器列表，并追加于 List。
         /// </summary>
-        public static void GetLoaderList(object Loader, ref List<LoaderBase> List, bool RequireShow = true)
+        public static void GetLoaderList(LoaderCombo Loader, ref List<LoaderBase> List, bool RequireShow = true)
         {
-            foreach (var SubLoader in (IEnumerable)((dynamic)Loader).Loaders)
+            foreach (var SubLoader in Loader.Loaders)
             {
-                if (Conversions.ToBoolean(((dynamic)SubLoader).Show || !RequireShow))
-                    List.Add((LoaderBase)SubLoader);
-                if (SubLoader.GetType().Name.StartsWithF("LoaderCombo"))
-                    GetLoaderList(SubLoader, ref List);
+                if (SubLoader.Show || !RequireShow)
+                    List.Add(SubLoader);
+                if (SubLoader is LoaderCombo combo)
+                    GetLoaderList(combo, ref List);
             }
         }
 
@@ -985,6 +982,22 @@ public static class ModLoader
             var List = new List<LoaderBase>();
             GetLoaderList(ref List, RequireShow);
             return List;
+        }
+    }
+
+    /// <summary>
+    ///     支持多个加载器连续运作的复合加载器（泛型版本）。
+    /// </summary>
+    public class LoaderCombo<InputType> : LoaderCombo
+    {
+        public new InputType Input;
+
+        public LoaderCombo(string Name, IEnumerable<LoaderBase> Loaders) : base(Name, Loaders) { }
+
+        public override void Start(object Input = null, bool IsForceRestart = false)
+        {
+            this.Input = Conversions.ToGenericParameter<InputType>(Input);
+            base.Start(this.Input, IsForceRestart);
         }
     }
 
