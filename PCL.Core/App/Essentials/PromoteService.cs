@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
@@ -9,17 +8,25 @@ using System.Text.Json;
 using System.Threading;
 using PCL.Core.App.IoC;
 using PCL.Core.IO;
+using PCL.Core.Logging;
 using PCL.Core.Utils.OS;
 
 namespace PCL.Core.App.Essentials;
 
+public delegate string? PromoteOperationFunction(string? arg);
+
+/// <summary>
+/// 标记一个方法，使其能够被提权进程调用，方法签名需符合 <see cref="PromoteOperationFunction"/>。
+/// </summary>
+/// <param name="name">提权操作名</param>
+[DependencyCollector<PromoteOperationFunction>("promote", AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method)]
+public sealed class PromoteOperationAttribute(string name) : Attribute;
+
 [LifecycleService(LifecycleState.BeforeLoading, Priority = -10)]
-public sealed class PromoteService : GeneralService
+[LifecycleScope("promote", "提权服务", false)]
+public sealed partial class PromoteService
 {
-    private static LifecycleContext? _context;
-    private static LifecycleContext Context => _context!;
-    private PromoteService() : base("promote", "提权服务", false) { _context = ServiceContext; }
-    
     private static Process? _promoteProcess;
     private static NamedPipeServerStream? _promotePipeServer;
     
@@ -40,8 +47,6 @@ public sealed class PromoteService : GeneralService
     private static string _GetPromotePipeName(int processId) => $"PCLCE_PM@{processId}";
 
     private static readonly Dictionary<string, PromoteOperationFunction> _OperationFunctions = new();
-
-    public delegate string? PromoteOperationFunction(string? arg);
 
     /// <summary>
     /// 添加提权操作，仅在提权进程中有效。
@@ -213,18 +218,14 @@ public sealed class PromoteService : GeneralService
     /// <returns>是否成功开始执行，若提权进程启动失败则为 <c>false</c></returns>
     public static bool Activate()
     {
-        if (!IsPromoteProcessRunning && !_StartPromoteProcess()) return false;
+        if (!IsPromoteProcessRunning && !_StartPromoteProcess())
+        {
+            _PendingOperations.Clear();
+            return false;
+        }
         _ActivateEvent.Set();
         return true;
     }
-
-    /// <summary>
-    /// 标记一个方法，使其能够被提权进程调用，方法签名需符合 <see cref="PromoteOperationFunction"/>。
-    /// </summary>
-    /// <param name="name">提权操作名</param>
-    [DependencyCollector<PromoteOperationFunction>("promote", AttributeTargets.Method)]
-    [AttributeUsage(AttributeTargets.Method)]
-    public sealed class PromoteOperationAttribute(string name) : Attribute;
 
     private static readonly Dictionary<string, Process> _RunningProcesses = new();
     
@@ -288,12 +289,12 @@ public sealed class PromoteService : GeneralService
         return id;
     }
 
-    private static void _LoadPromoteOperations(ImmutableList<(PromoteOperationFunction func, string name)> items)
-    {
-        foreach (var (func, name) in items) AddOperationFunction(name, func);
-    }
-    
-    public override void Start()
+    [DependencyInjectionPoint("promote", false)]
+    private static void _CollectOperationFunction(PromoteOperationFunction operation, string name)
+        => AddOperationFunction(name, operation);
+
+    [LifecycleStart]
+    private static void _Start()
     {
         var args = Basics.CommandLineArguments;
         if (args is ["promote", _])
@@ -302,11 +303,12 @@ public sealed class PromoteService : GeneralService
             IsCurrentProcessPromoted = true;
             // 预定义操作
             Context.Info("正在加载提权操作");
-            Action<ImmutableList<(PromoteOperationFunction, string)>> action = _LoadPromoteOperations;
-            DependencyGroups.InvokeInjection(action, "promote", AttributeTargets.Method);
+            _CollectOperationFunction_InvokeInjection_Promote();
             AddJsonOperationFunction<ProcessStartInfo>("start-json", _StartProcessWithInfo);
             // 结束生命周期管理，启动提权操作线程
             Lifecycle.PendingLogFileName = "LastPending_Promote.log";
+            LogWrapper.OnLog += (level, msg, module, ex) => Context.CustomLog($"[{module}] {msg}", ex, level);
+            Context.Info("已接管通用日志");
             Context.Info("正在启动服务线程");
             new Thread(() => _PerformAsPromoteProcess(args[1])) { Name = "Promote" }.Start();
             Context.RequestStopLoading();
@@ -320,7 +322,8 @@ public sealed class PromoteService : GeneralService
         }
     }
 
-    public override void Stop()
+    [LifecycleStop]
+    private static void _Stop()
     {
         if (_promotePipeServer != null)
         {

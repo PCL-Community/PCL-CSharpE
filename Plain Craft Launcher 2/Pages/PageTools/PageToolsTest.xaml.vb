@@ -1,9 +1,7 @@
 Imports System.Drawing
-Imports System.Net
 Imports System.Net.Http
-Imports System.Runtime.InteropServices
-Imports System.Threading.Tasks
 Imports PCL.Core.App
+Imports PCL.Core.App.Tools
 Imports PCL.Core.IO
 Imports PCL.Core.IO.Net
 Imports PCL.Core.UI
@@ -104,7 +102,7 @@ Public Class PageToolsTest
             Else 'UNC 路径
                 loaderdownload = New LoaderDownloadUnc("自定义下载文件：" + FileName + " ", New Tuple(Of String, String)(Url, Folder + FileName))
             End If
-            Dim loaderCombo As New LoaderCombo(Of Integer)("自定义下载 (" + uuid.ToString() + ") ", New LoaderBase() {loaderDownload}) With {.OnStateChanged = AddressOf DownloadState}
+            Dim loaderCombo As New LoaderCombo(Of Integer)("自定义下载 (" + uuid.ToString() + ") ", New LoaderBase() {loaderdownload}) With {.OnStateChanged = AddressOf DownloadState}
             loaderCombo.Start()
             LoaderTaskbarAdd(Of Integer)(loaderCombo)
             FrmMain.BtnExtraDownload.ShowRefresh()
@@ -221,26 +219,7 @@ Public Class PageToolsTest
                 End Try
             End Sub, "Rubbish Clear")
     End Sub
-    <StructLayout(LayoutKind.Sequential)>
-    Public Structure SYSTEM_FILECACHE_INFORMATION
-        Public CurrentSize As UIntPtr
-        Public PeakSize As UIntPtr
-        Public PageFaultCount As UInteger
-        Public MinimumWorkingSet As UIntPtr
-        Public MaximumWorkingSet As UIntPtr
-        Public CurrentSizeIncludingTransitionInPages As UIntPtr
-        Public PeakSizeIncludingTransitionInPages As UIntPtr
-        Public TransitionRePurposeCount As UInteger
-        Public Flags As UInteger
-    End Structure
-    <StructLayout(LayoutKind.Sequential)>
-    Public Structure MEMORY_COMBINE_INFORMATION_EX
-        Public Handle As IntPtr
-        Public PagesCombined As UIntPtr
-        Public Flags As UInteger
-    End Structure
-
-    Public Shared Function AskTrulyWantMemoryOptimize()
+    Public Shared Function AskTrulyWantMemoryOptimize() As Boolean
         Dim memTotal = KernelInterop.GetPhysicalMemoryBytes().Total / 1024 / 1024 / 1024  'GB
         Dim memLoad = KernelInterop.GetMemoryLoadPercent()
         If memLoad > 90 Then Return True ' 情况不太妙啊，先别问了
@@ -261,131 +240,8 @@ Public Class PageToolsTest
         Dim s = MyMsgBox(prompt, "确认内存优化？", "继续", "取消")
         Return s = 1
     End Function
-    Private Shared IsMemoryOptimizing
-    Public Shared Sub MemoryOptimize(ShowHint As Boolean)
-        If IsMemoryOptimizing Then
-            If ShowHint Then
-                Hint("内存优化尚未结束，请稍等！", HintType.Info, True)
-                Return
-            End If
-        Else
-            IsMemoryOptimizing = True
-            Dim num As Long
-            If ProcessInterop.IsAdmin() Then
-                num = CLng(KernelInterop.GetAvailablePhysicalMemoryBytes())
-                Try
-                    MemoryOptimizeInternal(ShowHint)
-                Catch ex As Exception
-                    Log(ex, "内存优化失败", If(ShowHint, LogLevel.Hint, LogLevel.Debug), "出现错误")
-                    Return
-                Finally
-                    IsMemoryOptimizing = False
-                End Try
-
-                num = Convert.ToInt64(Decimal.Subtract(New Decimal(KernelInterop.GetAvailablePhysicalMemoryBytes()), New Decimal(num)))
-            Else
-                Log("[Test] 没有管理员权限，将以命令行方式进行内存优化")
-                Try
-                    Dim callProcess = ProcessInterop.StartAsAdmin(Basics.ExecutablePath, "--memory")
-                    callProcess.WaitForExit()
-                    num = CLng(callProcess.ExitCode) * 1024L
-                Catch ex2 As Exception
-                    Log(ex2, "命令行形式内存优化失败")
-                    If ShowHint Then
-                        Hint(String.Concat(New String() {"获取管理员权限失败，请尝试右键 PCL，选择 ", vbLQ, "以管理员身份运行", vbRQ, "！"}), HintType.Critical, True)
-                    End If
-                    Return
-                Finally
-                    IsMemoryOptimizing = False
-                End Try
-
-                If num < 0L Then
-                    Return
-                End If
-            End If
-
-            Dim MemAfter As String = GetString(CLng(KernelInterop.GetAvailablePhysicalMemoryBytes()))
-            Log(String.Format("[Test] 内存优化完成，可用内存改变量：{0}，大致剩余内存：{1}", GetString(num), MemAfter))
-            If num > 0L Then
-                If ShowHint Then
-                    Hint(String.Format("内存优化完成，可用内存增加了 {0}，目前剩余内存 {1}！", GetString(CLng(Math.Round(CDbl(num) * 0.8))), MemAfter), HintType.Finish, True)
-                    Return
-                End If
-            ElseIf ShowHint Then
-                ModMain.Hint(String.Format("内存优化完成，已经优化到了最佳状态，目前剩余内存 {0}！", MemAfter), HintType.Info, True)
-            End If
-        End If
-    End Sub
-    Public Shared Sub MemoryOptimizeInternal(ShowHint As Boolean)
-        If Not ProcessInterop.IsAdmin() Then
-            Throw New Exception("内存优化功能需要管理员权限！" & vbCrLf & "如果需要自动以管理员身份启动 PCL，可以右键 PCL，打开 属性 → 兼容性 → 以管理员身份运行此程序。")
-        End If
-        Log("[Test] 获取内存优化权限")
-
-        '提权部分
-        Try
-            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeProfileSingleProcessPrivilege, True, False)
-            NtInterop.SetPrivilege(NtInterop.SePrivilege.SeIncreaseQuotaPrivilege, True, False)
-        Catch ex As System.ComponentModel.Win32Exception
-            Throw New Exception(String.Format("获取内存优化权限失败（错误代码：{0}）", ex.NativeErrorCode))
-        End Try
-
-        If ShowHint Then
-            Hint("正在进行内存优化……", ModMain.HintType.Info, True)
-        End If
-
-        '内存优化部分
-        Dim NowType = "None"
-        Try
-            Dim info As Integer
-            Dim combineInfoEx As MEMORY_COMBINE_INFORMATION_EX
-            Dim _gcHandle As GCHandle
-
-            NowType = "MemoryEmptyWorkingSets"
-            info = 2
-            _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
-            _gcHandle.Free()
-            'NowType = "SystemFileCacheInformation"
-            'scfi.MaximumWorkingSet = UInteger.MaxValue
-            'scfi.MinimumWorkingSet = UInteger.MaxValue
-            '_gcHandle = GCHandle.Alloc(scfi, GCHandleType.Pinned)
-            'NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemFileCacheInformationEx,
-            '                               _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(scfi))
-            '_gcHandle.Free()
-            NowType = "MemoryFlushModifiedList"
-            info = 3
-            _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
-            _gcHandle.Free()
-            NowType = "MemoryPurgeStandbyList"
-            info = 4
-            _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
-            _gcHandle.Free()
-            NowType = "MemoryPurgeLowPriorityStandbyList"
-            info = 5
-            _gcHandle = GCHandle.Alloc(info, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemMemoryListInformation,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(info))
-            _gcHandle.Free()
-            NowType = "SystemRegistryReconciliationInformation"
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemRegistryReconciliationInformation,
-                                           New IntPtr(Nothing), 0)
-            NowType = "SystemCombinePhysicalMemoryInformation"
-            _gcHandle = GCHandle.Alloc(combineInfoEx, GCHandleType.Pinned)
-            NtInterop.SetSystemInformation(NtInterop.SystemInformationClass.SystemCombinePhysicalMemoryInformation,
-                                           _gcHandle.AddrOfPinnedObject(), Marshal.SizeOf(combineInfoEx))
-            _gcHandle.Free()
-        Catch ex As System.ComponentModel.Win32Exception
-            Throw New Exception(String.Format("内存优化操作 {0} 失败（错误代码：{1}）", NowType, ex.NativeErrorCode))
-        Catch ex As Exception
-            Throw New Exception(String.Format("内存优化操作 {0} 失败（错误信息：{1}）", NowType, ex.Message))
-        End Try
-
+    Public Shared Sub MemoryOptimize(showHint As Boolean)
+        MemSwapService.MemorySwap(showHint)
     End Sub
     Public Shared Function GetRandomCave() As String
         Return "为便于维护，社区版中不包含百宝箱功能……"
@@ -531,7 +387,7 @@ Public Class PageToolsTest
         Files.CreateShortcut(shortcutPath, Basics.ExecutablePath)
         Hint("已在" & locationName & "创建快捷方式", HintType.Finish)
     End Sub
-    
+
     ' 启动计数显示
     Private Sub BtnLaunchCount_Click(sender As Object, e As MouseButtonEventArgs)
         Dim launchCount As Integer = Setup.Get("SystemLaunchCount")
@@ -543,9 +399,9 @@ Public Class PageToolsTest
         Log("[Net] 获取网络结果" & url)
         Await LoadImageAsync(url)
     End Sub
-    
+
     Private Async Function LoadImageAsync(imageUrl As String) As Task
-        Dim client = NetworkService.GetClient() 
+        Dim client = NetworkService.GetClient()
         Try
             Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
             If response.IsSuccessStatusCode Then
@@ -558,50 +414,50 @@ Public Class PageToolsTest
                     bitmapImage.Freeze()
 
                     Dispatcher.Invoke(Sub()
-                        AchievementImage.Source = bitmapImage
-                        AchievementImage.Visibility = Visibility.Visible
-                    End Sub)
+                                          AchievementImage.Source = bitmapImage
+                                          AchievementImage.Visibility = Visibility.Visible
+                                      End Sub)
                 End Using
             ElseIf response.StatusCode = HttpStatusCode.NotFound Then
                 Dispatcher.Invoke(Sub()
-                    Log("获取成就图片失败（404）")
-                    Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
-                End Sub)
+                                      Log("获取成就图片失败（404）")
+                                      Hint("获取成就图片失败，请检查文字是否包含特殊字符", HintType.Critical)
+                                  End Sub)
             Else
                 Dispatcher.Invoke(Sub()
-                    Log("获取成就图片失败（" & response.StatusCode & "）")
-                End Sub)
+                                      Log("获取成就图片失败（" & response.StatusCode & "）")
+                                  End Sub)
             End If
 
         Catch ex As Exception
             Dispatcher.Invoke(Sub()
-                Log(ex, "获取成就图片失败")
-            End Sub)
+                                  Log(ex, "获取成就图片失败")
+                              End Sub)
         End Try
     End Function
 
     Private Async Sub BtnAchievementSave_Click(sender As Object, e As MouseButtonEventArgs)
         Dim url = GetAchievementUrl()
-        await DownloadImageToLocalAsync(url)
+        Await DownloadImageToLocalAsync(url)
     End Sub
-    
+
     Private Async Function DownloadImageToLocalAsync(imageUrl As String) As Task
         Dim savePath As String = PathTemp & "Download\" & GetHash(imageUrl) & ".png"
         Dim client = NetworkService.GetClient()
         Try
             ' 异步发送 GET 请求
             Dim response As HttpResponseMessage = Await client.GetAsync(imageUrl)
-            
+
             ' 如果响应状态码是成功的，则继续
             If response.IsSuccessStatusCode Then
                 ' 异步读取响应内容为字节流
                 Dim imageBytes As Byte() = Await response.Content.ReadAsByteArrayAsync()
-                
+
                 ' 将字节写入本地文件
                 File.WriteAllBytes(savePath, imageBytes)
-                
+
                 Dim path As String = SystemDialogs.SelectSaveFile("保存皮肤", AchievementTitleTextBox.Text & ".png", "PNG 图片|*.png")
-                If(path = "") Then
+                If (path = "") Then
                     Log("用户取消了保存操作")
                     File.Delete(savePath)
                     Return
@@ -618,13 +474,13 @@ Public Class PageToolsTest
                 ' 处理其他非成功状态码
                 Log("获取成就图片失败（" & response.StatusCode & "）")
             End If
-            
+
         Catch ex As Exception
             ' 捕获所有其他异常（如网络连接问题）
             Log(ex, "获取成就图片失败")
         End Try
     End Function
-    
+
     Private Function GetAchievementUrl() As String
         Dim block = AchievementBlockTextBox.Text.Trim()
         Dim title = AchievementTitleTextBox.Text.Replace(" ", "..")
@@ -638,7 +494,7 @@ Public Class PageToolsTest
     End Function
 
     Private Sub BtnCrash_Click(sender As Object, e As MouseButtonEventArgs)
-        If MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", "确认", HintText := """sURe"".ToUpper()", IsWarn := True) = "SURE" Then
+        If MyMsgBoxInput("崩溃确认", "你一定是点错了，如果没错请在下方确认", "确认", HintText:="""sURe"".ToUpper()", IsWarn:=True) = "SURE" Then
             Throw New Exception("手动崩溃")
         End If
     End Sub
