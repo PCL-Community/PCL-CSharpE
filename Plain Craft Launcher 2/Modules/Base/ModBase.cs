@@ -22,6 +22,7 @@ using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using PCL.Core.App;
+using PCL.Core.IO;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Codecs;
@@ -1875,35 +1876,7 @@ public static class ModBase
     /// <param name="FileSize">以字节为单位的大小表示。</param>
     public static string GetString(long FileSize)
     {
-        var IsNegative = FileSize < 0L;
-        if (IsNegative)
-            FileSize *= -1;
-        if (FileSize < 1000L)
-            // B 级
-            return (IsNegative ? "-" : "") + FileSize + " B";
-
-        if (FileSize < 1024 * 1000)
-        {
-            // K 级
-            var RoundResult = Math.Round(FileSize / 1024d).ToString();
-            return (IsNegative ? "-" : "") +
-                   Math.Round(FileSize / 1024d, (int)Math.Round(MathClamp(3 - RoundResult.Length, 0d, 2d))) + " K";
-        }
-
-        if (FileSize < 1024 * 1024 * 1000)
-        {
-            // M 级
-            var RoundResult = Math.Round(FileSize / 1024d / 1024d).ToString();
-            return (IsNegative ? "-" : "") + Math.Round(FileSize / 1024d / 1024d,
-                (int)Math.Round(MathClamp(3 - RoundResult.Length, 0d, 2d))) + " M";
-        }
-        else
-        {
-            // G 级
-            var RoundResult = Math.Round(FileSize / 1024d / 1024d / 1024d).ToString();
-            return (IsNegative ? "-" : "") + Math.Round(FileSize / 1024d / 1024d / 1024d,
-                (int)Math.Round(MathClamp(3 - RoundResult.Length, 0d, 2d))) + " G";
-        }
+        return ByteStream.GetReadableLength(FileSize);
     }
 
     /// <summary>

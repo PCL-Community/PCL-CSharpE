@@ -68,25 +68,6 @@ public partial class Application
                         Environment.Exit((int)ModBase.ProcessReturnValues.Fail);
                     }
                 }
-                else if (args[0].StartsWithF("--memory"))
-                {
-                    // 内存优化
-                    var Ram = KernelInterop.GetAvailablePhysicalMemoryBytes();
-                    try
-                    {
-                        PageToolsTest.MemoryOptimizeInternal(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "内存优化失败", MessageBoxButton.OK, MessageBoxImage.Error);
-                        Environment.Exit(-1);
-                    }
-
-                    if (KernelInterop.GetAvailablePhysicalMemoryBytes() < Ram) // 避免 ULong 相减出现负数
-                        Environment.Exit(0);
-                    else
-                        Environment.Exit((int)((KernelInterop.GetAvailablePhysicalMemoryBytes() - Ram) /
-                                               1024)); // 返回清理的内存量（K）
                     /* TODO ERROR: Skipped IfDirectiveTrivia
                     #If DEBUGRESERVED Then
                     */ /* TODO ERROR: Skipped DisabledTextTrivia
@@ -100,7 +81,6 @@ public partial class Application
                     */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
                     #End If
                     */
-                }
             }
 
             // 初始化文件结构
