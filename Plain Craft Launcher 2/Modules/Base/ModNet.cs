@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -118,7 +119,7 @@ public static class ModNet
     private static readonly object NetTaskThreadCountLock = new();
 
     // 快速进行大小校验
-    private static readonly ModBase.SafeDictionary<string, long> _CheckExistingFile_Sizes = new();
+    private static readonly ConcurrentDictionary<string, long> _CheckExistingFile_Sizes = new();
     public static NetManagerClass NetManager = new();
 
     /// <summary>

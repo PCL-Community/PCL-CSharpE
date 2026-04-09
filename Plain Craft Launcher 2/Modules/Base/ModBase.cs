@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -965,7 +966,7 @@ public static class ModBase
     // ini
     // =============================
 
-    private static readonly SafeDictionary<string, SafeDictionary<string, string>> IniCache = new();
+    private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, string>> IniCache = new();
 
     /// <summary>
     ///     清除某 ini 文件的运行时缓存。
@@ -976,7 +977,7 @@ public static class ModBase
         if (!FileName.Contains(@":\"))
             FileName = $@"{ExePath}PCL\{FileName}.ini";
         if (IniCache.ContainsKey(FileName))
-            IniCache.Remove(FileName);
+            IniCache.Remove(FileName, out _);
     }
 
     /// <summary>
@@ -984,7 +985,7 @@ public static class ModBase
     ///     在文件不存在或读取失败时返回 Nothing。
     /// </summary>
     /// <param name="FileName">文件完整路径或简写文件名。简写将会使用“ApplicationName\文件名.ini”作为路径。</param>
-    private static SafeDictionary<string, string> IniGetContent(string FileName)
+    private static ConcurrentDictionary<string, string> IniGetContent(string FileName)
     {
         try
         {
@@ -997,7 +998,7 @@ public static class ModBase
             // 读取文件
             if (!File.Exists(FileName))
                 return null;
-            var Ini = new SafeDictionary<string, string>();
+            var Ini = new ConcurrentDictionary<string, string>();
             foreach (var Line in ReadFile(FileName)
                          .Split("\r\n".ToArray(), StringSplitOptions.RemoveEmptyEntries))
             {
@@ -1070,13 +1071,13 @@ public static class ModBase
                 // 获取目前文件
                 var Content = IniGetContent(FileName);
                 if (Content is null)
-                    Content = new SafeDictionary<string, string>();
+                    Content = new ConcurrentDictionary<string, string>();
                 // 更新值
                 if (Value is null)
                 {
                     if (!Content.ContainsKey(Key))
                         return; // 无需处理
-                    Content.Remove(Key);
+                    Content.Remove(Key, out _);
                 }
                 else
                 {
@@ -2654,173 +2655,6 @@ public static class ModBase
             {
                 _lock.ExitWriteLock();
             }
-        }
-    }
-
-    /// <summary>
-    ///     线程安全的字典。
-    ///     通过在 For Each 循环中使用一个浅表副本规避多线程操作或移除自身导致的异常。
-    /// </summary>
-    public class SafeDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IEnumerable<KeyValuePair<TKey, TValue>>
-    {
-        private readonly Dictionary<TKey, TValue> _Dictionary = new();
-
-        public readonly object SyncRoot = new();
-
-        // 构造函数
-        public SafeDictionary()
-        {
-        }
-
-        public SafeDictionary(IEnumerable<KeyValuePair<TKey, TValue>> data)
-        {
-            foreach (var DataItem in data)
-                _Dictionary.Add(DataItem.Key, DataItem.Value);
-        }
-
-        // 线程安全的方法实现
-        public void Add(TKey key, TValue value)
-        {
-            lock (SyncRoot)
-            {
-                _Dictionary.Add(key, value);
-            }
-        }
-
-        public bool ContainsKey(TKey key)
-        {
-            lock (SyncRoot)
-            {
-                return _Dictionary.ContainsKey(key);
-            }
-        }
-
-        public ICollection<TKey> Keys
-        {
-            get
-            {
-                lock (SyncRoot)
-                {
-                    return new List<TKey>(_Dictionary.Keys);
-                }
-            }
-        }
-
-        public bool Remove(TKey key)
-        {
-            lock (SyncRoot)
-            {
-                return _Dictionary.Remove(key);
-            }
-        }
-
-        public bool TryGetValue(TKey key, out TValue value)
-        {
-            lock (SyncRoot)
-            {
-                return _Dictionary.TryGetValue(key, out value);
-            }
-        }
-
-        public ICollection<TValue> Values
-        {
-            get
-            {
-                lock (SyncRoot)
-                {
-                    return new List<TValue>(_Dictionary.Values);
-                }
-            }
-        }
-
-        public TValue this[TKey key]
-        {
-            get
-            {
-                lock (SyncRoot)
-                {
-                    return _Dictionary[key];
-                }
-            }
-            set
-            {
-                lock (SyncRoot)
-                {
-                    _Dictionary[key] = value;
-                }
-            }
-        }
-
-        public void Add(KeyValuePair<TKey, TValue> item)
-        {
-            lock (SyncRoot)
-            {
-                _Dictionary.Add(item.Key, item.Value);
-            }
-        }
-
-        public void Clear()
-        {
-            lock (SyncRoot)
-            {
-                _Dictionary.Clear();
-            }
-        }
-
-        public bool Contains(KeyValuePair<TKey, TValue> item)
-        {
-            lock (SyncRoot)
-            {
-                return ((IDictionary<TKey, TValue>)_Dictionary).Contains(item);
-            }
-        }
-
-        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-        {
-            lock (SyncRoot)
-            {
-                ((IDictionary<TKey, TValue>)_Dictionary).CopyTo(array, arrayIndex);
-            }
-        }
-
-        public int Count
-        {
-            get
-            {
-                lock (SyncRoot)
-                {
-                    return _Dictionary.Count;
-                }
-            }
-        }
-
-        public bool IsReadOnly => false;
-
-        public bool Remove(KeyValuePair<TKey, TValue> item)
-        {
-            lock (SyncRoot)
-            {
-                return ((IDictionary<TKey, TValue>)_Dictionary).Remove(item);
-            }
-        }
-
-        // 枚举器
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-        {
-            lock (SyncRoot)
-            {
-                return new List<KeyValuePair<TKey, TValue>>(_Dictionary).GetEnumerator();
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumeratorGeneral();
-        }
-
-        private IEnumerator GetEnumeratorGeneral()
-        {
-            return GetEnumerator();
         }
     }
 
