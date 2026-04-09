@@ -110,7 +110,7 @@ public partial class PageSpeedLeft
         try
         {
             // 获取实际加载器列表
-            var LoaderList = ((ModLoader.LoaderCombo<string>)Loader).GetLoaderList();
+            var LoaderList = ((ModLoader.LoaderCombo)Loader).GetLoaderList();
             if (RightCards.ContainsKey(Loader.Name))
             {
                 // 已有此卡片
