@@ -11,6 +11,8 @@ using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.UI.Theme;
+using PCL.Network.Engine;
+using PCL.Network.Loaders;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
 
 namespace PCL;
@@ -1169,7 +1171,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
         {
             // 构造下载信息
             DatapackList = DatapackList.ToList(); // 防止刷新影响迭代器
-            var FileList = new List<ModNet.NetFile>();
+            var FileList = new List<DownloadFile>();
             var FileCopyList = new Dictionary<string, string>();
             foreach (var Entry in DatapackList)
             {
@@ -1186,7 +1188,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
             // 构造加载器
             var InstallLoaders = new List<ModLoader.LoaderBase>();
             var FinishedFileNames = new List<string>();
-            InstallLoaders.Add(new ModNet.LoaderDownload("下载新版数据包文件", FileList)
+            InstallLoaders.Add(new LoaderDownload("下载新版数据包文件", FileList)
                 { ProgressWeight = DatapackList.Count() * 1.5d });
 
             InstallLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版数据包文件", _ =>

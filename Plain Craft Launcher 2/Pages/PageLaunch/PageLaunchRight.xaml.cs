@@ -5,6 +5,7 @@ using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
+using PCL.Network;
 
 namespace PCL;
 
@@ -313,7 +314,7 @@ public partial class PageLaunchRight : IRefreshable
             var NeedDownload = true;
             try
             {
-                Version = Conversions.ToString(ModNet.NetGetCodeByRequestOnce(VersionAddress, Timeout: 10000));
+                Version = Conversions.ToString(Requester.FetchString(VersionAddress));
                 if (Version.Length > 1000)
                     throw new Exception($"获取的主页版本过长（{Version.Length} 字符）");
                 var CurrentVersion = Conversions.ToString(States.UI.SavedHomepageVersion);
@@ -337,7 +338,7 @@ public partial class PageLaunchRight : IRefreshable
             // 实际下载
             if (NeedDownload)
             {
-                var FileContent = Conversions.ToString(ModNet.NetGetCodeByRequestRetry(Address));
+                var FileContent = Requester.FetchString(Address);
                 ModBase.Log($"[Page] 已联网下载主页，内容长度：{FileContent.Length}，来源：{Address}");
                 States.UI.SavedHomepageUrl = Address;
                 States.UI.SavedHomepageVersion = Version;

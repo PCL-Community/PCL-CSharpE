@@ -1,9 +1,11 @@
+using System.Net;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.UI.Controls;
+using PCL.Network;
 
 namespace PCL;
 
@@ -46,22 +48,22 @@ public partial class MyMsgLogin
         {
             Website = (string)Data["verification_uri_complete"];
             LabCaption.Text = $"""
-                                登录网页将自动开启，授权码将自动填充。
+                               登录网页将自动开启，授权码将自动填充。
 
-                                如果网络环境不佳，网页可能一直加载不出来，届时请使用 VPN 并重试。
-                                如果没有自动填充，请在页面内粘贴此授权码 {UserCode} （将自动复制）
-                                你也可以用其他设备打开 {Website} 并输入授权码。
-                                """;
+                               如果网络环境不佳，网页可能一直加载不出来，届时请使用 VPN 并重试。
+                               如果没有自动填充，请在页面内粘贴此授权码 {UserCode} （将自动复制）
+                               你也可以用其他设备打开 {Website} 并输入授权码。
+                               """;
         }
         else
         {
             Website = (string)Data["verification_uri"];
             LabCaption.Text = $"""
-                                登录网页将自动开启，请在网页中输入授权码 {UserCode}（将自动复制）。
+                               登录网页将自动开启，请在网页中输入授权码 {UserCode}（将自动复制）。
 
-                                如果网络环境不佳，网页可能一直加载不出来，届时请使用 VPN 并重试。
-                                你也可以用其他设备打开 {Website} 并输入上述授权码。
-                                """;
+                               如果网络环境不佳，网页可能一直加载不出来，届时请使用 VPN 并重试。
+                               你也可以用其他设备打开 {Website} 并输入上述授权码。
+                               """;
         }
 
         // 设置 UI
@@ -85,10 +87,13 @@ public partial class MyMsgLogin
         while (!MyConverter.IsExited)
             try
             {
-                var Result = ModNet.NetRequestOnce("https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
-                    "POST",
-                    $"grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id={ModSecret.OAuthClientId}&device_code={DeviceCode}&scope=XboxLive.signin%20offline_access", "application/x-www-form-urlencoded",
-                    5000 + UnknownFailureCount * 5000, MakeLog: false);
+                var Result = Requester.Fetch($"https://login.microsoftonline.com/consumers/oauth2/v2.0/token?grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id={ModSecret.OAuthClientId}&device_code={DeviceCode}&scope=XboxLive.signin%20offline_access",
+                    new FetchParam
+                    {
+                        Method = "POST",
+                        ContentType = "application/x-www-form-urlencoded",
+                        Timeout = 5000 + UnknownFailureCount * 5000, MakeLog = false
+                    });
                 // 获取结果
                 var ResultJson = (JObject)ModBase.GetJson(Result);
                 ModProfile.ProfileLog($"令牌过期时间：{ResultJson["expires_in"]} 秒");
@@ -96,55 +101,9 @@ public partial class MyMsgLogin
                 Finished(new[] { ResultJson["access_token"].ToString(), ResultJson["refresh_token"].ToString() });
                 return;
             }
-            catch (ModNet.HttpWebException ex)
+            catch (WebException ex)
             {
-                var response = ex.InnerHttpException.WebResponse;
-                if (response.Contains("authorization_declined"))
-                {
-                    Finished(new Exception("$你拒绝了 PCL 申请的权限……"));
-                    return;
-                }
-
-                if (response.Contains("expired_token"))
-                {
-                    Finished(new Exception("$登录用时太长啦，重新试试吧！"));
-                    return;
-                }
-
-                if (response.Contains("Account security interrupt"))
-                {
-                    Finished(new Exception("$非常抱歉，该账号由于安全问题无法登陆，请前往 Microsoft 账户页获取更多信息。"));
-                    return;
-                }
-
-                if (response.Contains("service abuse"))
-                {
-                    Finished(new Exception("$非常抱歉，该账号已被微软封禁，无法登录。"));
-                    return;
-                }
-
-                if (response.Contains("AADSTS70000")) // 可能不能判 “invalid_grant”，见 #269
-                {
-                    Finished(new ModBase.RestartException());
-                    return;
-                }
-
-                if (response.Contains("authorization_pending"))
-                {
-                    Thread.Sleep(2000);
-                }
-                else if (UnknownFailureCount <= 2)
-                {
-                    UnknownFailureCount += 1;
-                    ModBase.Log(ex, $"正版验证轮询第 {UnknownFailureCount} 次失败");
-                    ModBase.Log("原始返回内容: " + response);
-                    Thread.Sleep(2000);
-                }
-                else
-                {
-                    Finished(new Exception("正版验证轮询失败", ex));
-                    return;
-                }
+                throw new Exception("爆！");
             }
             catch (Exception ex)
             {

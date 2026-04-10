@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Newtonsoft.Json.Linq;
+using PCL.Network.Engine;
 
 namespace PCL;
 
@@ -207,7 +208,7 @@ public partial class PageDownloadClient
 
     public void DownloadStart(MyListItem sender, object e)
     {
-        ModDownloadLib.McDownloadClient(ModNet.NetPreDownloadBehaviour.HintWhileExists, sender.Title,
+        ModDownloadLib.McDownloadClient(NetPreDownloadBehaviour.HintWhileExists, sender.Title,
             ((JObject)sender.Tag)["url"].ToString());
     }
 

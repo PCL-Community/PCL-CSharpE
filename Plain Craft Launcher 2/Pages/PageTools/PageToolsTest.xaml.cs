@@ -19,6 +19,9 @@ using PCL.Core.UI;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
+using PCL.Network;
+using PCL.Network.Engine;
+using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -139,10 +142,10 @@ public partial class PageToolsTest
             var uuid = ModBase.GetUuid();
             ModLoader.LoaderBase loaderdownload;
             if (new HttpValidator().Validate(Url).IsValid)
-                loaderdownload = new ModNet.LoaderDownload($"自定义下载文件：{FileName} ",
-                    new List<ModNet.NetFile> { new(new[] { Url }, Folder + FileName, null, true, UserAgent) });
+                loaderdownload = new LoaderDownload($"自定义下载文件：{FileName} ",
+                    new List<DownloadFile> { new(new[] { Url }, Folder + FileName, null, true, UserAgent) });
             else // UNC 路径
-                loaderdownload = new ModNet.LoaderDownloadUnc($"自定义下载文件：{FileName} ",
+                loaderdownload = new LoaderDownloadUnc($"自定义下载文件：{FileName} ",
                     new Tuple<string, string>(Url, Folder + FileName));
             var loaderCombo = new ModLoader.LoaderCombo<int>($"自定义下载 ({uuid}) ", new[] { loaderdownload })
                 { OnStateChanged = a => DownloadState((ModLoader.LoaderCombo<int>)a) };

@@ -16,6 +16,7 @@ using PCL.Core.UI.Theme;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Validate;
+using PCL.Network;
 
 namespace PCL;
 

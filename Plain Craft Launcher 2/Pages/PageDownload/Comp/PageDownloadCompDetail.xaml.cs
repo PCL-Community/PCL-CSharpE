@@ -10,6 +10,8 @@ using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
+using PCL.Network.Engine;
+using PCL.Network.Loaders;
 using Control = System.Windows.Forms.Control;
 
 namespace PCL;
@@ -74,7 +76,7 @@ public partial class PageDownloadCompDetail
             var Target =
                 $@"{ModMinecraft.McFolderSelected}versions\{InstanceName}\原始整合包.{(_project.FromCurseForge ? "zip" : "mrpack")}";
             var LogoFileAddress = MyImage.GetTempPath(_compItem.Logo);
-            Loaders.Add(new ModNet.LoaderDownload("下载整合包文件", new List<ModNet.NetFile> { File.ToNetFile(Target) })
+            Loaders.Add(new LoaderDownload("下载整合包文件", new List<DownloadFile> { File.ToNetFile(Target) })
                 { ProgressWeight = 10d, Block = true });
             Loaders.Add(new ModLoader.LoaderTask<int, int>("准备安装整合包",
                 _ => ModModpack.ModpackInstall(Target, InstanceName,
@@ -208,7 +210,7 @@ public partial class PageDownloadCompDetail
             var Loaders = new List<ModLoader.LoaderBase>();
             var TargetPath = Target.BeforeLast(@"\");
             var LogoFileAddress = MyImage.GetTempPath(_compItem.Logo);
-            Loaders.Add(new ModNet.LoaderDownload("下载世界文件", new List<ModNet.NetFile> { File.ToNetFile(Target) })
+            Loaders.Add(new LoaderDownload("下载世界文件", new List<DownloadFile> { File.ToNetFile(Target) })
                 { ProgressWeight = 10d, Block = true });
             Loaders.Add(
                 new ModLoader.LoaderTask<int, int>("安装世界", _ => ModBase.ExtractFile(Target, TargetPath, Encoding.UTF8))
@@ -390,7 +392,7 @@ public partial class PageDownloadCompDetail
                     var LoaderName = $"{Desc}下载：{ModBase.GetFileNameWithoutExtentionFromPath(Target)} ";
                     var Loaders = new List<ModLoader.LoaderBase>
                     {
-                        new ModNet.LoaderDownload("下载文件", new List<ModNet.NetFile> { File.ToNetFile(Target) })
+                        new LoaderDownload("下载文件", new List<DownloadFile> { File.ToNetFile(Target) })
                         {
                             ProgressWeight = 6,
                             Block = true

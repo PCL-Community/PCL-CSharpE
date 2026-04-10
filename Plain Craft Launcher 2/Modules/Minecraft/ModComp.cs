@@ -19,6 +19,8 @@ using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Hash;
+using PCL.Network;
+using PCL.Network.Engine;
 using ProtoBuf;
 
 namespace PCL;
@@ -1861,9 +1863,8 @@ public static class ModComp
 
             try
             {
-                var jsonObject = (JObject)await Task.Run(() =>
-                    ModNet.NetGetCodeByRequestOnce($"https://mod.mcimirror.top/translate/{from}/{Id}", Encoding.UTF8,
-                        IsJson: true));
+                var jsonObject = (JObject)await 
+                    Requester.FetchJsonAsync($"https://mod.mcimirror.top/translate/{from}/{Id}");
                 if (Conversions.ToBoolean(((dynamic)jsonObject).ContainsKey("translated")))
                 {
                     result = jsonObject["translated"].ToString();
@@ -3313,9 +3314,9 @@ public static class ModComp
         ///     获取下载信息。
         /// </summary>
         /// <param name="LocalAddress">目标本地文件夹，或完整的文件路径。会自动判断类型。</param>
-        public ModNet.NetFile ToNetFile(string LocalAddress)
+        public DownloadFile ToNetFile(string LocalAddress)
         {
-            return new ModNet.NetFile(DownloadUrls, LocalAddress + (LocalAddress.EndsWithF(@"\") ? FileName : ""),
+            return new DownloadFile(DownloadUrls, LocalAddress + (LocalAddress.EndsWithF(@"\") ? FileName : ""),
                 new ModBase.FileChecker(Hash: Hash), true);
         }
 

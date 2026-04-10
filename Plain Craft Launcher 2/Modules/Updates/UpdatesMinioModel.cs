@@ -6,6 +6,9 @@ using Newtonsoft.Json.Linq;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Diff;
+using PCL.Network;
+using PCL.Network.Engine;
+using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -32,7 +35,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
     {
         // 先检查缓存
         var remoteCache =
-            JToken.Parse(Conversions.ToString(ModNet.NetGetCodeByRequestRetry($"{_baseUrl}apiv2/cache.json")));
+            JToken.Parse(Requester.FetchString($"{_baseUrl}apiv2/cache.json", RequestParam.WithRetry));
         _remoteCache = remoteCache.ToObject<Dictionary<string, string>>();
         return true;
     }
@@ -70,7 +73,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
         var loaders = new List<ModLoader.LoaderBase>();
         var patchUpdate = true;
         var tempPath = $@"{ModBase.PathTemp}Cache\Update\Download\";
-        loaders.Add(new ModLoader.LoaderTask<int, List<ModNet.NetFile>>("获取版本信息", load =>
+        loaders.Add(new ModLoader.LoaderTask<int, List<DownloadFile>>("获取版本信息", load =>
         {
             var channelName = GetChannelName(channel, arch);
             var deJsonData = GetRemoteInfoByName($"updates-{channelName}", "updates/")
@@ -86,7 +89,7 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
             {
                 patchUpdate = true;
                 tempPath += patchFileName;
-                load.Output = new List<ModNet.NetFile>
+                load.Output = new List<DownloadFile>
                     { new(new[] { $"{_baseUrl}static/patch/{patchFileName}" }, tempPath) };
             }
             else
@@ -94,10 +97,10 @@ public class UpdatesMinioModel : IUpdateSource // 社区自己的更新系统格
                 patchUpdate = false;
 
                 tempPath += $"{deJsonData.sha256}.bin";
-                load.Output = new List<ModNet.NetFile> { new(RandomUtils.Shuffle(deJsonData.downloads), tempPath) };
+                load.Output = new List<DownloadFile> { new(RandomUtils.Shuffle(deJsonData.downloads), tempPath) };
             }
         }));
-        loaders.Add(new ModNet.LoaderDownload("下载文件", new List<ModNet.NetFile>()));
+        loaders.Add(new LoaderDownload("下载文件", new List<DownloadFile>()));
         loaders.Add(new ModLoader.LoaderTask<string, int>("应用文件", _ =>
         {
             if (patchUpdate)
