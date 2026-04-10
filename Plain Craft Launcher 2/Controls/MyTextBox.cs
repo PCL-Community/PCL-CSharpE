@@ -30,15 +30,12 @@ public class MyTextBox : TextBox
         typeof(MyTextBox), new PropertyMetadata("", (t, e) =>
         {
             var textBox = (MyTextBox)t;
-            if (textBox._labHint is not null)
-                textBox._labHint.Text = string.IsNullOrEmpty(textBox.Text) ? textBox.HintText : "";
+            if (textBox.labHint is not null)
+                textBox.labHint.Text = string.IsNullOrEmpty(textBox.Text) ? textBox.HintText : "";
         }));
-
-    private TextBlock _labHint;
 
     // 额外控件初始化
 
-    private TextBlock _labWrong;
     private Collection<IValidator<string>> _ValidateRules = new();
     public List<RoutedEventHandler> ChangedEventList = new();
 
@@ -86,11 +83,9 @@ public class MyTextBox : TextBox
     {
         get
         {
-            if (Template is null)
-                return null;
-            if (_labWrong is null)
-                _labWrong = (TextBlock)Template.FindName("labWrong", this);
-            return _labWrong;
+            if (Template is null) return null;
+            if (field is null) field = (TextBlock)Template.FindName("labWrong", this);
+            return field;
         }
     }
 
@@ -98,11 +93,9 @@ public class MyTextBox : TextBox
     {
         get
         {
-            if (Template is null)
-                return null;
-            if (_labHint is null)
-                _labHint = (TextBlock)Template.FindName("labHint", this);
-            return _labHint;
+            if (Template is null) return null;
+            if (field is null) field = (TextBlock)Template.FindName("labHint", this);
+            return field;
         }
     }
 
