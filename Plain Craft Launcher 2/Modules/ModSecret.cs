@@ -171,7 +171,7 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
 
     #region 网络鉴权
 
-    internal static object SecretCdnSign(string UrlWithMark)
+    internal static string SecretCdnSign(string UrlWithMark)
     {
         if (!UrlWithMark.EndsWithF("{CDN}"))
             return UrlWithMark;
