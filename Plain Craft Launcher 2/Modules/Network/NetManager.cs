@@ -3,6 +3,7 @@ using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Network.Engine;
 using PCL.Network.Loaders;
+using PCL.Network.Scheduling;
 
 namespace PCL.Network;
 
@@ -134,27 +135,29 @@ public class NetManager
 
                     foreach (var file in waitingFiles)
                     {
-                        if (ModNet.NetTaskThreadCount >= ModNet.NetTaskThreadLimit) break;
+                        if (!DownloadSchedulerPolicy.HasThreadBudget()) break;
                         var newSeg = file.TryBeginThread();
-                        if (newSeg != null && newSeg.Source.Url.Contains("bmclapi"))
-                            Thread.Sleep(100);
+                        var delay = newSeg == null ? 0 : DownloadSchedulerPolicy.GetPostStartDelayMilliseconds(newSeg.Source.Url);
+                        if (delay > 0)
+                            Thread.Sleep(delay);
                     }
 
-                    if (Speed >= ModNet.NetTaskSpeedLimitLow) continue;
+                    if (!DownloadSchedulerPolicy.ShouldExpandOngoingFile(Speed)) continue;
 
                     foreach (var file in ongoingFiles)
                     {
-                        if (ModNet.NetTaskThreadCount >= ModNet.NetTaskThreadLimit) break;
+                        if (!DownloadSchedulerPolicy.HasThreadBudget()) break;
                         int preparingCount = 0, downloadingCount = 0;
                         for (var cur = file.Segments; cur != null; cur = cur.Next)
                         {
                             if (cur.State < NetState.Downloading) preparingCount++;
                             else if (cur.State == NetState.Downloading) downloadingCount++;
                         }
-                        if (preparingCount > downloadingCount) continue;
+                        if (!DownloadSchedulerPolicy.CanStartAdditionalSegment(preparingCount, downloadingCount)) continue;
                         var newSeg = file.TryBeginThread();
-                        if (newSeg != null && newSeg.Source.Url.Contains("bmclapi"))
-                            Thread.Sleep(100);
+                        var delay = newSeg == null ? 0 : DownloadSchedulerPolicy.GetPostStartDelayMilliseconds(newSeg.Source.Url);
+                        if (delay > 0)
+                            Thread.Sleep(delay);
                     }
                 }
             }
@@ -177,8 +180,7 @@ public class NetManager
                 var nextTick = TimeUtils.GetTimeTick();
                 while (true)
                 {
-                    if (ModNet.NetTaskSpeedLimitHigh > 0)
-                        ModNet.NetTaskSpeedLimitLeft = ModNet.NetTaskSpeedLimitHigh / 10;
+                    DownloadSchedulerPolicy.RefillSpeedBudgetForNextTick();
 
                     RefreshStat();
 
@@ -211,18 +213,23 @@ public class NetManager
             _speedLastDone = DownloadDone;
 
             long speedSum = 0, speedDiv = 0;
+            long firstTenSpeedSum = 0;
             var weight = _speedHistory.Count;
-            foreach (var record in _speedHistory)
+            for (var i = 0; i < _speedHistory.Count; i++)
             {
+                var record = _speedHistory[i];
                 speedSum += record * weight;
                 speedDiv += weight;
+                if (i < 10)
+                    firstTenSpeedSum += record;
                 weight--;
             }
             Speed = speedDiv > 0 ? speedSum / speedDiv : 0;
 
             if (_speedHistory.Count >= 10)
             {
-                var limit = (long)(_speedHistory.Take(10).Average() * 0.85);
+                var rawLimit = (long)(firstTenSpeedSum / 10.0 * 0.85);
+                var limit = DownloadSchedulerPolicy.ClampAdaptiveLowSpeedFloor(rawLimit);
                 if (limit > ModNet.NetTaskSpeedLimitLow)
                 {
                     ModNet.NetTaskSpeedLimitLow = limit;
