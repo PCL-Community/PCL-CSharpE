@@ -6,8 +6,11 @@ namespace PCL.Network;
 
 public static class ModNet
 {
+    // Authority note: the compiled downloader evolution path lives in Modules\Network\*.cs.
+    // Modules\Base\ModNet.vb remains historical/reference material only and must not regain runtime authority.
     public const string NetDownloadEnd = ".PCLDownloading";
 
+    // Global scheduler knobs and counters are configured here, but scheduling decisions should flow through DownloadSchedulerPolicy.
     public static int NetTaskThreadLimit { get; set; }
     public static long NetTaskSpeedLimitLow { get; set; } = 256 * 1024L;
     public static long NetTaskSpeedLimitHigh { get; set; } = -1;
@@ -144,6 +147,7 @@ public static class ModNet
 
     #region Facade: Download
 
+    // Keep direct-download helpers on the maintained C# path below. Legacy VB downloader code is reference-only.
     public static Task NetDownloadByClient(string url, string localFile,
         bool useBrowserUserAgent = false)
     {
