@@ -6,17 +6,30 @@ using PCL.Core.IO.Net;
 using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Network.Loaders;
+using PCL.Network.Scheduling;
 
 namespace PCL.Network.Engine;
 
 public class DownloadFile
 {
+    // This C# file owns the active downloader state machine, scheduler/finalization contracts, and future perf work.
+    // Keep the legacy VB downloader only as behavioral reference when validating changes.
     private long _speedLastDone;
     private long _speedLastTime = TimeUtils.GetTimeTick();
     private long _cachedSpeed;
     private int _firstThreadSourceId;
     private bool _retried;
     private MemoryStream _smallFileCache;
+    private int _singleSegmentRetryCount;
+    private long _nextSingleSegmentRetryAllowedTime;
+
+    private enum FileFinalizationAction
+    {
+        None,
+        Merge,
+        Retry,
+        Fail
+    }
 
     public int Id { get; } = ModBase.GetUuid();
     public string LocalPath { get; set; }
@@ -98,6 +111,16 @@ public class DownloadFile
     public bool IsNoSplit => IsUnknownSize || TotalSize < FilePieceLimit;
 
     public const long FilePieceLimit = 262144;
+    public const long SmallFileMemoryLimit = 262144;
+
+    private bool CanKeepSingleSegmentInMemory =>
+        !IsUnknownSize && TotalSize >= 0 && TotalSize <= SmallFileMemoryLimit;
+
+    private bool ShouldStartSingleSegmentInMemory =>
+        IsNoSplit && (CanKeepSingleSegmentInMemory || IsUnknownSize);
+
+    private bool IsSingleSegmentRetryCoolingDown =>
+        _nextSingleSegmentRetryAllowedTime > TimeUtils.GetTimeTick();
 
     public DownloadFile(IEnumerable<string> urls, string localPath, ModBase.FileChecker checker = null,
         bool useBrowserUserAgent = false, string customUserAgent = "")
@@ -152,11 +175,24 @@ public class DownloadFile
 
     public DownloadSegment TryBeginThread()
     {
+        return TryBeginThreadCore(runInline: false);
+    }
+
+    internal DownloadSegment TryBeginThreadInlineForTests()
+    {
+        return TryBeginThreadCore(runInline: true);
+    }
+
+    private DownloadSegment TryBeginThreadCore(bool runInline)
+    {
+        var reservedThreadSlot = false;
         try
         {
-            if (ModNet.NetTaskThreadCount >= ModNet.NetTaskThreadLimit ||
-                !HasAvailableSource() ||
+            if (!HasAvailableSource() ||
                 State >= NetState.Merging || State == NetState.WaitingToCheck)
+                return null;
+
+            if (IsNoSplit && IsSingleSegmentRetryCoolingDown)
                 return null;
 
             if (IsNoSplit && Segments != null &&
@@ -186,62 +222,19 @@ public class DownloadFile
                 }
 
             Capture:
-                if (IsNoSplit && _smallFileCache != null && Segments != null &&
+                if (IsNoSplit && Segments != null &&
                     Segments.State != NetState.Interrupted && Segments.State != NetState.Finished)
                     return null;
-
-                _smallFileCache?.Dispose();
-                _smallFileCache = null;
-                Segments = null;
-
-                lock (LockDone)
-                {
-                    ModNet.NetManager.DownloadDone -= DownloadedBytes;
-                    DownloadedBytes = 0;
-                }
-                _speedLastDone = 0;
                 State = NetState.Reading;
 
-                if (Segments == null)
-                {
-                    startPosition = 0;
-                    startSource = GetAvailableSource(_firstThreadSourceId);
-                    _firstThreadSourceId = (startSource?.Id ?? 0) + 1;
-                    goto StartThread;
-                }
-
-                for (var cur = Segments; cur != null; cur = cur.Next)
-                {
-                    if (cur.State == NetState.Interrupted && cur.RemainingBytes > 0)
-                    {
-                        startPosition = cur.StartPosition + cur.DownloadedBytes;
-                        startSource = GetAvailableSource(cur.Source.Id + 1);
-                        goto StartThread;
-                    }
-                }
-
-                var targetSource = GetAvailableSource();
-                if (targetSource == null) return null;
-                var targetUrl = targetSource.Url;
-                if (!AllowMultiThread ||
-                    targetUrl.Contains("pcl2-server") || targetUrl.Contains("bmclapi") ||
-                    targetUrl.Contains("github.com") || targetUrl.Contains("optifine.net") ||
-                    targetUrl.Contains("modrinth") || targetUrl.Contains("gitcode") ||
-                    targetUrl.Contains("pysio.online") || targetUrl.Contains("mirrorchyan.com") ||
-                    targetUrl.Contains("naids.com"))
+                if (!TryResolveStartPointNoLock(out startPosition, out startSource, out var shouldResetState))
                     return null;
 
-                var maxRemaining = Segments;
-                for (var cur = Segments; cur != null; cur = cur.Next)
+                if (shouldResetState)
                 {
-                    if (cur.RemainingBytes > maxRemaining.RemainingBytes)
-                        maxRemaining = cur;
+                    ResetTransferStateForFreshStart();
+                    _firstThreadSourceId = startSource.Id + 1;
                 }
-                if (maxRemaining == null || maxRemaining.RemainingBytes < FilePieceLimit)
-                    return null;
-
-                startPosition = maxRemaining.EndPosition - (long)(maxRemaining.RemainingBytes * 0.4);
-                startSource = GetAvailableSource();
 
             StartThread:
                 if ((startPosition > TotalSize && TotalSize >= 0 && !IsUnknownSize) ||
@@ -260,11 +253,10 @@ public class DownloadFile
                     ParentFile = this
                 };
 
-                var thread = new Thread(() => DownloadThread(segmentInfo))
-                {
-                    Name = $"NetTask {Loaders[0].Uuid}/{Id} Download {segmentId}#",
-                    Priority = ThreadPriority.BelowNormal
-                };
+                if (!DownloadSchedulerPolicy.TryReserveThreadSlot())
+                    return null;
+
+                reservedThreadSlot = true;
 
                 if (segmentInfo.IsFirstSegment || Segments == null)
                 {
@@ -281,22 +273,32 @@ public class DownloadFile
 
                 // Must set segmentInfo into thread before starting
                 // thread captures segmentInfo via closure above
-
-                lock (ModNet.LockThreadCount)
-                {
-                    ModNet.NetTaskThreadCount++;
-                }
                 lock (LockSource)
                 {
                     if (!HasAvailableSource(false) && OnceSources.Count > 0)
                         OnceSources[0].SingleThreadId = segmentInfo.Id;
                 }
-                thread.Start();
+
+                if (runInline)
+                {
+                    DownloadThread(segmentInfo);
+                }
+                else
+                {
+                    var thread = new Thread(() => DownloadThread(segmentInfo))
+                    {
+                        Name = $"NetTask {Loaders[0].Uuid}/{Id} Download {segmentId}#",
+                        Priority = ThreadPriority.BelowNormal
+                    };
+                    thread.Start();
+                }
                 return segmentInfo;
             }
         }
         catch (Exception ex)
         {
+            if (reservedThreadSlot)
+                DownloadSchedulerPolicy.ReleaseThreadSlot();
             LogWrapper.Warn(ex, $"[Download] 尝试开始下载线程失败（{LocalName ?? "Nothing"}）");
             return null;
         }
@@ -311,6 +313,70 @@ public class DownloadFile
         return null;
     }
 
+    private bool TryResolveStartPointNoLock(out long startPosition, out DownloadSource startSource, out bool shouldResetState)
+    {
+        startPosition = 0;
+        startSource = null;
+        shouldResetState = false;
+
+        if (Segments == null)
+        {
+            shouldResetState = true;
+            startSource = GetAvailableSource(_firstThreadSourceId);
+            return startSource != null;
+        }
+
+        for (var cur = Segments; cur != null; cur = cur.Next)
+        {
+            if (cur.State == NetState.Interrupted && cur.RemainingBytes > 0)
+            {
+                startPosition = cur.StartPosition + cur.DownloadedBytes;
+                startSource = GetAvailableSource(cur.Source.Id + 1);
+                return startSource != null;
+            }
+        }
+
+        var targetSource = GetAvailableSource();
+        if (targetSource == null) return false;
+
+        var targetUrl = targetSource.Url;
+        if (!AllowMultiThread ||
+            targetUrl.Contains("pcl2-server") || targetUrl.Contains("bmclapi") ||
+            targetUrl.Contains("github.com") || targetUrl.Contains("optifine.net") ||
+            targetUrl.Contains("modrinth") || targetUrl.Contains("gitcode") ||
+            targetUrl.Contains("pysio.online") || targetUrl.Contains("mirrorchyan.com") ||
+            targetUrl.Contains("naids.com"))
+            return false;
+
+        var maxRemaining = Segments;
+        for (var cur = Segments; cur != null; cur = cur.Next)
+        {
+            if (cur.RemainingBytes > maxRemaining.RemainingBytes)
+                maxRemaining = cur;
+        }
+        if (maxRemaining == null || maxRemaining.RemainingBytes < FilePieceLimit)
+            return false;
+
+        startPosition = maxRemaining.EndPosition - (long)(maxRemaining.RemainingBytes * 0.4);
+        startSource = targetSource;
+        return true;
+    }
+
+    private void ResetTransferStateForFreshStart()
+    {
+        _smallFileCache?.Dispose();
+        _smallFileCache = null;
+        Segments = null;
+
+        lock (LockDone)
+        {
+            ModNet.NetManager.DownloadDone -= DownloadedBytes;
+            DownloadedBytes = 0;
+        }
+
+        _speedLastDone = 0;
+    }
+
     #endregion
 
     #region Download Thread
@@ -321,7 +387,7 @@ public class DownloadFile
             ModBase.Log($"[Download] {LocalName} {seg.Id}#：开始，起始点 {seg.StartPosition}，{seg.Source.Url}");
 
         Stream resultStream = null;
-        var timeout = Math.Min(Math.Max(AverageConnectTime, 6000) * (1 + seg.Source.FailCount), 25000);
+        var timeout = GetTimeoutMilliseconds(seg);
         long contentLength = 0;
         seg.State = NetState.Connecting;
         bool interrupted = false;
@@ -449,13 +515,19 @@ public class DownloadFile
 
                             if (IsNoSplit)
                             {
-                                seg.TempFilePath = null;
-                                _smallFileCache = new MemoryStream();
+                                if (ShouldStartSingleSegmentInMemory)
+                                {
+                                    seg.TempFilePath = null;
+                                    _smallFileCache = new MemoryStream();
+                                }
+                                else
+                                {
+                                    resultStream = OpenSegmentTempFile(seg);
+                                }
                             }
                             else
                             {
-                                seg.TempFilePath = $"{ModBase.PathTemp}Download\\{Id}_{seg.Id}_{PCL.Core.Utils.RandomUtils.NextInt(0, 999999)}.tmp";
-                                resultStream = new FileStream(seg.TempFilePath, FileMode.Create, FileAccess.Write, FileShare.Read);
+                                resultStream = OpenSegmentTempFile(seg);
                             }
 
                             // Download loop
@@ -472,18 +544,13 @@ public class DownloadFile
                                        httpDataCount > 0 && !ModBase.IsProgramEnded &&
                                        State < NetState.Merging && !seg.Source.IsFailed)
                                 {
-                                    while (ModNet.NetTaskSpeedLimitHigh > 0 && ModNet.NetTaskSpeedLimitLeft <= 0)
-                                        Thread.Sleep(8);
+                                    DownloadSchedulerPolicy.WaitForAvailableSpeedBudget();
 
                                     var realDataCount = IsUnknownSize
                                         ? httpDataCount
                                         : Math.Min(httpDataCount, (int)seg.RemainingBytes);
 
-                                    lock (ModNet.LockSpeedLimitLeft)
-                                    {
-                                        if (ModNet.NetTaskSpeedLimitHigh > 0)
-                                            ModNet.NetTaskSpeedLimitLeft -= realDataCount;
-                                    }
+                                    DownloadSchedulerPolicy.ConsumeSpeedBudget(realDataCount);
 
                                     var deltaTime = TimeUtils.GetTimeTick() - seg.LastReceiveTime;
                                     if (deltaTime > 1000000) deltaTime = 1;
@@ -519,7 +586,19 @@ public class DownloadFile
 
                                         var pendingBuffer = dataBuffer.Slice(0, realDataCount);
                                         if (IsNoSplit)
-                                            _smallFileCache.Write(pendingBuffer);
+                                        {
+                                            if (_smallFileCache != null)
+                                            {
+                                                _smallFileCache.Write(pendingBuffer);
+                                                if (IsUnknownSize && _smallFileCache.Length > SmallFileMemoryLimit)
+                                                    resultStream = SpillSingleSegmentBufferToDisk(seg);
+                                            }
+                                            else
+                                            {
+                                                resultStream ??= OpenSegmentTempFile(seg);
+                                                resultStream.Write(pendingBuffer);
+                                            }
+                                        }
                                         else
                                             resultStream.Write(pendingBuffer);
 
@@ -576,15 +655,8 @@ public class DownloadFile
         finally
         {
             resultStream?.Dispose();
-            lock (ModNet.LockThreadCount)
-            {
-                ModNet.NetTaskThreadCount--;
-            }
-            if (((TotalSize >= 0 && DownloadedBytes >= TotalSize) ||
-                 (TotalSize == -1 && DownloadedBytes > 0)) && State < NetState.Merging)
-            {
-                Merge();
-            }
+            DownloadSchedulerPolicy.ReleaseThreadSlot();
+            ApplyFinalizationAction(GetFinalizationActionAfterThreadExit(seg));
         }
     }
 
@@ -594,12 +666,18 @@ public class DownloadFile
 
     private void HandleSourceFail(DownloadSegment seg, Exception ex, bool isMergeFailure)
     {
+        FileFinalizationAction action = FileFinalizationAction.None;
+        Exception actionError = null;
+
         lock (LockCount)
         {
             seg.Source.FailCount++;
             foreach (var task in Loaders)
                 task.FailCount++;
         }
+
+        if (IsNoSplit)
+            ScheduleSingleSegmentRetryBackoff();
 
         seg.State = NetState.Interrupted;
         seg.Source.LastException = ex;
@@ -636,9 +714,14 @@ public class DownloadFile
 
                 if (ex.Message.Contains("空间不足"))
                 {
-                    Fail(ex);
+                    action = FileFinalizationAction.Fail;
+                    actionError = ex;
                 }
-                else if (HasAvailableSource() && !isMergeFailure)
+                else if (HasAvailableSource() && isMergeFailure)
+                {
+                    action = FileFinalizationAction.Retry;
+                }
+                else if (HasAvailableSource())
                 {
                     // Continue with other sources
                 }
@@ -654,13 +737,7 @@ public class DownloadFile
                             source.IsFailed = true;
                         }
                     }
-                    Reset();
-                    lock (LockState) { State = NetState.WaitingToDownload; }
-                }
-                else if (HasAvailableSource() && isMergeFailure)
-                {
-                    Reset();
-                    lock (LockState) { State = NetState.WaitingToDownload; }
+                    action = FileFinalizationAction.Retry;
                 }
                 else
                 {
@@ -673,12 +750,16 @@ public class DownloadFile
                             if (source.LastException != null) exampleEx = source.LastException;
                         }
                     }
-                    Fail(exampleEx);
+                    action = FileFinalizationAction.Fail;
+                    actionError = exampleEx;
                 }
             }
         }
 
-        if (TotalSize == -2) Reset();
+        if (action == FileFinalizationAction.None && TotalSize == -2)
+            action = FileFinalizationAction.Retry;
+
+        ApplyFinalizationAction(action, actionError);
     }
 
     #endregion
@@ -695,6 +776,11 @@ public class DownloadFile
                 return;
         }
 
+        MergeCore();
+    }
+
+    private void MergeCore()
+    {
         int retryCount = 0;
         Stream mergeFile = null;
     Retry:
@@ -705,7 +791,7 @@ public class DownloadFile
                 if (File.Exists(LocalPath)) File.Delete(LocalPath);
                 Directory.CreateDirectory(ModBase.GetPathFromFullPath(LocalPath));
 
-                if (IsNoSplit)
+                if (_smallFileCache != null)
                 {
                     if (_smallFileCache == null)
                         throw new Exception($"小文件缓存为空，无法合并文件（{LocalName}）。");
@@ -717,7 +803,7 @@ public class DownloadFile
                 }
                 else if (Segments?.Next == null && Segments?.TempFilePath != null)
                 {
-                    ModBase.CopyFile(Segments.TempFilePath, LocalPath);
+                    File.Copy(Segments.TempFilePath, LocalPath, overwrite: true);
                 }
                 else
                 {
@@ -744,17 +830,15 @@ public class DownloadFile
                 if (checkResult != null)
                     throw new Exception(checkResult);
 
-                if (IsNoSplit)
+                if (_smallFileCache != null)
                 {
                     _smallFileCache?.Dispose();
                     _smallFileCache = null;
                 }
-                else
+
+                for (var cur = Segments; cur != null; cur = cur.Next)
                 {
-                    for (var cur = Segments; cur != null; cur = cur.Next)
-                    {
-                        if (cur.TempFilePath != null) File.Delete(cur.TempFilePath);
-                    }
+                    if (cur.TempFilePath != null) File.Delete(cur.TempFilePath);
                 }
 
                 Finish();
@@ -771,7 +855,8 @@ public class DownloadFile
                 retryCount++;
                 goto Retry;
             }
-            Fail(ex);
+
+            HandleMergeFailure(ex);
         }
     }
 
@@ -786,6 +871,7 @@ public class DownloadFile
             if (State >= NetState.Finished) return;
             State = NetState.Finished;
         }
+        ClearSingleSegmentRetryBackoff();
         lock (NetManager.Instance.LockRemain)
         {
             NetManager.Instance.FileRemain--;
@@ -804,6 +890,7 @@ public class DownloadFile
             if (raiseEx != null) Errors.Add(raiseEx);
             State = NetState.Interrupted;
         }
+        ClearSingleSegmentRetryBackoff();
         InterruptAndDelete();
         foreach (var task in Loaders)
             task.OnFileFail(this);
@@ -818,19 +905,13 @@ public class DownloadFile
             if (State >= NetState.Finished) return;
             State = NetState.Interrupted;
         }
+        ClearSingleSegmentRetryBackoff();
         InterruptAndDelete();
     }
 
     private void InterruptAndDelete()
     {
-        try
-        {
-            if (File.Exists(LocalPath)) File.Delete(LocalPath);
-        }
-        catch (Exception ex)
-        {
-            ModBase.Log(ex, $"[Download] 尝试删除文件 {LocalPath} 失败，忽略错误");
-        }
+        TryDeleteLocalFile();
         lock (NetManager.Instance.LockRemain)
         {
             NetManager.Instance.FileRemain--;
@@ -852,6 +933,162 @@ public class DownloadFile
         _smallFileCache = null;
         Segments = null;
         lock (LockDone) { DownloadedBytes = 0; }
+    }
+
+    private void ApplyFinalizationAction(FileFinalizationAction action, Exception error = null)
+    {
+        // Centralize post-thread decisions here so the active C# downloader stays the single authority for merge/retry/fail.
+        switch (action)
+        {
+            case FileFinalizationAction.None:
+                return;
+            case FileFinalizationAction.Merge:
+                lock (LockState)
+                {
+                    if (State != NetState.Merging)
+                        return;
+                }
+                MergeCore();
+                return;
+            case FileFinalizationAction.Retry:
+                ResetForRetry();
+                return;
+            case FileFinalizationAction.Fail:
+                Fail(error);
+                return;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(action), action, null);
+        }
+    }
+
+    private FileFinalizationAction GetFinalizationActionAfterThreadExit(DownloadSegment seg)
+    {
+        lock (LockState)
+        {
+            if (State >= NetState.Merging || seg.State != NetState.Finished)
+                return FileFinalizationAction.None;
+
+            lock (LockChain)
+            {
+                if (!IsMergeReadyNoLock())
+                    return FileFinalizationAction.None;
+
+                State = NetState.Merging;
+                return FileFinalizationAction.Merge;
+            }
+        }
+    }
+
+    private void HandleMergeFailure(Exception ex)
+    {
+        FileFinalizationAction action = FileFinalizationAction.None;
+        Exception actionError = null;
+
+        var isSpaceNotEnough = ex.Message.Contains("空间不足");
+
+        if (isSpaceNotEnough)
+        {
+            action = FileFinalizationAction.Fail;
+            actionError = ex;
+        }
+        else if (HasAvailableSource())
+        {
+            action = FileFinalizationAction.Retry;
+        }
+        else if (!_retried)
+        {
+            _retried = true;
+            lock (LockSource)
+            {
+                OnceSources.Clear();
+                foreach (var source in AllSources)
+                    OnceSources.Add(source);
+            }
+            action = FileFinalizationAction.Retry;
+        }
+        else
+        {
+            action = FileFinalizationAction.Fail;
+            actionError = ex;
+        }
+
+        if (action == FileFinalizationAction.None && TotalSize == -2)
+            action = FileFinalizationAction.Retry;
+
+        ApplyFinalizationAction(action, actionError);
+    }
+
+    private bool IsMergeReadyNoLock()
+    {
+        if (Segments == null)
+            return false;
+
+        for (var cur = Segments; cur != null; cur = cur.Next)
+        {
+            if (cur.State != NetState.Finished)
+                return false;
+        }
+
+        return IsUnknownSize ? DownloadedBytes > 0 : TotalSize >= 0 && DownloadedBytes >= TotalSize;
+    }
+
+    private void ResetForRetry()
+    {
+        lock (LockState)
+        {
+            if (State >= NetState.Finished)
+                return;
+        }
+
+        TryDeleteLocalFile();
+        Reset();
+
+        lock (LockState)
+        {
+            if (State >= NetState.Finished)
+                return;
+
+            State = NetState.WaitingToDownload;
+        }
+    }
+
+    private int GetTimeoutMilliseconds(DownloadSegment seg)
+    {
+        var baseTimeout = Math.Max(AverageConnectTime, 12000);
+        var retryMultiplier = 1 << Math.Min(seg.Source.FailCount, 2);
+        return Math.Min(baseTimeout * retryMultiplier, 45000);
+    }
+
+    private void ScheduleSingleSegmentRetryBackoff()
+    {
+        var delay = GetSingleSegmentRetryDelayMilliseconds(_singleSegmentRetryCount);
+        _singleSegmentRetryCount++;
+        _nextSingleSegmentRetryAllowedTime = TimeUtils.GetTimeTick() + delay;
+    }
+
+    private void ClearSingleSegmentRetryBackoff()
+    {
+        _singleSegmentRetryCount = 0;
+        _nextSingleSegmentRetryAllowedTime = 0;
+    }
+
+    private static int GetSingleSegmentRetryDelayMilliseconds(int retryCount)
+    {
+        var normalizedRetryCount = Math.Max(0, retryCount);
+        var uncappedDelay = 1500 * (1 << Math.Min(normalizedRetryCount, 4));
+        return Math.Min(uncappedDelay, 15000);
+    }
+
+    private void TryDeleteLocalFile()
+    {
+        try
+        {
+            if (File.Exists(LocalPath)) File.Delete(LocalPath);
+        }
+        catch (Exception ex)
+        {
+            ModBase.Log(ex, $"[Download] 尝试删除文件 {LocalPath} 失败，忽略错误");
+        }
     }
 
     #endregion
@@ -879,6 +1116,26 @@ public class DownloadFile
                 throw new IOException(msg);
             }
         }
+    }
+
+    private FileStream OpenSegmentTempFile(DownloadSegment seg)
+    {
+        seg.TempFilePath ??= $"{ModBase.PathTemp}Download\\{Id}_{seg.Id}_{PCL.Core.Utils.RandomUtils.NextInt(0, 999999)}.tmp";
+        return new FileStream(seg.TempFilePath, FileMode.Create, FileAccess.Write, FileShare.Read);
+    }
+
+    private Stream SpillSingleSegmentBufferToDisk(DownloadSegment seg)
+    {
+        if (_smallFileCache == null)
+            throw new Exception($"小文件缓存为空，无法切换到磁盘缓冲（{LocalName}）。");
+
+        var memoryCache = _smallFileCache;
+        var tempFileStream = OpenSegmentTempFile(seg);
+        memoryCache.Seek(0, SeekOrigin.Begin);
+        memoryCache.CopyTo(tempFileStream);
+        memoryCache.Dispose();
+        _smallFileCache = null;
+        return tempFileStream;
     }
 
     private static string TryGetLocalDriveRoot(string path)
