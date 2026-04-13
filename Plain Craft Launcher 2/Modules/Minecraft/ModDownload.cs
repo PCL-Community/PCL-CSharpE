@@ -1013,12 +1013,12 @@ public static class ModDownload
         string Result;
         try
         {
-            Result = Conversions.ToString(Requester.FetchJson(
+            Result = Requester.FetchString(
                 "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_" +
                 Loader.Input.Replace("-", "_") + ".html", new RequestParam
                 {
                     UseBrowserUserAgent = true
-                })); // 兼容 Forge 1.7.10-pre4，#4057
+                }); // 兼容 Forge 1.7.10-pre4，#4057
         }
         catch (WebException)
         {
