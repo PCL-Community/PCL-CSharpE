@@ -19,6 +19,7 @@ public class DownloadFile
     public List<Exception> Errors { get; } = new();
     public List<PCL.Network.Loaders.LoaderDownload> Loaders { get; } = new();
     public long Speed { get; set; }
+    public int ActiveThreads { get; set; }
     public double Progress
     {
         get

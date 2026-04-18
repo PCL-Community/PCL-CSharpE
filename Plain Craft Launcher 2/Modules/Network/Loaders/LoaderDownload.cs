@@ -56,6 +56,9 @@ public class LoaderDownload : ModLoader.LoaderBase
             _fileRemain = Files.Count;
         }
 
+        ModNet.NetManager.Start(this);
+        RefreshStat();
+
         ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"DL/{Uuid}");
     }
 
@@ -128,6 +131,7 @@ public class LoaderDownload : ModLoader.LoaderBase
             file.TotalSize = new FileInfo(file.LocalPath).Length;
             file.DownloadedBytes = file.TotalSize;
             file.Speed = 0;
+            file.ActiveThreads = 0;
             OnFileFinish(file);
             return;
         }
@@ -135,11 +139,12 @@ public class LoaderDownload : ModLoader.LoaderBase
         file.State = PCL.Network.NetState.Connecting;
         var enableParallelChunks = Files.Count <= 1;
         await FileDownloader.Download(file.Urls, file.LocalPath, file.UseBrowserUserAgent, file.CustomUserAgent,
-            cancellationToken, enableParallelChunks).ConfigureAwait(false);
+            cancellationToken, enableParallelChunks, file).ConfigureAwait(false);
         file.TotalSize = File.Exists(file.LocalPath) ? new FileInfo(file.LocalPath).Length : -1;
         file.IsUnknownSize = file.TotalSize < 0;
         file.DownloadedBytes = Math.Max(0, file.TotalSize);
         file.Speed = 0;
+        file.ActiveThreads = 0;
         file.State = PCL.Network.NetState.Finished;
         OnFileFinish(file);
     }
@@ -165,6 +170,8 @@ public class LoaderDownload : ModLoader.LoaderBase
                 return;
             State = ModBase.LoadState.Finished;
         }
+
+        ModNet.NetManager.Finish(this);
     }
 
     public void OnFileFail(PCL.Network.DownloadFile file)
@@ -186,10 +193,12 @@ public class LoaderDownload : ModLoader.LoaderBase
         foreach (var file in Files.Where(file => file.State < PCL.Network.NetState.Finished))
         {
             file.State = PCL.Network.NetState.Interrupted;
+            file.Speed = 0;
+            file.ActiveThreads = 0;
             file.Errors.AddRange(exList);
         }
 
-        ModNet.NetManager.FileRemain = Files.Count(file => file.State != PCL.Network.NetState.Finished);
+        ModNet.NetManager.Finish(this);
     }
 
     public override void Abort()
@@ -203,6 +212,12 @@ public class LoaderDownload : ModLoader.LoaderBase
 
         _cancellationTokenSource?.Cancel();
         foreach (var file in Files.Where(file => file.State < PCL.Network.NetState.Finished))
+        {
             file.State = PCL.Network.NetState.Interrupted;
+            file.Speed = 0;
+            file.ActiveThreads = 0;
+        }
+
+        ModNet.NetManager.Finish(this);
     }
 }

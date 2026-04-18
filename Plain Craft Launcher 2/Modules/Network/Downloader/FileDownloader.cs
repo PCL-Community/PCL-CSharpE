@@ -9,18 +9,18 @@ public static class FileDownloader
 {
     public static Task Download(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
-        bool enableParallelChunks = true)
+        bool enableParallelChunks = true, DownloadFile? trackedFile = null)
     {
         return DownloadCoreAsync(new[] { url }, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-            enableParallelChunks);
+            enableParallelChunks, trackedFile);
     }
 
     public static Task Download(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
-        bool enableParallelChunks = true)
+        bool enableParallelChunks = true, DownloadFile? trackedFile = null)
     {
         return DownloadCoreAsync(urls, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-            enableParallelChunks);
+            enableParallelChunks, trackedFile);
     }
 
     public static void DownloadByLoader(string url, string localPath, bool useBrowserUserAgent = false,
@@ -36,7 +36,7 @@ public static class FileDownloader
     }
 
     private static async Task DownloadCoreAsync(IEnumerable<string> urls, string localPath, bool useBrowserUserAgent,
-        string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks)
+        string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks, DownloadFile? trackedFile)
     {
         var urlList = urls.Select(url => ModSecret.SecretCdnSign(url.Trim())).Where(url => !string.IsNullOrWhiteSpace(url))
             .Distinct().ToList();
@@ -51,7 +51,7 @@ public static class FileDownloader
             try
             {
                 await DownloadSingleAsync(url, localPath, useBrowserUserAgent, customUserAgent, cancellationToken,
-                    enableParallelChunks).ConfigureAwait(false);
+                    enableParallelChunks, trackedFile).ConfigureAwait(false);
                 return;
             }
             catch (OperationCanceledException)
@@ -71,7 +71,7 @@ public static class FileDownloader
     }
 
     private static async Task DownloadSingleAsync(string url, string localPath, bool useBrowserUserAgent,
-        string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks)
+        string customUserAgent, CancellationToken cancellationToken, bool enableParallelChunks, DownloadFile? trackedFile)
     {
         ModBase.Log($"[Download] 开始下载：{url} -> {localPath}");
         CleanupTempFiles(localPath);
@@ -90,6 +90,42 @@ public static class FileDownloader
         };
 
         var downloader = new DownloadService(configuration);
+        void UpdateDownloadStat(DownloadProgressChangedEventArgs args)
+        {
+            if (trackedFile is null)
+                return;
+
+            trackedFile.State = PCL.Network.NetState.Downloading;
+            trackedFile.TotalSize = args.TotalBytesToReceive > 0 ? args.TotalBytesToReceive : trackedFile.TotalSize;
+            trackedFile.IsUnknownSize = trackedFile.TotalSize <= 0;
+            trackedFile.DownloadedBytes = Math.Max(trackedFile.DownloadedBytes, args.ReceivedBytesSize);
+            trackedFile.Speed = Math.Max(0L, (long)Math.Round(args.BytesPerSecondSpeed));
+            trackedFile.ActiveThreads = Math.Max(0, args.ActiveChunks);
+        }
+
+        downloader.DownloadStarted += (_, args) =>
+        {
+            if (trackedFile is null)
+                return;
+
+            trackedFile.State = PCL.Network.NetState.Reading;
+            trackedFile.TotalSize = args.TotalBytesToReceive;
+            trackedFile.IsUnknownSize = args.TotalBytesToReceive <= 0;
+            trackedFile.DownloadedBytes = 0;
+            trackedFile.Speed = 0;
+            trackedFile.ActiveThreads = 0;
+        };
+        downloader.DownloadProgressChanged += (_, args) => UpdateDownloadStat(args);
+        downloader.ChunkDownloadProgressChanged += (_, args) => UpdateDownloadStat(args);
+        downloader.DownloadFileCompleted += (_, _) =>
+        {
+            if (trackedFile is null)
+                return;
+
+            trackedFile.Speed = 0;
+            trackedFile.ActiveThreads = 0;
+            trackedFile.DownloadedBytes = Math.Max(trackedFile.DownloadedBytes, trackedFile.TotalSize);
+        };
         try
         {
             await downloader.DownloadFileTaskAsync(url, localPath, cancellationToken).ConfigureAwait(false);

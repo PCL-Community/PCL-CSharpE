@@ -9,7 +9,14 @@ public sealed class NetManager
     public object LockFiles { get; } = new();
     public ModBase.SafeList<PCL.Network.Loaders.LoaderDownload> Tasks { get; } = new();
     public object LockRemain { get; } = new();
-    public int FileRemain;
+    public int FileRemain
+    {
+        get
+        {
+            lock (LockFiles)
+                return Files.Values.Count(file => file.State != NetState.Finished);
+        }
+    }
     private long _downloadDone;
     public object LockDone { get; } = new();
     public long DownloadDone
@@ -26,18 +33,42 @@ public sealed class NetManager
         }
     }
 
-    public long Speed => Tasks.Where(t => t.State == ModBase.LoadState.Loading)
-        .SelectMany(t => t.Files)
-        .Sum(f => f.Speed);
+    public long Speed
+    {
+        get
+        {
+            lock (LockFiles)
+                return Files.Values.Sum(file => file.Speed);
+        }
+    }
+
+    public int ThreadCount
+    {
+        get
+        {
+            lock (LockFiles)
+                return Files.Values.Sum(file => file.ActiveThreads);
+        }
+    }
 
     public void Start(PCL.Network.Loaders.LoaderDownload task)
     {
         lock (LockFiles)
         {
+            Tasks.Remove(task);
             Tasks.Add(task);
             foreach (var file in task.Files)
                 Files[file.LocalPath] = file;
-            FileRemain = Files.Values.Count(file => file.State != NetState.Finished);
+        }
+    }
+
+    public void Finish(PCL.Network.Loaders.LoaderDownload task)
+    {
+        lock (LockFiles)
+        {
+            Tasks.Remove(task);
+            foreach (var file in task.Files)
+                Files.Remove(file.LocalPath);
         }
     }
 }
