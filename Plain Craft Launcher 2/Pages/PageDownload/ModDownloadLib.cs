@@ -2921,8 +2921,7 @@ pause";
         // 建立控件
         var NewItem = new MyListItem
         {
-            Title = Entry.DisplayName.Split("]")[1].Replace("Fabric API ", "").Replace(" build ", ".").BeforeFirst("+")
-                .Trim(),
+            Title = Entry.DisplayName.Split("]")[1].Replace("Fabric API ", "").Replace(" build ", ".").Trim(),
             SnapsToDevicePixels = true,
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,

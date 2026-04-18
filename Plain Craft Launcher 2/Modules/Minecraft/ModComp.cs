@@ -2945,6 +2945,10 @@ public static class ModComp
         /// </summary>
         public readonly bool FromCurseForge;
 
+        //  <summary>
+        //  未经处理的支持的游戏版本列表。
+        // </summary>
+        public readonly List<string> RawGameVersions;
         /// <summary>
         ///     支持的游戏版本列表。类型包括："26.1.5"，"26.1"，"26.1 预览版"，"1.18.5"，"1.18"，"1.18 预览版"，"21w15a"，"未知版本"。
         /// </summary>
@@ -3050,6 +3054,8 @@ public static class ModComp
                     ModLoaders = Data["ModLoaders"].ToObject<List<CompLoaderType>>();
                 if (Data.ContainsKey("Hash"))
                     Hash = Data["Hash"].ToString();
+                if (Data.ContainsKey("RawGameVersions"))
+                    RawGameVersions = Data["RawGameVersions"].ToObject<List<string>>();
                 if (Data.ContainsKey("GameVersions"))
                     GameVersions = Data["GameVersions"].ToObject<List<string>>();
                 if (Data.ContainsKey("RawDependencies"))
@@ -3111,8 +3117,8 @@ public static class ModComp
                     }
 
                     // GameVersions
-                    var RawVersions = Data["gameVersions"].Select(t => t.ToString().Trim().ToLower()).ToList();
-                    GameVersions = RawVersions.Where(v => ModMinecraft.McInstanceInfo.IsFormatFit(v))
+                    RawGameVersions = Data["gameVersions"].Select(t => t.ToString().Trim().ToLower()).ToList();
+                    GameVersions = RawGameVersions.Where(v => ModMinecraft.McInstanceInfo.IsFormatFit(v))
                         .Select(v => v.Replace("-snapshot", " 预览版")).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
@@ -3131,13 +3137,13 @@ public static class ModComp
 
                     // ModLoaders
                     ModLoaders = new List<CompLoaderType>();
-                    if (RawVersions.Contains("forge"))
+                    if (RawGameVersions.Contains("forge"))
                         ModLoaders.Add(CompLoaderType.Forge);
-                    if (RawVersions.Contains("fabric"))
+                    if (RawGameVersions.Contains("fabric"))
                         ModLoaders.Add(CompLoaderType.Fabric);
-                    if (RawVersions.Contains("quilt"))
+                    if (RawGameVersions.Contains("quilt"))
                         ModLoaders.Add(CompLoaderType.Quilt);
-                    if (RawVersions.Contains("neoforge"))
+                    if (RawGameVersions.Contains("neoforge"))
                         ModLoaders.Add(CompLoaderType.NeoForge);
                 }
 
@@ -3250,8 +3256,8 @@ public static class ModComp
                     }
 
                     // GameVersions
-                    var RawVersions = Data["game_versions"].Select(t => t.ToString().Trim().ToLower()).ToList();
-                    GameVersions = RawVersions.Where(v => v.Contains(".")).Select(v =>
+                    RawGameVersions = Data["game_versions"].Select(t => t.ToString().Trim().ToLower()).ToList();
+                    GameVersions = RawGameVersions.Where(v => v.Contains(".")).Select(v =>
                         v.Contains("-") ? v.BeforeFirst("-") + " 预览版" : v.StartsWithF("b1.") ? "远古版本" : v).Distinct().ToList();
                     if (GameVersions.Count > 1)
                     {
@@ -3263,9 +3269,9 @@ public static class ModComp
                     {
                     }
                     // 无需处理
-                    else if (RawVersions.Any(v => v.RegexCheck("[0-9]{2}w[0-9]{2}[a-z]")))
+                    else if (RawGameVersions.Any(v => v.RegexCheck("[0-9]{2}w[0-9]{2}[a-z]")))
                     {
-                        GameVersions = RawVersions.Where(v => v.RegexCheck("[0-9]{2}w[0-9]{2}[a-z]")).ToList();
+                        GameVersions = RawGameVersions.Where(v => v.RegexCheck("[0-9]{2}w[0-9]{2}[a-z]")).ToList();
                     }
                     else
                     {
@@ -3342,6 +3348,7 @@ public static class ModComp
             Json.Add("ReleaseDate", ReleaseDate);
             Json.Add("DownloadCount", DownloadCount);
             Json.Add("ModLoaders", new JArray(ModLoaders.Select(m => (int)m)));
+            Json.Add("RawGameVersions", new JArray(RawGameVersions));
             Json.Add("GameVersions", new JArray(GameVersions));
             Json.Add("Status", (int)Status);
             if (FileName is not null)
