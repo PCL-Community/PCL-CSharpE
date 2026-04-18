@@ -3803,7 +3803,10 @@ pause";
         if (OptiFineAsMod)
         {
             ModBase.Log("[Download] OptiFine 将作为 Mod 进行下载");
-            OptiFineFolder = ModsTempFolder;
+            if (Request.LiteLoaderEntry != null)
+                OptiFineFolder = ModsTempFolder + Request.MinecraftName + "\\";
+            else
+                OptiFineFolder = ModsTempFolder;
         }
 
         // 记录日志
