@@ -6,7 +6,7 @@ namespace PCL.Network;
 public static class ModNet
 {
     public const string NetDownloadEnd = ".PCLDownloading";
-    public static int NetTaskThreadLimit { get; set; } = 8;
+    public static int NetTaskThreadLimit { get; set; } = 16;
     public static long NetTaskSpeedLimitLow { get; set; } = 256 * 1024L;
     public static long NetTaskSpeedLimitHigh { get; set; } = -1;
     public static long NetTaskSpeedLimitLeft { get; set; } = -1;
