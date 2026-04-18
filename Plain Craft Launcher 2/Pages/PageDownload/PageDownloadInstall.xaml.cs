@@ -611,7 +611,7 @@ public partial class PageDownloadInstall
                 BtnFabricApiClear.Visibility = Visibility.Visible;
                 ImgFabricApi.Visibility = Visibility.Visible;
                 LabFabricApi.Text = SelectedFabricApi.DisplayName.Split("]")[1].Replace("Fabric API ", "")
-                    .Replace(" build ", ".").Split("+").First().Trim();
+                    .Replace(" build ", ".").Trim();
                 LabFabricApi.Foreground = ModSecret.ColorGray1;
             }
         }
@@ -1774,44 +1774,8 @@ public partial class PageDownloadInstall
         {
             if (fabricApiName is null || _vanillaName is null)
                 return false;
-            fabricApiName = fabricApiName.ToLower();
-            _vanillaName = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3").ToLower();
-            if (fabricApiName.StartsWith("[" + _vanillaName + "]"))
-                return true;
-            if (!fabricApiName.Contains("/") || !fabricApiName.Contains("]"))
-                return false;
-            // 直接的判断（例如 1.18.1/22w03a）
-            foreach (var part in fabricApiName.BeforeFirst("]").TrimStart('[').Split("/"))
-                if ((part ?? "") == (_vanillaName ?? ""))
-                    return true;
-            // 将版本名分割语素（例如 1.16.4/5）
-            var lefts = fabricApiName.BeforeFirst("]").RegexSearch("[a-z/]+|[0-9/]+");
-            var rights = _vanillaName.BeforeFirst("]").RegexSearch("[a-z/]+|[0-9/]+");
-            // 对每段进行判断
-            var i = 0;
-            while (true)
-            {
-                // 两边均缺失，感觉是一个东西
-                if (lefts.Count - 1 < i && rights.Count - 1 < i)
-                    return true;
-                // 确定两边是否一致
-                var leftValue = lefts.Count - 1 < i ? "-1" : lefts[i];
-                var rightValue = rights.Count - 1 < i ? "-1" : rights[i];
-                if (!leftValue.Contains("/"))
-                {
-                    if ((leftValue ?? "") != (rightValue ?? ""))
-                        return false;
-                }
-                // 左边存在斜杠
-                else if (!leftValue.Contains(rightValue))
-                {
-                    return false;
-                }
-
-                i += 1;
-            }
-
-            return true;
+            var targetName = _vanillaName.Replace("∞", "infinite").Replace("Combat Test 7c", "1.16_combat-3").ToLower();
+            return fabricApi.RawGameVersions.Any(f => f == targetName);
         }
         catch (Exception ex)
         {

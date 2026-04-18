@@ -2923,8 +2923,7 @@ pause";
         // 建立控件
         var NewItem = new MyListItem
         {
-            Title = Entry.DisplayName.Split("]")[1].Replace("Fabric API ", "").Replace(" build ", ".").BeforeFirst("+")
-                .Trim(),
+            Title = Entry.DisplayName.Split("]")[1].Replace("Fabric API ", "").Replace(" build ", ".").Trim(),
             SnapsToDevicePixels = true,
             Height = 42d,
             Type = MyListItem.CheckType.Clickable,
@@ -3806,7 +3805,10 @@ pause";
         if (OptiFineAsMod)
         {
             ModBase.Log("[Download] OptiFine 将作为 Mod 进行下载");
-            OptiFineFolder = ModsTempFolder;
+            if (Request.LiteLoaderEntry != null)
+                OptiFineFolder = ModsTempFolder + Request.MinecraftName + "\\";
+            else
+                OptiFineFolder = ModsTempFolder;
         }
 
         // 记录日志
