@@ -8,7 +8,6 @@ using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
 using PCL.Network;
-using PCL.Network.Engine;
 using PCL.Network.Loaders;
 
 namespace PCL;

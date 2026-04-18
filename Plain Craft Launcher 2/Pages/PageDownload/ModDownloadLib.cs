@@ -15,7 +15,6 @@ using PCL.Core.Minecraft;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Network;
-using PCL.Network.Engine;
 using PCL.Network.Loaders;
 
 namespace PCL;

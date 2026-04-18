@@ -10,7 +10,7 @@ using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
-using PCL.Network.Engine;
+using PCL.Network;
 using PCL.Network.Loaders;
 using Control = System.Windows.Forms.Control;
 

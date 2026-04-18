@@ -1,85 +1,57 @@
-﻿using System.IO;
+using System.IO;
+using System.Threading;
 
 namespace PCL.Network.Loaders;
 
-/// <summary>
-///     下载单个 UNC 文件的加载器。
-/// </summary>
 public class LoaderDownloadUnc : ModLoader.LoaderBase
 {
-    /// <summary>
-    ///     下载线程。
-    /// </summary>
-    private Thread DownloadingThread;
-
-    /// <summary>
-    ///     保存路径。
-    /// </summary>
-    public string SavePath;
-
-    /// <summary>
-    ///     UNC 路径。
-    /// </summary>
     public string Unc;
+    public string SavePath;
+    private CancellationTokenSource? _cancellationTokenSource;
 
-    public LoaderDownloadUnc(string Name, Tuple<string, string> File)
+    public LoaderDownloadUnc(string name, Tuple<string, string> file)
     {
-        this.Name = Name;
-        Unc = File.Item1;
-        SavePath = File.Item2;
+        Name = name;
+        Unc = file.Item1;
+        SavePath = file.Item2;
     }
 
     public override void Start(object Input = null, bool IsForceRestart = false)
     {
-        if (Input is not null)
+        if (Input is Tuple<string, string> input)
         {
-            Unc = Convert.ToString(((dynamic)Input).Item1);
-            SavePath = Convert.ToString(((dynamic)Input).Item2);
+            Unc = input.Item1;
+            SavePath = input.Item2;
         }
 
-        State = ModBase.LoadState.Loading;
-        Directory.CreateDirectory(ModBase.GetPathFromFullPath(SavePath));
-        DownloadingThread = ModBase.RunInNewThread(DownloadThread, "Download UNC File");
+        lock (LockState)
+        {
+            if (State == ModBase.LoadState.Loading)
+                return;
+            State = ModBase.LoadState.Loading;
+        }
+
+        _cancellationTokenSource = new CancellationTokenSource();
+        ModBase.RunInNewThread(() => Run(_cancellationTokenSource.Token), $"UNC/{Uuid}");
     }
 
-    private void DownloadThread()
+    private void Run(CancellationToken cancellationToken)
     {
         try
         {
-            var fileInfo = new FileInfo(Unc);
-            var totalBytes = fileInfo.Length;
-            var bytesRead = 0L;
-
-            var tempFile = ModBase.PathTemp + Uuid + @"\" + ModBase.GetFileNameFromPath(SavePath);
-            Directory.CreateDirectory(ModBase.GetPathFromFullPath(tempFile));
-            if (File.Exists(tempFile))
-                File.Delete(tempFile);
-            using (var sourceStream = new FileStream(Unc, FileMode.Open, FileAccess.Read))
-            {
-                using (var destStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write))
-                {
-                    var buffer = new byte[81921]; // 80KB 缓冲区
-                    int currentBytesRead;
-
-                    do
-                    {
-                        currentBytesRead = sourceStream.Read(buffer, 0, buffer.Length);
-                        destStream.Write(buffer, 0, currentBytesRead);
-                        bytesRead += currentBytesRead;
-
-                        Progress = bytesRead / (double)totalBytes;
-                    } while (currentBytesRead > 0 && State == ModBase.LoadState.Loading);
-                }
-            }
-
-            if (State > ModBase.LoadState.Loading)
-                return;
-            ModBase.CopyFile(tempFile, SavePath);
-            if (State == ModBase.LoadState.Loading)
-                State = ModBase.LoadState.Finished;
+            cancellationToken.ThrowIfCancellationRequested();
+            Directory.CreateDirectory(Path.GetDirectoryName(SavePath) ?? throw new IOException("下载路径无效"));
+            ModBase.CopyFile(Unc, SavePath);
+            State = ModBase.LoadState.Finished;
         }
-        catch (ThreadAbortException ex)
+        catch (OperationCanceledException)
         {
+            Abort();
+        }
+        catch (Exception ex)
+        {
+            Error = ex;
+            State = ModBase.LoadState.Failed;
         }
     }
 
@@ -88,6 +60,6 @@ public class LoaderDownloadUnc : ModLoader.LoaderBase
         if (State >= ModBase.LoadState.Finished)
             return;
         State = ModBase.LoadState.Aborted;
-        ModBase.Log("[Download] " + Name + " 已取消！");
+        _cancellationTokenSource?.Cancel();
     }
 }

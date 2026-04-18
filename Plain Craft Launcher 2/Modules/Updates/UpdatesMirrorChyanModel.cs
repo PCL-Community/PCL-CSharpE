@@ -5,7 +5,6 @@ using PCL.Core.App;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
 using PCL.Network;
-using PCL.Network.Engine;
 using PCL.Network.Loaders;
 
 namespace PCL;

@@ -20,7 +20,6 @@ using PCL.Core.Logging;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Hash;
 using PCL.Network;
-using PCL.Network.Engine;
 using ProtoBuf;
 
 namespace PCL;
