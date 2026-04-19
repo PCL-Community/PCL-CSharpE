@@ -2750,18 +2750,60 @@ pause";
             if (FixLibrary)
                 McDownloadClient(NetPreDownloadBehaviour.ExitWhileExistsOrDownloading, MinecraftName);
             Task.Progress = 0.5d;
-            // 构造文件请求
-            Task.Output = new List<DownloadFile>
+            
+            var safeMinecraftName = MinecraftName.Replace("∞", "infinite");
+            var bmclapiUrl = $"https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/{safeMinecraftName}/{FabricVersion}/profile/json";
+            var officialUrl = $"https://meta.fabricmc.net/v2/versions/loader/{safeMinecraftName}/{FabricVersion}/profile/json";
+    
+            string jsonContent = null;
+            
+            // 1. 尝试 BMCLAPI
+            try
             {
-                new(
-                    new[]
+                jsonContent = Requester.FetchString(bmclapiUrl, new RequestParam
+                {
+                    UseBrowserUserAgent = true,
+                    Timeout = 5000,
+                    Retries = 2
+                });
+                
+                // 检测是否为错误响应
+                if (!string.IsNullOrEmpty(jsonContent) && jsonContent.Contains("\"$isServiceError\":true"))
+                {
+                    ModBase.Log("[Download] BMCLAPI Fabric meta 返回服务错误，切换到官方源");
+                    jsonContent = null;
+                    throw new Exception("BMCLAPI 返回服务错误");
+                }
+            }
+            catch (Exception ex)
+            {
+                ModBase.Log(ex, "[Download] BMCLAPI Fabric meta 下载失败，尝试官方源");
+                jsonContent = null;
+            }
+            
+            // 2. 若 BMCLAPI 失败，尝试官方源
+            if (jsonContent == null)
+            {
+                try
+                {
+                    jsonContent = Requester.FetchString(officialUrl, new RequestParam
                     {
-                        "https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/" + MinecraftName + "/" +
-                        FabricVersion + "/profile/json",
-                        "https://meta.fabricmc.net/v2/versions/loader/" + MinecraftName + "/" + FabricVersion +
-                        "/profile/json"
-                    }, VersionFolder + Id + ".json", new ModBase.FileChecker(IsJson: true))
-            };
+                        UseBrowserUserAgent = true,
+                        Timeout = 5000,
+                        Retries = 2
+                    });
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Fabric meta 下载失败: {bmclapiUrl} 和 {officialUrl}", ex);
+                }
+            }
+            // 3. 写入文件
+            var targetPath = VersionFolder + Id + ".json";
+            Directory.CreateDirectory(VersionFolder);
+            File.WriteAllText(targetPath, jsonContent, Encoding.UTF8);
+            // 输出空列表，后续的 LoaderDownload 将无事可做（但保留以保持加载器结构）
+            Task.Output = new List<DownloadFile>();
         })
         {
             ProgressWeight = 0.5d
