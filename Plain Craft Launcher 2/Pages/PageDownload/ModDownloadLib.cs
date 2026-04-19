@@ -2750,18 +2750,37 @@ pause";
             if (FixLibrary)
                 McDownloadClient(NetPreDownloadBehaviour.ExitWhileExistsOrDownloading, MinecraftName);
             Task.Progress = 0.5d;
-            // 构造文件请求
-            Task.Output = new List<DownloadFile>
+            
+            var safeName = MinecraftName.Replace("∞", "infinite");
+            var bmclapiUrl = $"https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/{safeName}/{FabricVersion}/profile/json";
+            var officialUrl = $"https://meta.fabricmc.net/v2/versions/loader/{safeName}/{FabricVersion}/profile/json";
+
+            string json = null;
+            foreach (var url in new[] { bmclapiUrl, officialUrl })
             {
-                new(
-                    new[]
+                try
+                {
+                    json = Requester.FetchString(url, new RequestParam { UseBrowserUserAgent = true, Timeout = 5000, Retries = 2 });
+                    if (!string.IsNullOrEmpty(json) && json.Contains("\"$isServiceError\":true"))
                     {
-                        "https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/" + MinecraftName + "/" +
-                        FabricVersion + "/profile/json",
-                        "https://meta.fabricmc.net/v2/versions/loader/" + MinecraftName + "/" + FabricVersion +
-                        "/profile/json"
-                    }, VersionFolder + Id + ".json", new ModBase.FileChecker(IsJson: true))
-            };
+                        ModBase.Log("[Download] BMCLAPI Fabric meta 返回服务错误，切换到官方源");
+                        json = null;
+                        continue;
+                    }
+                    if (json != null) break;
+                }
+                catch (Exception ex)
+                {
+                    ModBase.Log(ex, $"[Download] 从 {url} 下载 Fabric meta 失败");
+                }
+            }
+
+            if (json == null)
+                throw new Exception($"Fabric meta 下载失败: {bmclapiUrl} 和 {officialUrl}");
+
+            Directory.CreateDirectory(VersionFolder);
+            File.WriteAllText(Path.Combine(VersionFolder, Id + ".json"), json, Encoding.UTF8);
+            Task.Output = new List<DownloadFile>();
         })
         {
             ProgressWeight = 0.5d
