@@ -2751,58 +2751,35 @@ pause";
                 McDownloadClient(NetPreDownloadBehaviour.ExitWhileExistsOrDownloading, MinecraftName);
             Task.Progress = 0.5d;
             
-            var safeMinecraftName = MinecraftName.Replace("∞", "infinite");
-            var bmclapiUrl = $"https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/{safeMinecraftName}/{FabricVersion}/profile/json";
-            var officialUrl = $"https://meta.fabricmc.net/v2/versions/loader/{safeMinecraftName}/{FabricVersion}/profile/json";
-    
-            string jsonContent = null;
-            
-            // 1. 尝试 BMCLAPI
-            try
-            {
-                jsonContent = Requester.FetchString(bmclapiUrl, new RequestParam
-                {
-                    UseBrowserUserAgent = true,
-                    Timeout = 5000,
-                    Retries = 2
-                });
-                
-                // 检测是否为错误响应
-                if (!string.IsNullOrEmpty(jsonContent) && jsonContent.Contains("\"$isServiceError\":true"))
-                {
-                    ModBase.Log("[Download] BMCLAPI Fabric meta 返回服务错误，切换到官方源");
-                    jsonContent = null;
-                    throw new Exception("BMCLAPI 返回服务错误");
-                }
-            }
-            catch (Exception ex)
-            {
-                ModBase.Log(ex, "[Download] BMCLAPI Fabric meta 下载失败，尝试官方源");
-                jsonContent = null;
-            }
-            
-            // 2. 若 BMCLAPI 失败，尝试官方源
-            if (jsonContent == null)
+            var safeName = MinecraftName.Replace("∞", "infinite");
+            var bmclapiUrl = $"https://bmclapi2.bangbang93.com/fabric-meta/v2/versions/loader/{safeName}/{FabricVersion}/profile/json";
+            var officialUrl = $"https://meta.fabricmc.net/v2/versions/loader/{safeName}/{FabricVersion}/profile/json";
+
+            string json = null;
+            foreach (var url in new[] { bmclapiUrl, officialUrl })
             {
                 try
                 {
-                    jsonContent = Requester.FetchString(officialUrl, new RequestParam
+                    json = Requester.FetchString(url, new RequestParam { UseBrowserUserAgent = true, Timeout = 5000, Retries = 2 });
+                    if (!string.IsNullOrEmpty(json) && json.Contains("\"$isServiceError\":true"))
                     {
-                        UseBrowserUserAgent = true,
-                        Timeout = 5000,
-                        Retries = 2
-                    });
+                        ModBase.Log("[Download] BMCLAPI Fabric meta 返回服务错误，切换到官方源");
+                        json = null;
+                        continue;
+                    }
+                    if (json != null) break;
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"Fabric meta 下载失败: {bmclapiUrl} 和 {officialUrl}", ex);
+                    ModBase.Log(ex, $"[Download] 从 {url} 下载 Fabric meta 失败");
                 }
             }
-            // 3. 写入文件
-            var targetPath = VersionFolder + Id + ".json";
+
+            if (json == null)
+                throw new Exception($"Fabric meta 下载失败: {bmclapiUrl} 和 {officialUrl}");
+
             Directory.CreateDirectory(VersionFolder);
-            File.WriteAllText(targetPath, jsonContent, Encoding.UTF8);
-            // 输出空列表，后续的 LoaderDownload 将无事可做（但保留以保持加载器结构）
+            File.WriteAllText(Path.Combine(VersionFolder, Id + ".json"), json, Encoding.UTF8);
             Task.Output = new List<DownloadFile>();
         })
         {
