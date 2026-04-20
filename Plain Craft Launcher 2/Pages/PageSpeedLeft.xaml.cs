@@ -364,17 +364,16 @@ public partial class PageSpeedLeft
         }
     }
 
-    public void TaskRemove(object Loader)
+    public void TaskRemove(ModLoader.LoaderBase Loader)
     {
-        var loaderCombo = (ModLoader.LoaderCombo<string>)Loader;
-        if (RightCards.ContainsKey(loaderCombo.Name))
+        if (RightCards.ContainsKey(Loader.Name))
             ModBase.RunInUiWait(() =>
             {
                 // 移除已有的卡片
-                Grid Card = RightCards[loaderCombo.Name];
+                Grid Card = RightCards[Loader.Name];
                 ModMain.FrmSpeedRight.PanMain.Children.Remove(Card);
-                RightCards.Remove(loaderCombo.Name);
-                ModBase.Log($"[Watcher] 移除任务管理卡片：{loaderCombo.Name}");
+                RightCards.Remove(Loader.Name);
+                ModBase.Log($"[Watcher] 移除任务管理卡片：{Loader.Name}");
             });
     }
 
