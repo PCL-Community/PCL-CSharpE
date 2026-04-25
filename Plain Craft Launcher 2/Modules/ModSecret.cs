@@ -194,8 +194,6 @@ PCL-Community 及其成员与龙腾猫跃无从属关系，且均不会为您的
                 ? $"PCL2/{ModBase.UpstreamVersion}.{ModBase.VersionBranchCode} PCLCE/{ModBase.VersionStandardCode} Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"
                 : $"PCL2/{ModBase.UpstreamVersion}.{ModBase.VersionBranchCode} PCLCE/{ModBase.VersionStandardCode}";
         Client.Headers.Add("User-Agent", userAgent);
-
-        Client.Headers.Add("Referer", "http://" + ModBase.VersionCode + ".ce.open.pcl2.server/");
     }
 
     #endregion

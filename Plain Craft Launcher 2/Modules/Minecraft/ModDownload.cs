@@ -9,6 +9,8 @@ using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;
+using PCL.Network;
+using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -20,7 +22,7 @@ public static class ModDownload
     ///     返回某 Minecraft 版本对应的原版主 Jar 文件的下载信息，要求对应依赖实例已存在。
     ///     失败则抛出异常，不需要下载则返回 Nothing。
     /// </summary>
-    public static ModNet.NetFile DlClientJarGet(ModMinecraft.McInstance Version, bool ReturnNothingOnFileUseable)
+    public static DownloadFile DlClientJarGet(ModMinecraft.McInstance Version, bool ReturnNothingOnFileUseable)
     {
         // 获取底层继承实例
         try
@@ -44,7 +46,7 @@ public static class ModDownload
             return null; // 通过校验
         // 返回下载信息
         var JarUrl = (string)Version.JsonObject["downloads"]["client"]["url"];
-        return new ModNet.NetFile(DlSourceLauncherOrMetaGet(JarUrl), Version.PathInstance + Version.Name + ".jar",
+        return new DownloadFile(DlSourceLauncherOrMetaGet(JarUrl), Version.PathInstance + Version.Name + ".jar",
             Checker);
     }
 
@@ -52,7 +54,7 @@ public static class ModDownload
     ///     返回某 Minecraft 版本对应的原版主 AssetIndex 文件的下载信息，要求对应依赖实例已存在。
     ///     若未找到，则会返回 Legacy 资源文件或 Nothing。
     /// </summary>
-    public static ModNet.NetFile DlClientAssetIndexGet(ModMinecraft.McInstance Version)
+    public static DownloadFile DlClientAssetIndexGet(ModMinecraft.McInstance Version)
     {
         // 获取底层继承实例
         while (!string.IsNullOrEmpty(Version.InheritInstanceName))
@@ -64,8 +66,8 @@ public static class ModDownload
         var IndexUrl = (string)(IndexInfo["url"] ?? "");
         if (string.IsNullOrEmpty(IndexUrl)) return null;
 
-        return new ModNet.NetFile(DlSourceLauncherOrMetaGet(IndexUrl), IndexAddress,
-            new ModBase.FileChecker(CanUseExistsFile: false, IsJson: true));
+        return new DownloadFile(DlSourceLauncherOrMetaGet(IndexUrl), IndexAddress,
+            new ModBase.FileChecker(CanUseExistsFile: false));
     }
 
     /// <summary>
@@ -86,9 +88,9 @@ public static class ModDownload
         {
             var LoadersLib = new List<ModLoader.LoaderBase>
             {
-                new ModLoader.LoaderTask<string, List<ModNet.NetFile>>("分析缺失支持库文件",
+                new ModLoader.LoaderTask<string, List<DownloadFile>>("分析缺失支持库文件",
                     Task => Task.Output = ModMinecraft.McLibNetFilesFromInstance(Version)) { ProgressWeight = 1d },
-                new ModNet.LoaderDownload("下载支持库文件", new List<ModNet.NetFile>()) { ProgressWeight = 15d }
+                new LoaderDownload("下载支持库文件", new List<DownloadFile>()) { ProgressWeight = 15d }
             };
             // 构造加载器
             Loaders.Add(new ModLoader.LoaderCombo<string>("下载支持库文件（主加载器）", LoadersLib)
@@ -107,7 +109,7 @@ public static class ModDownload
         {
             var LoadersAssets = new List<ModLoader.LoaderBase>();
             // 获取资源文件索引地址
-            LoadersAssets.Add(new ModLoader.LoaderTask<string, List<ModNet.NetFile>>("分析资源文件索引地址", Task =>
+            LoadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("分析资源文件索引地址", Task =>
             {
                 try
                 {
@@ -115,9 +117,9 @@ public static class ModDownload
                     var IndexFileInfo = new FileInfo(IndexFile.LocalPath);
                     if (AssetsIndexBehaviour != AssetsIndexExistsBehaviour.AlwaysDownload &&
                         IndexFile.Check.Check(IndexFile.LocalPath) is null)
-                        Task.Output = new List<ModNet.NetFile>();
+                        Task.Output = new List<DownloadFile>();
                     else
-                        Task.Output = new List<ModNet.NetFile> { IndexFile };
+                        Task.Output = new List<DownloadFile> { IndexFile };
                 }
                 catch (Exception ex)
                 {
@@ -125,7 +127,7 @@ public static class ModDownload
                 }
             }) { ProgressWeight = 0.5d, Show = false });
             // 下载资源文件索引
-            LoadersAssets.Add(new ModNet.LoaderDownload("下载资源文件索引", new List<ModNet.NetFile>())
+            LoadersAssets.Add(new LoaderDownload("下载资源文件索引", new List<DownloadFile>())
                 { ProgressWeight = 2d });
             // 要求独立更新索引
             if (AssetsIndexBehaviour == AssetsIndexExistsBehaviour.DownloadInBackground)
@@ -133,13 +135,13 @@ public static class ModDownload
                 var LoadersAssetsUpdate = new List<ModLoader.LoaderBase>();
                 string TempAddress = null;
                 string RealAddress = null;
-                LoadersAssetsUpdate.Add(new ModLoader.LoaderTask<string, List<ModNet.NetFile>>("后台分析资源文件索引地址", Task =>
+                LoadersAssetsUpdate.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("后台分析资源文件索引地址", Task =>
                 {
                     var BackAssetsFile = DlClientAssetIndexGet(Version);
                     RealAddress = BackAssetsFile.LocalPath;
                     TempAddress = ModBase.PathTemp + @"Cache\" + BackAssetsFile.LocalName;
                     BackAssetsFile.LocalPath = TempAddress;
-                    Task.Output = new List<ModNet.NetFile> { BackAssetsFile };
+                    Task.Output = new List<DownloadFile> { BackAssetsFile };
                     // 检查是否需要更新：每天只更新一次
                     if (File.Exists(RealAddress) &&
                         Math.Abs((File.GetLastWriteTime(RealAddress).Date - DateTime.Now.Date).TotalDays) < 1d)
@@ -148,8 +150,8 @@ public static class ModDownload
                         Task.Abort();
                     }
                 }));
-                LoadersAssetsUpdate.Add(new ModNet.LoaderDownload("后台下载资源文件索引", new List<ModNet.NetFile>()));
-                LoadersAssetsUpdate.Add(new ModLoader.LoaderTask<List<ModNet.NetFile>, string>("后台复制资源文件索引", Task =>
+                LoadersAssetsUpdate.Add(new LoaderDownload("后台下载资源文件索引", new List<DownloadFile>()));
+                LoadersAssetsUpdate.Add(new ModLoader.LoaderTask<List<DownloadFile>, string>("后台复制资源文件索引", Task =>
                 {
                     ModBase.CopyFile(TempAddress, RealAddress);
                     ModLaunch.McLaunchLog("后台更新资源文件索引成功：" + TempAddress);
@@ -160,17 +162,17 @@ public static class ModDownload
             }
 
             // 获取资源文件地址
-            LoadersAssets.Add(new ModLoader.LoaderTask<string, List<ModNet.NetFile>>("分析缺失资源文件", Task =>
+            LoadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("分析缺失资源文件", Task =>
             {
                 ModLoader.LoaderBase argprogressFeed = Task;
                 Task.Output = ModMinecraft.McAssetsFixList(Version, CheckAssetsHash, ref argprogressFeed);
-                Task = (ModLoader.LoaderTask<string, List<ModNet.NetFile>>)argprogressFeed;
+                Task = (ModLoader.LoaderTask<string, List<DownloadFile>>)argprogressFeed;
             })
             {
                 ProgressWeight = 3d
             });
             // 下载资源文件
-            LoadersAssets.Add(new ModNet.LoaderDownload("下载资源文件", new List<ModNet.NetFile>()) { ProgressWeight = 25d });
+            LoadersAssets.Add(new LoaderDownload("下载资源文件", new List<DownloadFile>()) { ProgressWeight = 25d });
             // 构造加载器
             Loaders.Add(new ModLoader.LoaderCombo<string>("下载资源文件（主加载器）", LoadersAssets)
                 { Block = false, Show = false, ProgressWeight = 30.5d });
@@ -322,8 +324,7 @@ public static class ModDownload
     private static void DlClientListMojangMain(ModLoader.LoaderTask<string, DlClientListResult> Loader)
     {
         var StartTime = TimeUtils.GetTimeTick();
-        var Json = (JObject)ModNet.NetGetCodeByRequestRetry(
-            "https://launchermeta.mojang.com/mc/game/version_manifest.json", IsJson: true);
+        var Json = (JObject)Requester.FetchJson("https://launchermeta.mojang.com/mc/game/version_manifest.json");
         try
         {
             var Versions = (JArray)Json["versions"];
@@ -334,9 +335,8 @@ public static class ModDownload
             if (!File.Exists(CacheFilePath))
                 try
                 {
-                    var UnlistedJson = (JObject)ModNet.NetGetCodeByRequestRetry(
-                        "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json",
-                        IsJson: true);
+                    var UnlistedJson = (JObject)Requester.FetchJson(
+                        "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json");
                     File.WriteAllText(CacheFilePath, UnlistedJson.ToString());
                 }
                 catch (Exception ex)
@@ -411,8 +411,8 @@ public static class ModDownload
 
     private static void DlClientListBmclapiMain(ModLoader.LoaderTask<string, DlClientListResult> Loader)
     {
-        var Json = (JObject)ModNet.NetGetCodeByRequestRetry(
-            "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json", IsJson: true);
+        var Json = (JObject)Requester.FetchJson(
+            "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json");
         try
         {
             var Versions = (JArray)Json["versions"];
@@ -423,9 +423,8 @@ public static class ModDownload
             if (!File.Exists(CacheFilePath))
                 try
                 {
-                    var UnlistedJson = (JObject)ModNet.NetGetCodeByRequestRetry(
-                        "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json",
-                        IsJson: true);
+                    var UnlistedJson = (JObject)Requester.FetchJson(
+                        "https://alist.8mi.tech/d/mirror/unlisted-versions-of-minecraft/Auto/version_manifest.json");
                     File.WriteAllText(CacheFilePath, UnlistedJson.ToString());
                 }
                 catch (Exception ex)
@@ -697,8 +696,7 @@ public static class ModDownload
 
     private static void DlOptiFineListBmclapiMain(ModLoader.LoaderTask<int, DlOptiFineListResult> Loader)
     {
-        var Json = (JArray)ModNet.NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/optifine/versionList",
-            IsJson: true);
+        var Json = (JArray)Requester.FetchJson("https://bmclapi2.bangbang93.com/optifine/versionList");
         try
         {
             var Versions = new List<DlOptiFineListEntry>();
@@ -798,9 +796,12 @@ public static class ModDownload
 
     private static void DlForgeListOfficialMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
     {
-        var Result = Conversions.ToString(ModNet.NetGetCodeByRequestRetry(
-            "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_1.2.4.html", Encoding.Default,
-            "text/html", UseBrowserUserAgent: true));
+        var Result = Conversions.ToString(Requester.FetchJson(
+            "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_1.2.4.html", new RequestParam
+            {
+                Encoding = Encoding.Default,
+                UseBrowserUserAgent = true
+            }));
         if (Result.Length < 200)
             throw new Exception("获取到的版本列表长度不足（" + Result + "）");
         // 获取所有版本信息
@@ -820,8 +821,11 @@ public static class ModDownload
     private static void DlForgeListBmclapiMain(ModLoader.LoaderTask<int, DlForgeListResult> Loader)
     {
         var Result =
-            Conversions.ToString(ModNet.NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/forge/minecraft",
-                Encoding.Default));
+            Conversions.ToString(Requester.FetchJson("https://bmclapi2.bangbang93.com/forge/minecraft",
+                new RequestParam
+                {
+                    Encoding = Encoding.Default,
+                }));
         if (Result.Length < 200)
             throw new Exception("获取到的版本列表长度不足（" + Result + "）");
         // 获取所有版本信息
@@ -1008,14 +1012,15 @@ public static class ModDownload
         string Result;
         try
         {
-            Result = Conversions.ToString(ModNet.NetGetCodeByRequestRetry(
+            Result = Conversions.ToString(Requester.FetchJson(
                 "https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_" +
-                Loader.Input.Replace("-", "_") + ".html", UseBrowserUserAgent: true)); // 兼容 Forge 1.7.10-pre4，#4057
+                Loader.Input.Replace("-", "_") + ".html", new RequestParam
+                {
+                    UseBrowserUserAgent = true
+                })); // 兼容 Forge 1.7.10-pre4，#4057
         }
-        catch (ModNet.HttpRequestFailedException ex)
+        catch (WebException)
         {
-            if (ex.StatusCode == HttpStatusCode.NotFound) throw new Exception("无可用版本");
-
             throw;
         }
         catch (Exception ex)
@@ -1112,9 +1117,9 @@ public static class ModDownload
     /// </summary>
     public static void DlForgeVersionBmclapiMain(ModLoader.LoaderTask<string, List<DlForgeVersionEntry>> Loader)
     {
-        var Json = (JArray)ModNet.NetGetCodeByRequestRetry(
-            "https://bmclapi2.bangbang93.com/forge/minecraft/" + Loader.Input.Replace("-", "_"),
-            IsJson: true); // 兼容 Forge 1.7.10-pre4，#4057
+        var Json = (JArray)Requester.FetchJson(
+            "https://bmclapi2.bangbang93.com/forge/minecraft/" +
+            Loader.Input.Replace("-", "_")); // 兼容 Forge 1.7.10-pre4，#4057
         var Versions = new List<DlForgeVersionEntry>();
         try
         {
@@ -1315,12 +1320,18 @@ public static class ModDownload
     private static void DlNeoForgeListOfficialMain(ModLoader.LoaderTask<int, DlNeoForgeListResult> loader)
     {
         // 获取版本列表 JSON
-        var resultLatest = ModNet
-            .NetGetCodeByRequestRetry("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge",
-                UseBrowserUserAgent: true, IsJson: true).ToString();
-        var resultLegacy = ModNet
-            .NetGetCodeByRequestRetry("https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/forge",
-                UseBrowserUserAgent: true, IsJson: true).ToString();
+        var resultLatest = Requester.FetchJson(
+            "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge",
+            new RequestParam
+            {
+                UseBrowserUserAgent = true
+            }).ToString();
+        var resultLegacy = Requester.FetchJson(
+            "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/forge",
+            new RequestParam
+            {
+                UseBrowserUserAgent = true
+            }).ToString();
         if (resultLatest.Length < 100 || resultLegacy.Length < 100)
             throw new Exception("获取到的版本列表长度不足（" + resultLatest + "）");
         // 解析
@@ -1349,14 +1360,18 @@ public static class ModDownload
     public static void DlNeoForgeListBmclapiMain(ModLoader.LoaderTask<int, DlNeoForgeListResult> loader)
     {
         // 获取版本列表 JSON
-        var resultLatest = ModNet
-            .NetGetCodeByRequestRetry(
-                "https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/neoforge",
-                UseBrowserUserAgent: true, IsJson: true).ToString();
-        var resultLegacy = ModNet
-            .NetGetCodeByRequestRetry(
-                "https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/forge",
-                UseBrowserUserAgent: true, IsJson: true).ToString();
+        var resultLatest = Requester.FetchJson(
+            "https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/neoforge",
+            new RequestParam
+            {
+                UseBrowserUserAgent = true
+            }).ToString();
+        var resultLegacy = Requester.FetchJson(
+            "https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/forge",
+            new RequestParam
+            {
+                UseBrowserUserAgent = true
+            }).ToString();
         if (resultLatest.Length < 100 || resultLegacy.Length < 100)
             throw new Exception("获取到的版本列表长度不足（" + resultLatest + "）");
         // 解析
@@ -1482,8 +1497,11 @@ public static class ModDownload
     private static void DlCleanroomListOfficialMain(ModLoader.LoaderTask<int, DlCleanroomListResult> Loader)
     {
         // 获取版本列表 JSON
-        var ResultLatest = Conversions.ToString(ModNet.NetGetCodeByRequestRetry(
-            "https://api.github.com/repos/CleanroomMC/Cleanroom/releases", UseBrowserUserAgent: true));
+        var ResultLatest = Requester.FetchJson(
+            "https://api.github.com/repos/CleanroomMC/Cleanroom/releases", new RequestParam
+            {
+                UseBrowserUserAgent = true
+            }).ToString();
         if (ResultLatest.Length < 100)
             throw new Exception("获取到的版本列表长度不足（" + ResultLatest + "）");
         // 解析
@@ -1630,7 +1648,7 @@ public static class ModDownload
     private static void DlLiteLoaderListOfficialMain(ModLoader.LoaderTask<int, DlLiteLoaderListResult> Loader)
     {
         var Result =
-            (JObject)ModNet.NetGetCodeByRequestRetry("https://dl.liteloader.com/versions/versions.json", IsJson: true);
+            (JObject)Requester.FetchJson("https://dl.liteloader.com/versions/versions.json");
         try
         {
             var Json = (JObject)Result["versions"];
@@ -1672,8 +1690,8 @@ public static class ModDownload
     private static void DlLiteLoaderListBmclapiMain(ModLoader.LoaderTask<int, DlLiteLoaderListResult> Loader)
     {
         var Result =
-            (JObject)ModNet.NetGetCodeByRequestRetry(
-                "https://bmclapi2.bangbang93.com/maven/com/mumfrey/liteloader/versions.json", IsJson: true);
+            (JObject)Requester.FetchJson(
+                "https://bmclapi2.bangbang93.com/maven/com/mumfrey/liteloader/versions.json");
         try
         {
             var Json = (JObject)Result["versions"];
@@ -1773,7 +1791,7 @@ public static class ModDownload
 
     private static void DlFabricListOfficialMain(ModLoader.LoaderTask<int, DlFabricListResult> Loader)
     {
-        var Result = (JObject)ModNet.NetGetCodeByRequestRetry("https://meta.fabricmc.net/v2/versions", IsJson: true);
+        var Result = (JObject)Requester.FetchJson("https://meta.fabricmc.net/v2/versions");
         try
         {
             var Output = new DlFabricListResult { IsOfficial = true, SourceName = "Fabric 官方源", Value = Result };
@@ -1795,8 +1813,7 @@ public static class ModDownload
 
     private static void DlFabricListBmclapiMain(ModLoader.LoaderTask<int, DlFabricListResult> Loader)
     {
-        var Result = (JObject)ModNet.NetGetCodeByRequestRetry("https://bmclapi2.bangbang93.com/fabric-meta/v2/versions",
-            IsJson: true);
+        var Result = (JObject)Requester.FetchJson("https://bmclapi2.bangbang93.com/fabric-meta/v2/versions");
         try
         {
             var Output = new DlFabricListResult { IsOfficial = false, SourceName = "BMCLAPI", Value = Result };
@@ -1890,7 +1907,7 @@ public static class ModDownload
 
     private static void DlQuiltListOfficialMain(ModLoader.LoaderTask<int, DlQuiltListResult> Loader)
     {
-        var Result = (JObject)ModNet.NetGetCodeByRequestRetry("https://meta.quiltmc.org/v3/versions", IsJson: true);
+        var Result = (JObject)Requester.FetchJson("https://meta.quiltmc.org/v3/versions");
         try
         {
             var Output = new DlQuiltListResult { IsOfficial = true, SourceName = "Quilt 官方源", Value = Result };
@@ -2067,8 +2084,17 @@ public static class ModDownload
         foreach (var Source in Urls)
             try
             {
-                return ModNet.NetGetCodeByRequestOnce(Source.Key, Encoding.UTF8, Source.Value * 1000, IsJson,
-                    UseBrowserUserAgent: true);
+                return IsJson
+                    ? Requester.FetchJson(Source.Key, new RequestParam
+                    {
+                        Timeout = Source.Value * 1000,
+                        UseBrowserUserAgent = true
+                    })
+                    : Requester.FetchString(Source.Key, new RequestParam
+                    {
+                        Timeout = Source.Value * 1000,
+                        UseBrowserUserAgent = true
+                    });
             }
             catch (Exception ex)
             {
@@ -2120,7 +2146,13 @@ public static class ModDownload
         foreach (var Source in Urls)
             try
             {
-                return ModNet.NetRequestOnce(Source.Key, Method, Data, ContentType, Source.Value * 1000);
+                return Requester.Fetch(Source.Key, new FetchParam
+                {
+                    Method = Method,
+                    Content = Data, 
+                    ContentType = ContentType,
+                    Timeout = Source.Value * 1000
+                });
             }
             catch (Exception ex)
             {
@@ -2460,7 +2492,7 @@ public static class ModDownload
     private static void DlLegacyFabricListOfficialMain(ModLoader.LoaderTask<int, DlLegacyFabricListResult> Loader)
     {
         var Result =
-            (JObject)ModNet.NetGetCodeByRequestRetry("https://meta.legacyfabric.net/v2/versions", IsJson: true);
+            (JObject)Requester.FetchJson("https://meta.legacyfabric.net/v2/versions");
         try
         {
             var Output = new DlLegacyFabricListResult

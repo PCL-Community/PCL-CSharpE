@@ -4,6 +4,7 @@ using PCL.Core.Utils;
 using System.Collections;
 using System.IO;
 using System.Windows.Shell;
+using PCL.Network;
 
 namespace PCL;
 
@@ -925,7 +926,7 @@ public static class ModLoader
                             else if (loaderType.StartsWithF("LoaderDownload"))
                             {
                                 loader.Start(
-                                    input is List<ModNet.NetFile> ? input : null,
+                                    input is List<DownloadFile> ? input : null,
                                     IsForceRestarting);
                             }
                             else

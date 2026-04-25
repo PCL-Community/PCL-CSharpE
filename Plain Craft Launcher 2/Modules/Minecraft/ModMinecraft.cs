@@ -13,6 +13,7 @@ using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
+using PCL.Network;
 
 namespace PCL;
 
@@ -2561,7 +2562,7 @@ public static class ModMinecraft
         {
             if (!File.Exists(FileAddress))
             {
-                ModNet.NetDownloadByClient(Address, FileAddress + ModNet.NetDownloadEnd).GetAwaiter().GetResult();
+                FileDownloader.Download(Address, FileAddress + ModNet.NetDownloadEnd).GetAwaiter().GetResult();
                 File.Delete(FileAddress);
                 FileSystem.Rename(FileAddress + ModNet.NetDownloadEnd, FileAddress);
                 ModBase.Log("[Minecraft] 皮肤下载成功：" + FileAddress);
@@ -2975,11 +2976,11 @@ public static class ModMinecraft
     /// <summary>
     ///     获取实例所需支持库文件的 NetFile。
     /// </summary>
-    public static List<ModNet.NetFile> McLibNetFilesFromInstance(McInstance instance)
+    public static List<DownloadFile> McLibNetFilesFromInstance(McInstance instance)
     {
         if (!instance.IsLoaded)
             instance.Load();
-        var result = new List<ModNet.NetFile>();
+        var result = new List<DownloadFile>();
 
         // 更新此方法时需要同步更新 Forge 新版自动安装方法！
 
@@ -3026,7 +3027,7 @@ public static class ModMinecraft
                 var downloadAddress = authlibDownloadInfo["download_url"].ToString()
                     .Replace("bmclapi2.bangbang93.com/mirrors/authlib-injector", "authlib-injector.yushi.moe");
                 ModBase.Log("[Minecraft] Authlib-Injector 需要更新：" + downloadAddress, ModBase.LogLevel.Developer);
-                result.Add(new ModNet.NetFile(
+                result.Add(new DownloadFile(
                     new[]
                     {
                         downloadAddress,
@@ -3053,7 +3054,7 @@ public static class ModMinecraft
                 "https://mirrors.cloud.tencent.com/nexus/repository/maven-public/org/glavo/mesa-loader-windows/" +
                 mesaLoaderWindowsVersion + "/mesa-loader-windows-" + mesaLoaderWindowsVersion + "-" +
                 (ModBase.Is32BitSystem ? "x86" : ModBase.IsArm64System ? "arm64" : "x64") + ".jar";
-            result.Add(new ModNet.NetFile(new[] { downloadAddress }, mesaLoaderWindowsTargetFile));
+            result.Add(new DownloadFile(new[] { downloadAddress }, mesaLoaderWindowsTargetFile));
         }
 
         // LabyMod Assets 文件
@@ -3086,7 +3087,7 @@ public static class ModMinecraft
                     var checker = new ModBase.FileChecker(Hash: assetSHA1);
                     if (checker.Check(assetPath) is null)
                         continue;
-                    result.Add(new ModNet.NetFile(new[] { assetUrl }, assetPath, checker));
+                    result.Add(new DownloadFile(new[] { assetUrl }, assetPath, checker));
                 }
             }
             catch (Exception ex)
@@ -3117,10 +3118,10 @@ public static class ModMinecraft
     /// <summary>
     ///     将 McLibToken 列表转换为 NetFile。
     /// </summary>
-    public static List<ModNet.NetFile> McLibNetFilesFromTokens(List<McLibToken> libs, string customMcFolder = null)
+    public static List<DownloadFile> McLibNetFilesFromTokens(List<McLibToken> libs, string customMcFolder = null)
     {
         customMcFolder = customMcFolder ?? McFolderSelected;
-        var result = new List<ModNet.NetFile>();
+        var result = new List<DownloadFile>();
         // 获取
         foreach (var token in libs)
         {
@@ -3196,7 +3197,7 @@ public static class ModMinecraft
                                                                  .Replace(@"\", "/")));
             }
 
-            result.Add(new ModNet.NetFile(urls.Distinct(), token.LocalPath, checker));
+            result.Add(new DownloadFile(urls.Distinct(), token.LocalPath, checker));
         }
 
         // 去重并返回
@@ -3406,18 +3407,18 @@ public static class ModMinecraft
     /// <summary>
     ///     获取实例缺失的资源文件所对应的 NetTaskFile。
     /// </summary>
-    public static List<ModNet.NetFile> McAssetsFixList(McInstance instance, bool checkHash,
+    public static List<DownloadFile> McAssetsFixList(McInstance instance, bool checkHash,
         [Optional] ref ModLoader.LoaderBase progressFeed)
     {
         // 如果需要检查 Hash，则留到下载时处理，以借助多线程加快检查速度
         if (checkHash)
-            return McAssetsListGet(instance).Select(token => new ModNet.NetFile(
+            return McAssetsListGet(instance).Select(token => new DownloadFile(
                 ModDownload.DlSourceAssetsGet(
                     $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
                 token.LocalPath,
                 new ModBase.FileChecker(ActualSize: token.Size == 0L ? -1 : token.Size, Hash: token.Hash))).ToList();
         // 如果不检查 Hash，则立即处理
-        var result = new List<ModNet.NetFile>();
+        var result = new List<DownloadFile>();
 
         List<McAssetsToken> assetsList;
         try
@@ -3437,7 +3438,7 @@ public static class ModMinecraft
                 if (file.Exists && (token.Size == 0L || token.Size == file.Length))
                     continue;
                 // 文件不存在，添加下载
-                result.Add(new ModNet.NetFile(
+                result.Add(new DownloadFile(
                     ModDownload.DlSourceAssetsGet(
                         $"https://resources.download.minecraft.net/{Strings.Left(token.Hash, 2)}/{token.Hash}"),
                     token.LocalPath,

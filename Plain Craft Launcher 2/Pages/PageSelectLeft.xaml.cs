@@ -9,6 +9,7 @@ using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
+using PCL.Network;
 
 namespace PCL;
 

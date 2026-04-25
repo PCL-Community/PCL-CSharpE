@@ -16,6 +16,7 @@ using PCL.Core.Minecraft.Launch.Utils;
 using PCL.Core.Utils;
 using PCL.Core.Utils.OS;
 using PCL.Core.Utils.Secret;
+using PCL.Network;
 
 namespace PCL;
 
@@ -915,9 +916,9 @@ public static class ModLaunch
         JObject PrepareJson;
         var parameters = new Dictionary<string, string>
         {
-            {"client_id", ModSecret.OAuthClientId},
-            {"tenant", "/consumers"},
-            {"scope", "XboxLive.signin offline_access"}
+            { "client_id", ModSecret.OAuthClientId },
+            { "tenant", "/consumers" },
+            { "scope", "XboxLive.signin offline_access" }
         };
 
         using (var response = HttpRequest
@@ -970,10 +971,10 @@ public static class ModLaunch
         {
             var parameters = new Dictionary<string, string>
             {
-                {"client_id", ModSecret.OAuthClientId},
-                {"refresh_token", Code},
-                {"grant_type", "refresh_token"},
-                {"scope", "XboxLive.signin offline_access"}
+                { "client_id", ModSecret.OAuthClientId },
+                { "refresh_token", Code },
+                { "grant_type", "refresh_token" },
+                { "scope", "XboxLive.signin offline_access" }
             };
 
             using (var response = HttpRequest
@@ -1130,7 +1131,7 @@ public static class ModLaunch
                    .GetResult())
         {
             result = response.AsString();
-        
+
             if (!response.IsSuccess)
             {
                 // 参考 https://github.com/PrismarineJS/prismarine-auth/blob/master/src/common/Constants.js
@@ -1416,7 +1417,7 @@ public static class ModLaunch
                 data.Progress = 0.95d;
                 return; // 登录成功，直接返回
             }
-            catch (ModNet.HttpWebException ex)
+            catch (WebException ex)
             {
                 HandleHttpWebException(ex, "验证登录失败");
             }
@@ -1451,7 +1452,7 @@ public static class ModLaunch
             ThrowIfAborted(data);
             needRefresh = McLoginRequestLogin(ref data);
         }
-        catch (ModNet.HttpWebException ex)
+        catch (WebException ex)
         {
             HandleLoginHttpException(ex);
         }
@@ -1498,7 +1499,7 @@ public static class ModLaunch
     /// <summary>
     ///     统一处理 HttpWebException
     /// </summary>
-    private static void HandleHttpWebException(ModNet.HttpWebException ex, string logPrefix)
+    private static void HandleHttpWebException(WebException ex, string logPrefix)
     {
         var allMessage = ex.ToString();
         ModProfile.ProfileLog(logPrefix + "：" + allMessage);
@@ -1509,12 +1510,12 @@ public static class ModLaunch
             ModMain.MyMsgBox(
                 "$登录失败：连接登录服务器超时。" + "\r\n" +
                 "请检查你的网络状况是否良好，或尝试使用 VPN！" + "\r\n" + "\r\n" +
-                "详细信息：" + ex.InnerHttpException.WebResponse,
+                "详细信息：" + ex.InnerException,
                 "第三方验证失败", IsWarn: true);
 
             throw new Exception("$登录失败：连接登录服务器超时。" + "\r\n" +
                                 "请检查你的网络状况是否良好，或尝试使用 VPN！" + "\r\n" +
-                                "\r\n" + "详细信息：" + ex.InnerHttpException.WebResponse);
+                                "\r\n" + "详细信息：" + ex.InnerException);
         }
     }
 
@@ -1531,17 +1532,15 @@ public static class ModLaunch
     /// <summary>
     ///     处理普通登录 HttpWebException
     /// </summary>
-    private static void HandleLoginHttpException(ModNet.HttpWebException ex)
+    private static void HandleLoginHttpException(WebException ex)
     {
         ModProfile.ProfileLog("验证失败：" + ex);
         string message = null;
-        var responseText = ex.InnerHttpException.WebResponse;
+        var responseText = ex.InnerException;
 
         try
         {
-            var err = JsonNode.Parse(responseText)["errorMessage"];
-            if (err is not null)
-                message = "登录失败：" + err;
+            message = "登录失败：";
         }
         catch
         {
@@ -1576,9 +1575,14 @@ public static class ModLaunch
         // 发送登录请求
         var RequestData = new JObject(new JProperty("accessToken", AccessToken),
             new JProperty("clientToken", ClientToken));
-        ModNet.NetRequestRetry(Data.Input.BaseUrl + "/validate", "POST", RequestData.ToString(0),
-            Headers: new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
-            ContentType: "application/json"); // 没有返回值的
+        Requester.Fetch(Data.Input.BaseUrl + "/validate",
+            new FetchParam
+            {
+                Method = "POST",
+                Content = RequestData.ToString(0),
+                Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
+                ContentType = "application/json"
+            }); // 没有返回值的
         // 将登录结果输出
         Data.Output.AccessToken = AccessToken;
         Data.Output.ClientToken = ClientToken;
@@ -1599,9 +1603,14 @@ public static class ModLaunch
         RefreshInfo.Add(new JProperty("accessToken", ModProfile.SelectedProfile.AccessToken));
         RefreshInfo.Add(new JProperty("requestUser", true));
         ModProfile.ProfileLog("刷新登录开始（Refresh, Authlib");
-        var LoginJson = (JObject)ModBase.GetJson(ModNet.NetRequestRetry(Data.Input.BaseUrl + "/refresh", "POST",
-            RefreshInfo.ToString(0), Headers: new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
-            ContentType: "application/json"));
+        var LoginJson = (JObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/refresh",
+            new FetchParam
+            {
+                Method = "POST",
+                Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
+                ContentType = "application/json"
+            }
+        ));
         // 将登录结果输出
         if (LoginJson["selectedProfile"] is null)
             throw new Exception("选择的角色 " + ModProfile.SelectedProfile.Username + " 无效！");
@@ -1631,10 +1640,14 @@ public static class ModLaunch
                 new JProperty("agent", new JObject(new JProperty("name", "Minecraft"), new JProperty("version", 1))),
                 new JProperty("username", Data.Input.UserName), new JProperty("password", Data.Input.Password),
                 new JProperty("requestUser", true));
-            var LoginJson = (JObject)ModBase.GetJson(ModNet.NetRequestRetry(Data.Input.BaseUrl + "/authenticate",
-                "POST", RequestData.ToString(0),
-                Headers: new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
-                ContentType: "application/json"));
+            var LoginJson = (JObject)ModBase.GetJson(Requester.Fetch(Data.Input.BaseUrl + "/authenticate",
+                new FetchParam
+                {
+                    Method = "POST",
+                    Content = RequestData.ToString(0),
+                    Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
+                    ContentType = "application/json"
+                }));
             // 检查登录结果
             if (LoginJson["availableProfiles"].Count() == 0)
             {
@@ -1697,8 +1710,7 @@ public static class ModLaunch
             Data.Output.Type = "Auth";
             // 获取服务器信息
             var Response =
-                Conversions.ToString(ModNet.NetGetCodeByRequestRetry(Data.Input.BaseUrl.Replace("/authserver", ""),
-                    Encoding.UTF8));
+                Requester.FetchString(Data.Input.BaseUrl.Replace("/authserver", ""));
             var ServerName = JObject.Parse(Response)["meta"]["serverName"].ToString();
             // 保存缓存
             if (Data.Input.IsExist)
@@ -1735,7 +1747,7 @@ public static class ModLaunch
             ModProfile.ProfileLog("登录成功（Login, Authlib）");
             return NeedRefresh;
         }
-        catch (ModNet.HttpWebException ex)
+        catch (WebException ex)
         {
             throw;
         }
@@ -2204,7 +2216,7 @@ public static class ModLaunch
         {
             if (string.IsNullOrWhiteSpace(library.OriginalName))
                 continue;
-        
+
             string[] parts = library.OriginalName.Split(':');
             if (parts.Length >= 3 &&
                 parts[0].Equals("org.lwjgl", StringComparison.OrdinalIgnoreCase) &&
@@ -2213,7 +2225,7 @@ public static class ModLaunch
                 return parts[2];
             }
         }
-    
+
         return null;
     }
 
@@ -2226,7 +2238,7 @@ public static class ModLaunch
         {
             bool globalDisabled = Config.Launch.DisableLwjglUnsafeAgent;
             bool instanceDisabled = Config.Instance.DisableLwjglUnsafeAgent[mc];
-        
+
             return !globalDisabled && !instanceDisabled;
         }
         else
@@ -2234,7 +2246,7 @@ public static class ModLaunch
             return false;
         }
     }
-    
+
     // 主方法，合并 Jvm、Game、Replace 三部分的参数数据
     private static void McLaunchArgumentMain(ModLoader.LoaderTask<string, List<ModMinecraft.McLibToken>> Loader)
     {
@@ -2386,16 +2398,16 @@ public static class ModLaunch
             var Server = McLoginAuthLoader.Input.BaseUrl.Replace("/authserver", "");
             try
             {
-                var Response = Conversions.ToString(ModNet.NetGetCodeByRequestRetry(Server, Encoding.UTF8));
+                var Response = Requester.FetchString(Server);
                 DataList.Insert(0,
                     "-javaagent:\"" + ModBase.PathPure + "authlib-injector.jar\"=" + Server +
                     " -Dauthlibinjector.side=client" + " -Dauthlibinjector.yggdrasil.prefetched=" +
                     Convert.ToBase64String(Encoding.UTF8.GetBytes(Response)));
             }
-            catch (ModNet.HttpWebException ex)
+            catch (WebException ex)
             {
                 throw new Exception(
-                    $"无法连接到第三方登录服务器（{Server ?? null}）{"\r\n"}详细信息：" + ex.InnerHttpException.WebResponse, ex);
+                    $"无法连接到第三方登录服务器（{Server ?? null}）{"\r\n"}详细信息：" + ex.InnerException, ex);
             }
             catch (Exception ex)
             {
@@ -2408,7 +2420,7 @@ public static class ModLaunch
         {
             DataList.Insert(0, $"-javaagent:\"{ModBase.PathPure}lwjgl-unsafe-agent.jar\"");
         }
-        
+
         if (Config.Instance.UseDebugLof4j2Config[instance.PathIndie])
         {
             if (ModMinecraft.McInstanceSelected.ReleaseTime.Year >= 2017)
@@ -2873,7 +2885,7 @@ public static class ModLaunch
                 ModBase.Log(ex, "LWJGL Unsafe Agent 释放失败");
             }
         }
-        
+
         foreach (var Library in LibList)
         {
             if (Library.IsNatives)

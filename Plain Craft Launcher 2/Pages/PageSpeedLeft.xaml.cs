@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using PCL.Network;
 
 namespace PCL;
 
@@ -79,7 +80,7 @@ public partial class PageSpeedLeft
                 LabProgress.Text = RawPercent > 0.999999d ? "100 %" : PredictText;
                 LabSpeed.Text = ModBase.GetString(ModNet.NetManager.Speed) + "/s";
                 LabFile.Text = ModNet.NetManager.FileRemain < 0 ? "0*" : ModNet.NetManager.FileRemain.ToString();
-                LabThread.Text = ModNet.NetTaskThreadCount + " / " + ModNet.NetTaskThreadLimit;
+                LabThread.Text = ModNet.NetManager.ThreadCount + " / " + ModNet.NetTaskThreadLimit;
             }
         }
 

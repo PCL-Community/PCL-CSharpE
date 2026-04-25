@@ -7,6 +7,8 @@ using PCL.Core.App;
 using PCL.Core.IO;
 using PCL.Core.Minecraft;
 using PCL.Core.Minecraft.Java.UserPreference;
+using PCL.Network;
+using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -321,12 +323,12 @@ public static class ModJava
     /// </summary>
     public static ModLoader.LoaderCombo<string> GetJavaDownloadLoader()
     {
-        var JavaDownloadLoader = new ModNet.LoaderDownload("下载 Java 文件", new List<ModNet.NetFile>())
+        var JavaDownloadLoader = new LoaderDownload("下载 Java 文件", new List<DownloadFile>())
             { ProgressWeight = 10d };
         var Loader = new ModLoader.LoaderCombo<string>("下载 Java",
             new ModLoader.LoaderBase[]
             {
-                new ModLoader.LoaderTask<string, List<ModNet.NetFile>>("获取 Java 下载信息", JavaFileList)
+                new ModLoader.LoaderTask<string, List<DownloadFile>>("获取 Java 下载信息", JavaFileList)
                     { ProgressWeight = 2d },
                 JavaDownloadLoader
             });
@@ -356,7 +358,7 @@ public static class ModJava
         "84d2102ad171863db04e7ee22a259d1f6c5de4a5"
     }.ToHashSet();
 
-    private static void JavaFileList(ModLoader.LoaderTask<string, List<ModNet.NetFile>> Loader)
+    private static void JavaFileList(ModLoader.LoaderTask<string, List<DownloadFile>> Loader)
     {
         ModBase.Log("[Java] 开始获取 Java 下载信息");
         var IndexFileStr = ModNet.NetGetCodeByLoader(
@@ -391,12 +393,12 @@ public static class ModJava
         // 获取文件列表
         var Address = (string)TargetComponent["manifest"]["url"];
         ModLaunch.McLaunchLog($"准备下载 Java {TargetComponent["version"]["name"]}（{TargetEntry.Name}）：{Address}");
-        var ListFileStr = (JObject)ModNet.NetGetCodeByRequestRetry(
+        var ListFileStr = (JObject)Requester.FetchJson(
             ModDownload.DlSourceOrder(new[] { Address },
-                new[] { Address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com") }).First(), IsJson: true);
+                new[] { Address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com") }).First(), RequestParam.WithRetry);
         LastJavaBaseDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             ".minecraft", "runtime", TargetEntry.Name);
-        var Results = new List<ModNet.NetFile>(ListFileStr["files"].Count());
+        var Results = new List<DownloadFile>(ListFileStr["files"].Count());
         foreach (JProperty File in ListFileStr["files"])
         {
             if (((JObject)File.Value)["downloads"]?["raw"] is null)
@@ -415,7 +417,7 @@ public static class ModJava
             if (Checker.Check(filePath) is null)
                 continue; // 跳过已存在的文件
             var Url = (string)Info["url"];
-            Results.Add(new ModNet.NetFile(
+            Results.Add(new DownloadFile(
                 ModDownload.DlSourceOrder(new[] { Url },
                     new[] { Url.Replace("piston-data.mojang.com", "bmclapi2.bangbang93.com") }), filePath, Checker));
         }
