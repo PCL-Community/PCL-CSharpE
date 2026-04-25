@@ -219,6 +219,7 @@ public static class ModDownloadLib
         var loadersAssets = new List<ModLoader.LoaderBase>();
         loadersAssets.Add(new ModLoader.LoaderTask<string, List<DownloadFile>>("分析资源文件索引地址（副加载器）", task =>
         {
+            Thread.Sleep(50); // 等待 JSON 文件实际写入硬盘
             try
             {
                 var assetIndex = new ModMinecraft.McInstance(instanceFolder);
