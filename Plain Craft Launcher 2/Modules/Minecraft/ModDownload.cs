@@ -1497,11 +1497,11 @@ public static class ModDownload
     private static void DlCleanroomListOfficialMain(ModLoader.LoaderTask<int, DlCleanroomListResult> Loader)
     {
         // 获取版本列表 JSON
-        var ResultLatest = Conversions.ToString(Requester.FetchJson(
+        var ResultLatest = Requester.FetchJson(
             "https://api.github.com/repos/CleanroomMC/Cleanroom/releases", new RequestParam
             {
                 UseBrowserUserAgent = true
-            }));
+            }).ToString();
         if (ResultLatest.Length < 100)
             throw new Exception("获取到的版本列表长度不足（" + ResultLatest + "）");
         // 解析
