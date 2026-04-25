@@ -1246,7 +1246,7 @@ public static class ModDownload
                 VersionName = ApiName;
                 Version = new Version(ApiName.BeforeFirst("-"));
                 if (Version.Major >= 24)
-                    Inherit = Version.Major + "." + Version.Minor;
+                    Inherit = $"{Version.Major}.{Version.Minor}{(Version.Build > 0 ? $".{Version.Build}" : "")}";
                 else
                     Inherit = "1." + Version.Major + (Version.Minor > 0 ? "." + Version.Minor : "");
                 if (VersionName.Contains("+"))
