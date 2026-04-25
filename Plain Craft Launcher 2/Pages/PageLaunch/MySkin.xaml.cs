@@ -8,6 +8,7 @@ using System.Windows.Media;
 using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.UI;
+using PCL.Network;
 
 namespace PCL;
 
@@ -392,7 +393,7 @@ public partial class MySkin
                         continue;
                     }
 
-                    ModNet.NetDownloadByLoader(itemSkin["url"].ToString(), localFile);
+                    FileDownloader.DownloadByLoader(itemSkin["url"].ToString(), localFile);
                     var capeFrontRegion = new Rectangle(1, 0, 11, 17);
                     var capeFront = new Bitmap(capeFrontRegion.Width, capeFrontRegion.Height);
                     var capeImage = Image.FromFile(localFile);
@@ -458,13 +459,17 @@ public partial class MySkin
                 if (SelId is null)
                     return;
                 // 发送请求
-                var Result = ModNet.NetRequestRetry("https://api.minecraftservices.com/minecraft/profile/capes/active",
-                    SelId.HasValue && SelId.Value == 0 ? "DELETE" : "PUT",
-                    SelId.HasValue && SelId.Value == 0
-                        ? ""
-                        : new JObject(new JProperty("capeId", SkinData["capes"][SelId - 1]["id"])).ToString(0),
-                    "application/json",
-                    Headers: new Dictionary<string, string> { { "Authorization", "Bearer " + AccessToken } });
+                var Result = Requester.Fetch("https://api.minecraftservices.com/minecraft/profile/capes/active",
+                    new FetchParam
+                    {
+                        Method = SelId.HasValue && SelId.Value == 0 ? "DELETE" : "PUT",
+                        Content = SelId.HasValue && SelId.Value == 0
+                            ? ""
+                            : new JObject(new JProperty("capeId", SkinData["capes"][SelId - 1]["id"])).ToString(0),
+                        ContentType = "application/json",
+                        Headers = new Dictionary<string, string> { { "Authorization", "Bearer " + AccessToken } }
+                    }
+                );
                 if (Result.Contains("\"errorMessage\""))
                     ModMain.Hint(
                         Conversions.ToString(Operators.ConcatenateObject("更改披风失败：",

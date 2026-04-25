@@ -11,6 +11,8 @@ using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
+using PCL.Network.Engine;
+using PCL.Network.Loaders;
 using static PCL.ModLoader;
 
 namespace PCL;
@@ -46,7 +48,7 @@ public static class ModModpack
     ///     构建并启动安装给定的整合包文件的加载器，并返回该加载器。若失败则抛出异常。
     ///     必须在工作线程执行。
     /// </summary>
-    /// <exception cref="CancelledException" />
+    /// <exception cref="ModBase.CancelledException" />
     public static LoaderCombo<string> ModpackInstall(string File, string InstanceName = null, string Logo = null,
         string resourceId = null, bool isOnlineInstall = false)
     {
@@ -486,9 +488,9 @@ public static class ModModpack
                 ProgressWeight = ModList.Count / 10d
             }); // 每 10 Mod 需要 1s
             // 构造 NetFile
-            ModDownloadLoaders.Add(new LoaderTask<JArray, List<ModNet.NetFile>>("构造 Mod 下载信息", Task =>
+            ModDownloadLoaders.Add(new LoaderTask<JArray, List<DownloadFile>>("构造 Mod 下载信息", Task =>
             {
-                var FileList = new Dictionary<int, ModNet.NetFile>();
+                var FileList = new Dictionary<int, DownloadFile>();
                 foreach (var ModJson in Task.Input)
                 {
                     var Id = ModJson["id"].ToObject<int>();
@@ -551,7 +553,7 @@ public static class ModModpack
                 Show = false
             }); // 每 200 Mod 需要 1s
             // 下载 Mod 文件
-            ModDownloadLoaders.Add(new ModNet.LoaderDownload("下载 Mod", new List<ModNet.NetFile>())
+            ModDownloadLoaders.Add(new LoaderDownload("下载 Mod", new List<DownloadFile>())
                 { ProgressWeight = ModList.Count * 1.5d }); // 每个 Mod 需要 1.5s
             // 构造加载器
             InstallLoaders.Add(new LoaderCombo<int>("下载 Mod（主加载器）", ModDownloadLoaders)
@@ -743,7 +745,7 @@ public static class ModModpack
             Block = false
         }); // 每 6M 需要 1s
         // 获取下载文件列表
-        var FileList = new List<ModNet.NetFile>();
+        var FileList = new List<DownloadFile>();
         foreach (var File in (dynamic)Json["files"] ?? Array.Empty<JToken>())
         {
             // 检查是否需要该文件
@@ -779,13 +781,13 @@ public static class ModModpack
                 throw new ModBase.CancelledException();
             }
 
-            FileList.Add(new ModNet.NetFile(Urls, TargetPath,
+            FileList.Add(new DownloadFile(Urls, TargetPath,
                 new ModBase.FileChecker(ActualSize: File["fileSize"].ToObject<long>(),
                     Hash: File["hashes"]["sha1"].ToString()), true));
         }
 
         if (FileList.Any())
-            InstallLoaders.Add(new ModNet.LoaderDownload("下载额外文件", FileList)
+            InstallLoaders.Add(new LoaderDownload("下载额外文件", FileList)
                 { ProgressWeight = FileList.Count * 1.5d }); // 每个 Mod 需要 1.5s
 
         // 构造加载器

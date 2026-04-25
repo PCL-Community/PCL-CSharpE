@@ -13,6 +13,7 @@ using PCL.Core.Link.Scaffolding.Client.Models;
 using PCL.Core.Link.Scaffolding.EasyTier;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Validate;
+using PCL.Network;
 
 namespace PCL;
 
@@ -368,9 +369,13 @@ public partial class PageToolsGameLink
                     try
                     {
                         // 获取缓存版本号
-                        var cacheRes = ModNet
-                            .NetRequestOnce($"{Secrets.LinkServers[serverNumber]}/api/link/v2/cache.ini", "GET", null,
-                                "application/json", 7000).Trim();
+                        var cacheRes = Requester.Fetch($"{Secrets.LinkServers[serverNumber]}/api/link/v2/cache.ini",
+                            new FetchParam
+                            {
+                                Method = "GET",
+                                ContentType = "application/json",
+                                Timeout = 7000
+                            }).Trim();
                         var cacheVer = int.Parse(cacheRes);
 
                         if (cacheVer == States.Link.AnnounceCacheVer)
@@ -381,9 +386,14 @@ public partial class PageToolsGameLink
                         else
                         {
                             LogWrapper.Info("[Link] Fetching new announcement data");
-                            var received = ModNet.NetRequestOnce(
-                                $"{Secrets.LinkServers[serverNumber]}/api/link/v2/announce.json", "GET", null,
-                                "application/json", 7000);
+                            var received = Requester.Fetch(
+                                $"{Secrets.LinkServers[serverNumber]}/api/link/v2/announce.json",
+                                new FetchParam
+                                {
+                                    Method = "GET",
+                                    ContentType = "application/json",
+                                    Timeout = 7000
+                                });
                             jObj = (JObject)ModBase.GetJson(received);
 
                             // 更新缓存

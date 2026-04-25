@@ -12,6 +12,8 @@ using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.UI.Theme;
+using PCL.Network.Engine;
+using PCL.Network.Loaders;
 using FileSystem = Microsoft.VisualBasic.FileSystem;
 using SearchOption = System.IO.SearchOption;
 
@@ -1985,7 +1987,7 @@ public partial class PageInstanceCompResource : IRefreshable
         {
             // 构造下载信息
             ModList = ModList.ToList(); // 防止刷新影响迭代器
-            var FileList = new List<ModNet.NetFile>();
+            var FileList = new List<DownloadFile>();
             var FileCopyList = new Dictionary<string, string>();
             foreach (var Entry in ModList)
             {
@@ -2040,7 +2042,7 @@ public partial class PageInstanceCompResource : IRefreshable
             // 构造加载器
             var InstallLoaders = new List<ModLoader.LoaderBase>();
             var FinishedFileNames = new List<string>();
-            InstallLoaders.Add(new ModNet.LoaderDownload("下载新版资源文件", FileList)
+            InstallLoaders.Add(new LoaderDownload("下载新版资源文件", FileList)
                 { ProgressWeight = ModList.Count() * 1.5d }); // 每个 Mod 需要 1.5s
             InstallLoaders.Add(new ModLoader.LoaderTask<int, int>("替换旧版资源文件", _ =>
             {

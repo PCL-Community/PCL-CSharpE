@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Newtonsoft.Json.Linq;
 using PCL.Core.Utils;
+using PCL.Network;
 
 namespace PCL;
 
@@ -46,9 +47,13 @@ public partial class PageSetupFeedback
     public void FeedbackListGet(ModLoader.LoaderTask<bool, List<Feedback>> Task)
     {
         JArray list;
-        list = (JArray)ModNet.NetGetCodeByRequestRetry(
+        list = (JArray)Requester.FetchJson(
             "https://api.github.com/repos/PCL-Community/PCL2-CE/issues?state=all&sort=created&per_page=200",
-            IsJson: true, UseBrowserUserAgent: true); // 获取近期 200 条数据就够了
+            new RequestParam
+            {
+                Retries = 3,
+                UseBrowserUserAgent = true
+            }); // 获取近期 200 条数据就够了
         if (list is null)
             throw new Exception("无法获取到内容");
         var res = new List<Feedback>();

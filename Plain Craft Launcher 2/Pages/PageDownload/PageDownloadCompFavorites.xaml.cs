@@ -6,6 +6,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.UI;
+using PCL.Network.Engine;
+using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -560,7 +562,7 @@ public partial class PageDownloadCompFavorites
             ModMain.Hint("请稍后，正在查询详细版本支持中，这可能需要一段时间……");
             // 输入 Ids，输出合适版本
             var GetInfoAndDownloadLoader = new List<ModLoader.LoaderBase>();
-            GetInfoAndDownloadLoader.Add(new ModLoader.LoaderTask<List<string>, List<ModNet.NetFile>>("查询资源信息", Ts =>
+            GetInfoAndDownloadLoader.Add(new ModLoader.LoaderTask<List<string>, List<DownloadFile>>("查询资源信息", Ts =>
             {
                 List<List<ModComp.CompFile>> AllFiles = [];
                 List<string> SuitVersion = [];
@@ -639,7 +641,7 @@ public partial class PageDownloadCompFavorites
 
                 ;
                 // 获取有期望版本号的文件
-                List<ModNet.NetFile> Res = [];
+                List<DownloadFile> Res = [];
                 foreach (var Target in AllFiles)
                 {
                     // 按照发布日期排序
@@ -657,7 +659,7 @@ public partial class PageDownloadCompFavorites
             {
                 ProgressWeight = 2d
             });
-            GetInfoAndDownloadLoader.Add(new ModNet.LoaderDownload("批量下载合适资源", new List<ModNet.NetFile>())
+            GetInfoAndDownloadLoader.Add(new LoaderDownload("批量下载合适资源", new List<DownloadFile>())
                 { ProgressWeight = 8d });
             var CheckLoader =
                 new ModLoader.LoaderCombo<List<string>>($"批量下载资源({ModBase.GetUuid()})", GetInfoAndDownloadLoader)

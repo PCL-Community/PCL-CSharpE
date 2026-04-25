@@ -14,6 +14,7 @@ using PCL.Core.IO.Net;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Secret;
 using PCL.Core.Utils.Validate;
+using PCL.Network;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace PCL;
@@ -520,11 +521,13 @@ public static class ModProfile
             {
                 try
                 {
-                    var checkResult = (JObject)ModBase.GetJson(ModNet.NetRequestRetry(
-                        $"https://api.minecraftservices.com/minecraft/profile/name/{newUsername}/available", "GET",
-                        null, null,
-                        Headers: new Dictionary<string, string>
-                            { { "Authorization", "Bearer " + SelectedProfile.AccessToken } }));
+                    var checkResult = (JObject)ModBase.GetJson(Requester.Fetch(
+                        $"https://api.minecraftservices.com/minecraft/profile/name/{newUsername}/available", 
+                        new FetchParam
+                        {
+                            Headers = new Dictionary<string, string>
+                                { { "Authorization", "Bearer " + SelectedProfile.AccessToken } }
+                        }));
                     if ((string)checkResult["status"] == "DUPLICATE")
                     {
                         ModMain.MyMsgBox("此 ID 已被使用，请换一个 ID。", "ID 修改失败", "确认", IsWarn: true);
@@ -537,11 +540,15 @@ public static class ModProfile
                         return;
                     }
 
-                    var result = ModNet.NetRequestRetry(
-                        $"https://api.minecraftservices.com/minecraft/profile/name/{newUsername}", "PUT", "",
-                        "application/json", Conversions.ToBoolean(2),
-                        new Dictionary<string, string>
-                            { { "Authorization", "Bearer " + SelectedProfile.AccessToken } });
+                    var result = Requester.Fetch(
+                        $"https://api.minecraftservices.com/minecraft/profile/name/{newUsername}",
+                        new FetchParam
+                        {
+                            Method = "PUT",
+                            ContentType = "application/json",
+                            Headers = new Dictionary<string, string>
+                                { { "Authorization", "Bearer " + SelectedProfile.AccessToken } }
+                        });
                     var resultJson = (JObject)ModBase.GetJson(result);
                     ModMain.Hint($"玩家 ID 修改成功，当前 ID 为：{resultJson["name"]}", ModMain.HintType.Finish);
                     ProfileList.Remove(SelectedProfile);
@@ -1125,8 +1132,13 @@ public static class ModProfile
                         ModBase.GetFileNameFromPath(skinInfo.LocalFile)
                     }
                 };
-                var res = ModNet.NetRequestRetry("https://api.minecraftservices.com/minecraft/profile/skins", "POST",
-                    contents, null, Headers: headers);
+                var res = Requester.Fetch("https://api.minecraftservices.com/minecraft/profile/skins", 
+                    new FetchParam
+                    {
+                        Method = "POST",
+                        Content = contents,
+                        Headers = headers
+                    });
                 if (res.Contains("request requires user authentication"))
                 {
                     ModMain.Hint("正在登录，将在登录完成后继续更改皮肤……");

@@ -8,6 +8,7 @@ using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
+using PCL.Network;
 
 namespace PCL;
 

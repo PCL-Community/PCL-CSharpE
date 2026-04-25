@@ -12,6 +12,8 @@ using PCL.Core.Link.Natayark;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils.OS;
+using PCL.Network.Engine;
+using PCL.Network.Loaders;
 
 namespace PCL;
 
@@ -332,7 +334,7 @@ public static class ModLink
                 };
 
                 // 1. Download EasyTier
-                loaders.Add(new ModNet.LoaderDownload("下载 EasyTier", new List<ModNet.NetFile>
+                loaders.Add(new LoaderDownload("下载 EasyTier", new List<DownloadFile>
                 {
                     new(addresses.ToArray(), dlTargetPath, new ModBase.FileChecker(1024 * 64))
                 }) { ProgressWeight = 15 });

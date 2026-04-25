@@ -12,6 +12,7 @@ using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
 using PCL.Core.Utils.OS;
+using PCL.Network;
 
 namespace PCL
 {
@@ -372,8 +373,8 @@ namespace PCL
                 try
                 {
                     // 修正：直接调用静态方法 NetDownloadByClient，而不是 .Download
-                    ModNet.NetDownloadByClient(relativeUrl, localTemp).GetAwaiter().GetResult();
-                    ModNet.NetDownloadByClient(relativeUrl.Replace(".json", ".xaml"), localTemp.Replace(".json", ".xaml"))
+                    FileDownloader.Download(relativeUrl, localTemp).GetAwaiter().GetResult();
+                    FileDownloader.Download(relativeUrl.Replace(".json", ".xaml"), localTemp.Replace(".json", ".xaml"))
                         .GetAwaiter().GetResult();
                 }
                 catch (Exception ex)
