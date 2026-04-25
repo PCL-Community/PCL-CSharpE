@@ -120,7 +120,4 @@
     <ItemGroup>
         <Content Include="LICENCE"/>
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Modules\Network\" />
-    </ItemGroup>
 </Project>
