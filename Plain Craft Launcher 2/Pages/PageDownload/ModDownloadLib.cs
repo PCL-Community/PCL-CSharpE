@@ -2762,12 +2762,6 @@ pause";
                 try
                 {
                     json = Requester.FetchString(url, new RequestParam { UseBrowserUserAgent = true, Timeout = 5000, Retries = 2 });
-                    if (!string.IsNullOrEmpty(json) && json.Contains("\"$isServiceError\":true"))
-                    {
-                        ModBase.Log("[Download] BMCLAPI Fabric meta 返回服务错误，切换到官方源");
-                        json = null;
-                        continue;
-                    }
                     if (json != null) break;
                 }
                 catch (Exception ex)
