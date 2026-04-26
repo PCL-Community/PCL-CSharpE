@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net.Http;
 using System.Threading;
 using Downloader;
 using PCL.Core.Utils;
@@ -7,6 +8,14 @@ namespace PCL.Network;
 
 public static class FileDownloader
 {
+    private static readonly SocketsHttpHandler SharedHandler = new SocketsHttpHandler
+    {
+        MaxConnectionsPerServer = 200,               // 允许高并发连接
+        PooledConnectionLifetime = TimeSpan.FromMinutes(5),   // 连接存活时间
+        PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2), // 空闲连接保留时间
+        AllowAutoRedirect = true
+    };
+
     public static Task Download(string url, string localPath, bool useBrowserUserAgent = false,
         string customUserAgent = "", CancellationToken cancellationToken = default,
         bool enableParallelChunks = true, DownloadFile? trackedFile = null)
@@ -86,7 +95,9 @@ public static class FileDownloader
             MaxTryAgainOnFailure = 2,
             DownloadFileExtension = ModNet.NetDownloadEnd,
             EnableAutoResumeDownload = false,
-            RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent, customUserAgent)
+            RequestConfiguration = DownloadRequestFactory.Create(url, useBrowserUserAgent, customUserAgent),
+            // 传入共享的 SocketsHttpHandler，实现连接池复用
+            CustomHttpMessageHandlerFactory = () => SharedHandler
         };
 
         var downloader = new DownloadService(configuration);
