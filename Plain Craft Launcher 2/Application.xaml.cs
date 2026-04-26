@@ -18,22 +18,6 @@ public partial class Application
 {
     public static readonly List<Border> ShowingTooltips = new();
 
-    /* TODO ERROR: Skipped IfDirectiveTrivia
-    #If DEBUGRESERVED Then
-    */ /* TODO ERROR: Skipped DisabledTextTrivia
-        ''' <summary>
-        ''' 用于开始程序时的一些测试。
-        ''' </summary>
-        Private Sub Test()
-            Try
-                ModDevelop.Start()
-            Catch ex As Exception
-                Log(ex, "开发者模式测试出错", LogLevel.Msgbox)
-            End Try
-        End Sub
-    */ /* TODO ERROR: Skipped EndIfDirectiveTrivia
-    #End If
-    */
     public Application()
     {
         // 注册生命周期事件
