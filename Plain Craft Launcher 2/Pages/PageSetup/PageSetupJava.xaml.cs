@@ -2,8 +2,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Minecraft;
 using PCL.Core.UI;
@@ -59,7 +57,7 @@ public partial class PageSetupJava
                 item.SetChecked(true, false, false);
         }
 
-        if (string.IsNullOrEmpty(Conversions.ToString(currentSetJava)))
+        if (string.IsNullOrEmpty(currentSetJava))
             itemAuto.SetChecked(true, false, false);
     }
     
@@ -168,8 +166,7 @@ public partial class PageSetupJava
                     return;
                 }
 
-                if (target.IsEnabled && Operators.ConditionalCompareObjectEqual(
-                        Config.Launch.SelectedJava, target.Installation.JavaExePath, false))
+                if (target.IsEnabled && Config.Launch.SelectedJava == target.Installation.JavaExePath)
                 {
                     ModMain.Hint("请先取消选择此 Java 作为默认 Java 后再禁用");
                     return;

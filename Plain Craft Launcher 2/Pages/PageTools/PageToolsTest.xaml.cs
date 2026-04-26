@@ -9,8 +9,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.App.Tools;
 using PCL.Core.IO;
@@ -44,7 +42,7 @@ public partial class PageToolsTest
     {
         BtnDownloadStart.IsEnabled = false;
 
-        TextDownloadFolder.Text = Conversions.ToString(States.Tool.DownloadFolder);
+        TextDownloadFolder.Text = States.Tool.DownloadFolder;
         TextDownloadFolder.Validate();
 
         if (!string.IsNullOrEmpty(TextDownloadFolder.ValidateResult) || string.IsNullOrEmpty(TextDownloadFolder.Text))
@@ -52,7 +50,7 @@ public partial class PageToolsTest
 
         TextDownloadFolder.Validate();
         TextDownloadName.Validate();
-        TextUserAgent.Text = Conversions.ToString(States.Tool.DownloadUserAgent);
+        TextUserAgent.Text = States.Tool.DownloadUserAgent;
     }
 
     private void StartButtonRefresh()
@@ -92,13 +90,13 @@ public partial class PageToolsTest
                 case ModBase.LoadState.Finished:
                 {
                     ModMain.Hint($"{Loader.Name}完成！", ModMain.HintType.Finish);
-                    Interaction.Beep();
+                    Console.Beep();
                     break;
                 }
                 case ModBase.LoadState.Failed:
                 {
                     ModBase.Log(Loader.Error, $"{Loader.Name}失败", ModBase.LogLevel.Msgbox);
-                    Interaction.Beep();
+                    Console.Beep();
                     break;
                 }
                 case ModBase.LoadState.Aborted:
@@ -121,7 +119,7 @@ public partial class PageToolsTest
             {
                 Folder = SystemDialogs.SelectSaveFile("选择文件保存位置", FileName);
                 if (!Folder.Contains(@"\")) return;
-                if (Folder.EndsWith(FileName)) Folder = Strings.Mid(Folder, 1, Folder.Length - FileName.Length);
+                if (Folder.EndsWith(FileName)) Folder = Folder[..^FileName.Length];
             }
 
             Folder = Folder.Replace("/", @"\").TrimEnd(new[] { '\\' }) + @"\";
@@ -209,9 +207,7 @@ public partial class PageToolsTest
                     }
 
                     if (!ModMinecraft.McFolderList.Any()) ModMinecraft.McFolderListLoader.Start();
-                    if (Conversions.ToBoolean(
-                            Operators.ConditionalCompareObjectLessEqual(States.Hint.CleanJunkFile, 2,
-                                false)))
+                    if (States.Hint.CleanJunkFile <= 2)
                     {
                         if (ModMain.MyMsgBox(
                                 """
@@ -434,7 +430,7 @@ public partial class PageToolsTest
                 }
                 else
                 {
-                    var Result = Conversions.ToString(ModProfile.McLoginMojangUuid(ID, true));
+                    var Result = (string)ModProfile.McLoginMojangUuid(ID, true);
                     Result = ModMinecraft.McSkinGetAddress(Result, "Mojang");
                     Result = ModMinecraft.McSkinDownload(Result);
                     ModBase.RunInUi(() =>
@@ -479,7 +475,7 @@ public partial class PageToolsTest
         var prime = 33L;
         foreach (var c in str)
         {
-            long charValue = Strings.AscW(c);
+            long charValue = c;
             hash = (hash * prime + charValue) % 0x100000000L;
         }
 
@@ -528,8 +524,7 @@ public partial class PageToolsTest
     // 启动计数显示
     private void BtnLaunchCount_Click(object sender, MouseButtonEventArgs e)
     {
-        var launchCount = Conversions.ToInteger(States.System.LaunchCount);
-        ModMain.MyMsgBox($"PCL 已经为你启动了 {launchCount} 次游戏了。", "启动次数");
+        ModMain.MyMsgBox($"PCL 已经为你启动了 {States.System.LaunchCount} 次游戏了。", "启动次数");
     }
 
     private async void BtnAchievementPreview_Click(object sender, MouseButtonEventArgs e)
@@ -652,29 +647,13 @@ public partial class PageToolsTest
             "SURE") throw new Exception("手动崩溃");
     }
 
-    private int GetHeadSize()
+    private int GetHeadSize() => CmbHeadSize.SelectedIndex switch
     {
-        switch (CmbHeadSize.SelectedIndex)
-        {
-            case 0:
-            {
-                return 64;
-            }
-            case 1:
-            {
-                return 96;
-            }
-            case 2:
-            {
-                return 128;
-            }
-
-            default:
-            {
-                return 64;
-            }
-        }
-    }
+        0 => 64,
+        1 => 96,
+        2 => 128,
+        _ => 64
+    };
 
     private void BtnSelectSkin_Click(object sender, RoutedEventArgs e)
     {

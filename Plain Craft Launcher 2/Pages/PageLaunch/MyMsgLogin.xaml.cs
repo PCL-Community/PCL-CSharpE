@@ -1,8 +1,6 @@
 using System.Net;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.UI.Controls;
 using PCL.Network;
@@ -139,7 +137,7 @@ public partial class MyMsgLogin
             MyConverter = Converter;
             ShapeLine.StrokeThickness = ModBase.GetWPFSize(1d);
             Data = (JObject)Converter.Content;
-            OAuthUrl = Conversions.ToString(Converter.AuthUrl);
+            OAuthUrl = Converter.AuthUrl?.ToString() ?? "";
             Init();
         }
         catch (Exception ex)

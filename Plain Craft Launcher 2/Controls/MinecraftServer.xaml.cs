@@ -2,8 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.Link.McPing;
 using PCL.Core.Link.McPing.Model;
 using PCL.Core.Minecraft;
@@ -26,7 +24,7 @@ public partial class MinecraftServer : Grid
 
     public string Address
     {
-        get => Conversions.ToString(GetValue(AddressProperty));
+        get => (string)(GetValue(AddressProperty));
         set => SetValue(AddressProperty, value);
     }
 

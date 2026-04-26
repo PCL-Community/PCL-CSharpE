@@ -7,8 +7,6 @@ using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -275,7 +273,7 @@ public partial class MyListItem : IMyRadio
         set
         {
             var list = new List<string>();
-            if (value is string) list = Conversions.ToString(value).Split("|").ToList();
+            if (value is string str) list = str.Split("|").ToList();
             if (value is List<string>) list = (List<string>)value;
             PanTags.Children.Clear();
             PanTags.Visibility = list.Any() ? Visibility.Visible : Visibility.Collapsed;
@@ -454,7 +452,7 @@ public partial class MyListItem : IMyRadio
 
     public string Title
     {
-        get => Conversions.ToString(GetValue(TitleProperty));
+        get => (string)GetValue(TitleProperty);
         set => SetValue(TitleProperty, value.Replace("\r", "").Replace("\n", ""));
     }
 
@@ -464,7 +462,7 @@ public partial class MyListItem : IMyRadio
     // 字号
     public double FontSize
     {
-        get => Conversions.ToDouble(GetValue(FontSizeProperty));
+        get => (double)GetValue(FontSizeProperty);
         set => SetValue(FontSizeProperty, value);
     }
 
@@ -474,12 +472,12 @@ public partial class MyListItem : IMyRadio
     // 信息
     public string Info
     {
-        get => Conversions.ToString(GetValue(InfoProperty));
+        get => (string)GetValue(InfoProperty);
         set
         {
-            if ((Info ?? "") == (value ?? ""))
+            if (Info == value)
                 return;
-            value = value.Replace("\r", "").Replace("\n", "");
+            value = value?.Replace("\r", "").Replace("\n", "");
             SetValue(InfoProperty, value);
         }
     }
@@ -506,7 +504,7 @@ public partial class MyListItem : IMyRadio
     private static void OnInfoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (MyListItem)d;
-        var value = Conversions.ToString(e.NewValue);
+        var value = e.NewValue as string;
         control.LabInfo.Text = value;
         control.LabInfo.Visibility = string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
     }
@@ -514,10 +512,10 @@ public partial class MyListItem : IMyRadio
     // 图片
     public string Logo
     {
-        get => Conversions.ToString(GetValue(LogoProperty));
+        get => (string)GetValue(LogoProperty);
         set
         {
-            if ((Logo ?? "") == (value ?? ""))
+            if (Logo == value)
                 return;
             SetValue(LogoProperty, value);
         }
@@ -529,7 +527,7 @@ public partial class MyListItem : IMyRadio
     private static void OnLogoChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var control = (MyListItem)d;
-        var value = Conversions.ToString(e.NewValue);
+        var value = e.NewValue as string;
         control.UpdateLogo(value);
     }
 
