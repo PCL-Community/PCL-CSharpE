@@ -83,12 +83,17 @@ public partial class MyMsgLogin
         // 轮询
         var UnknownFailureCount = 0;
         while (!MyConverter.IsExited)
+        {
             try
             {
-                var Result = Requester.Fetch($"https://login.microsoftonline.com/consumers/oauth2/v2.0/token?grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id={ModSecret.OAuthClientId}&device_code={DeviceCode}&scope=XboxLive.signin%20offline_access",
+                var bodyData = $"grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id={ModSecret.OAuthClientId}&device_code={DeviceCode}&scope=XboxLive.signin%20offline_access";
+
+                var Result = Requester.Fetch(
+                    "https://login.microsoftonline.com/consumers/oauth2/v2.0/token",
                     new FetchParam
                     {
                         Method = "POST",
+                        Content = bodyData,
                         ContentType = "application/x-www-form-urlencoded",
                         Timeout = 5000 + UnknownFailureCount * 5000, MakeLog = false
                     });
@@ -118,6 +123,7 @@ public partial class MyMsgLogin
                     return;
                 }
             }
+        }
     }
 
 

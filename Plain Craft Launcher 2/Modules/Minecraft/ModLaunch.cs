@@ -1124,7 +1124,7 @@ public static class ModLaunch
         };
         string result;
         using (var response = HttpRequest
-                   .CreatePost("https://api.minecraftservices.com/authentication/login_with_xbox")
+                   .CreatePost("https://xsts.auth.xboxlive.com/xsts/authorize")
                    .WithJsonContent(requestData)
                    .SendAsync()
                    .GetAwaiter()
