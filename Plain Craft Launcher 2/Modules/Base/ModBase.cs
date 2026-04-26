@@ -3638,16 +3638,6 @@ public static class ModBase
         // 输出提示
         switch (Level)
         {
-            /* TODO ERROR: Skipped IfDirectiveTrivia
-            #If DEBUGRESERVED Then
-            */ /* TODO ERROR: Skipped DisabledTextTrivia
-                        Case LogLevel.Developer
-                            Hint("[开发者模式] " & Text, HintType.Info, False)
-                        Case LogLevel.Debug
-                            Hint("[调试模式] " & Text, HintType.Info, False)
-            */ /* TODO ERROR: Skipped ElseDirectiveTrivia
-            #Else
-            */
             case LogLevel.Developer:
             {
                 break;
@@ -3754,18 +3744,6 @@ public static class ModBase
             {
                 break;
             }
-            /* TODO ERROR: Skipped IfDirectiveTrivia
-            #If DEBUGRESERVED Then
-            */ /* TODO ERROR: Skipped DisabledTextTrivia
-                        Case LogLevel.Developer
-                            Dim ExLine As String = Desc & "：" & Ex.ToString()
-                            Hint("[开发者模式] " & ExLine, HintType.Info, False)
-                        Case LogLevel.Debug
-                            Dim ExLine As String = Desc & "：" & Ex.ToString()
-                            Hint("[调试模式] " & ExLine, HintType.Info, False)
-            */ /* TODO ERROR: Skipped ElseDirectiveTrivia
-            #Else
-            */
             case LogLevel.Developer:
             {
                 break;
