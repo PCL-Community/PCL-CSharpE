@@ -4,8 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using FluentValidation;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.VisualBasic.FileIO;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
@@ -90,9 +88,8 @@ public partial class PageInstanceOverall
         var LogoCustom = States.Instance.IsLogoCustom[instance.PathInstance];
         if (LogoCustom)
             foreach (MyComboBoxItem Selection in ComboDisplayLogo.Items)
-                if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(Selection.Tag, Logo, false)) ||
-                    (Conversions.ToBoolean(
-                         Operators.ConditionalCompareObjectEqual(Selection.Tag, @"PCL\Logo.png", false)) &&
+                if (Equals(Selection.Tag, Logo) ||
+                    (Equals(Selection.Tag, @"PCL\Logo.png") &&
                      Logo.EndsWith(@"PCL\Logo.png")))
                 {
                     ComboDisplayLogo.SelectedItem = Selection;
@@ -240,9 +237,7 @@ public partial class PageInstanceOverall
             {
                 // 若设置分类为可安装 Mod，则显示正常的 Mod 管理页面
                 States.Instance.CardType[PageInstanceLeft.Instance.PathInstance] = ComboDisplayType.SelectedIndex;
-                PageInstanceLeft.Instance.DisplayType =
-                    (ModMinecraft.McInstanceCardType)Conversions.ToInteger(
-                        States.Instance.CardType[PageInstanceLeft.Instance.PathInstance]);
+                PageInstanceLeft.Instance.DisplayType = (ModMinecraft.McInstanceCardType)States.Instance.CardType[PageInstanceLeft.Instance.PathInstance];
                 ModMain.FrmInstanceLeft.RefreshModDisabled();
 
                 ModBase.WriteIni(ModMinecraft.McFolderSelected + "PCL.ini", "InstanceCache", ""); // 要求刷新缓存
@@ -261,7 +256,7 @@ public partial class PageInstanceOverall
             // 改为隐藏
             try
             {
-                if (Conversions.ToBoolean(!(bool)States.Hint.HideGameInstance))
+                if (!States.Hint.HideGameInstance)
                 {
                     if (ModMain.MyMsgBox(
                             "确认要从实例列表中隐藏该实例吗？隐藏该实例后，它将不再出现于 PCL 显示的实例列表中。" + "\r\n" +
@@ -440,7 +435,7 @@ public partial class PageInstanceOverall
         // 进行更改
         try
         {
-            string NewLogo = Conversions.ToString(((MyComboBoxItem)ComboDisplayLogo.SelectedItem).Tag);
+            string NewLogo = ((MyComboBoxItem)ComboDisplayLogo.SelectedItem).Tag?.ToString();
             States.Instance.LogoPath[PageInstanceLeft.Instance.PathInstance] = NewLogo;
             States.Instance.IsLogoCustom[PageInstanceLeft.Instance.PathInstance] = !string.IsNullOrEmpty(NewLogo);
             // 刷新显示
@@ -548,7 +543,7 @@ public partial class PageInstanceOverall
         try
         {
             // 忽略文件检查提示
-            if (Conversions.ToBoolean(ModMinecraft.ShouldIgnoreFileCheck(PageInstanceLeft.Instance)))
+            if ((bool)ModMinecraft.ShouldIgnoreFileCheck(PageInstanceLeft.Instance))
             {
                 ModMain.Hint("请先关闭 [实例设置 → 设置 → 高级启动选项 → 关闭文件校验]，然后再尝试补全文件！");
                 return;

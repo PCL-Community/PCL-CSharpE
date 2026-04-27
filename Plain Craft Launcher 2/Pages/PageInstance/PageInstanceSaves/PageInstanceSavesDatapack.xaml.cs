@@ -5,8 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.UI;
@@ -866,7 +864,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     // 点击筛选项触发的改变
     private void ChangeFilter(MyRadioButton sender, bool raiseByMouse)
     {
-        Filter = (FilterType)Conversions.ToInteger(sender.Tag);
+        Filter = (FilterType)Convert.ToInt32(sender.Tag);
         RefreshUI();
         DoSort();
     }
@@ -1157,7 +1155,7 @@ public partial class PageInstanceSavesDatapack : IRefreshable
     public void UpdateResource(IEnumerable<ModLocalComp.LocalCompFile> DatapackList)
     {
         // 更新前警告
-        if (Conversions.ToBoolean(!States.Hint.FunctionDatapackUpdate || DatapackList.Count() >= 15))
+        if (!States.Hint.FunctionDatapackUpdate || DatapackList.Count() >= 15)
         {
             if (ModMain.MyMsgBox(
                     $"新版本数据包可能不兼容旧存档或者其他数据包，这可能导致游戏崩溃或存档损坏！{"\r\n"}{"\r\n"}在更新前，请先备份存档。{"\r\n"}如果更新后出现问题，你也可以在回收站找回更新前的数据包。",

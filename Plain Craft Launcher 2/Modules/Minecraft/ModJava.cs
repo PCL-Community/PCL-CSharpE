@@ -1,7 +1,5 @@
 using System.IO;
 using System.Text.Json;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.IO;
@@ -239,7 +237,7 @@ public static class ModJava
         try
         {
             // 检查强制指定
-            var UserSetup = Conversions.ToString(Config.Launch.SelectedJava);
+            var UserSetup = Config.Launch.SelectedJava;
             if (UserSetup.StartsWith("{")) // 旧版本 Json 格式
             {
                 var js = JToken.Parse(UserSetup);

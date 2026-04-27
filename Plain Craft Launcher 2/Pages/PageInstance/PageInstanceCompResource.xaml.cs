@@ -5,8 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using PCL.Core.Logging;
@@ -224,8 +222,7 @@ public partial class PageInstanceCompResource : IRefreshable
         IsLoad = true;
 
         // 检查是否为原理图管理界面且首次打开
-        if (Conversions.ToBoolean(CurrentCompType == ModComp.CompType.Schematic &&
-                                  !States.Hint.SchematicFirstTime))
+        if (CurrentCompType == ModComp.CompType.Schematic && !States.Hint.SchematicFirstTime)
             // 显示首次打开提示
             ModBase.RunInUi(() =>
             {
@@ -1592,7 +1589,7 @@ public partial class PageInstanceCompResource : IRefreshable
     // 点击筛选项触发的改变
     private void ChangeFilter(MyRadioButton sender, bool raiseByMouse)
     {
-        Filter = (FilterType)Conversions.ToInteger(sender.Tag);
+        Filter = (FilterType)Convert.ToInt32(sender.Tag);
         RefreshUI();
         DoSort();
     }
@@ -1972,8 +1969,7 @@ public partial class PageInstanceCompResource : IRefreshable
     public void UpdateResource(IEnumerable<ModLocalComp.LocalCompFile> ModList)
     {
         // 更新前警告
-        if (Conversions.ToBoolean(CurrentCompType == ModComp.CompType.Mod &&
-                                  (!States.Hint.UpdateMod || ModList.Count() >= 15)))
+        if (CurrentCompType == ModComp.CompType.Mod && (!States.Hint.UpdateMod || ModList.Count() >= 15))
         {
             if (ModMain.MyMsgBox(
                     $"新版本 Mod 可能不兼容旧存档或者其他 Mod，这可能导致游戏崩溃，甚至永久损坏存档！{"\r\n"}如果你在游玩整合包，请千万不要自行更新 Mod！{"\r\n"}{"\r\n"}在更新前，请先备份存档，并检查 Mod 的更新日志。{"\r\n"}如果更新后出现问题，你也可以在回收站找回更新前的 Mod。",
@@ -2484,7 +2480,7 @@ public partial class PageInstanceCompResource : IRefreshable
                         if (IsLastLower && !IsCurrentLower)
                             // 上一个字母为小写，这一个字母为大写
                             ModSearchName += "+";
-                        ModSearchName += Conversions.ToString(ModOriginalName[i]);
+                        ModSearchName += ModOriginalName[i].ToString();
                     }
 
                     ModSearchName = ModSearchName.Replace("++", "+").Replace("pti+Fine", "ptiFine");

@@ -1,7 +1,6 @@
 using System.IO;
 using System.Windows;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
+ 
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
@@ -26,7 +25,7 @@ public partial class PageLaunchRight : IRefreshable
         PanScroll = PanBack; // 不知道为啥不能在 XAML 设置
         PanLog.Visibility = ModBase.ModeDebug ? Visibility.Visible : Visibility.Collapsed;
         // 社区版提示
-        PanHint.Visibility = Conversions.ToBoolean(States.Hint.CEMessage)
+        PanHint.Visibility = States.Hint.CEMessage
             ? Visibility.Visible
             : Visibility.Collapsed;
         LabHint1.Text =
@@ -314,10 +313,10 @@ public partial class PageLaunchRight : IRefreshable
             var NeedDownload = true;
             try
             {
-                Version = Conversions.ToString(Requester.FetchString(VersionAddress));
+                Version = Requester.FetchString(VersionAddress);
                 if (Version.Length > 1000)
                     throw new Exception($"获取的主页版本过长（{Version.Length} 字符）");
-                var CurrentVersion = Conversions.ToString(States.UI.SavedHomepageVersion);
+                var CurrentVersion = States.UI.SavedHomepageVersion;
                 if (!string.IsNullOrEmpty(Version) && !string.IsNullOrEmpty(CurrentVersion) &&
                     (Version ?? "") == (CurrentVersion ?? ""))
                 {
