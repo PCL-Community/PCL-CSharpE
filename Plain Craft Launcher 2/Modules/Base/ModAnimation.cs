@@ -4,8 +4,6 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Network;
@@ -137,9 +135,8 @@ public static partial class ModAnimation
                         if (Anim.TimeFinished >= Anim.TimeTotal)
                         {
                             // 如果是去向颜色资源的动画，设置引用
-                            if (Conversions.ToBoolean(Anim.TypeMain == AniType.Color &&
-                                                      !Operators.ConditionalCompareObjectEqual(((dynamic)Anim.Obj)[2],
-                                                          "", false)))
+                            if (Anim.TypeMain == AniType.Color &&
+                                !string.Equals(((dynamic)Anim.Obj)[2] as string, "", StringComparison.Ordinal))
                                 ((dynamic)Anim.Obj)[0]
                                     .SetResourceReference(((dynamic)Anim.Obj)[1], ((dynamic)Anim.Obj)[2]);
                             // 删除
@@ -203,7 +200,7 @@ public static partial class ModAnimation
             {
                 case AniType.Number:
                 {
-                    var Delta = ModBase.MathPercent(0d, Conversions.ToDouble(Ani.Value),
+                    var Delta = ModBase.MathPercent(0d, (double)Ani.Value,
                         Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent));
                     if (Delta != 0d)
                         switch (Ani.TypeSub)
@@ -221,8 +218,7 @@ public static partial class ModAnimation
                             case AniTypeSub.Opacity:
                             {
                                 ((dynamic)Ani.Obj).Opacity = ModBase.MathClamp(
-                                    Conversions.ToDouble(Operators.AddObject(((dynamic)Ani.Obj).Opacity, Delta)), 0d,
-                                    1d);
+                                    Convert.ToDouble(((dynamic)Ani.Obj).Opacity) + Delta, 0d, 1d);
                                 break;
                             }
                             case AniTypeSub.Width:
@@ -252,7 +248,7 @@ public static partial class ModAnimation
                             case AniTypeSub.StrokeThickness:
                             {
                                 ((dynamic)Ani.Obj).StrokeThickness =
-                                    Math.Max(Operators.AddObject(((dynamic)Ani.Obj).StrokeThickness, Delta), 0);
+                                    Math.Max(Convert.ToDouble(((dynamic)Ani.Obj).StrokeThickness) + Delta, 0);
                                 break;
                             }
                             case AniTypeSub.BorderThickness:
@@ -280,7 +276,7 @@ public static partial class ModAnimation
                             case AniTypeSub.Double:
                             {
                                 ((dynamic)Ani.Obj)[0].SetValue(((dynamic)Ani.Obj)[1],
-                                    Operators.AddObject(((dynamic)Ani.Obj)[0].GetValue(((dynamic)Ani.Obj)[1]), Delta));
+                                    Convert.ToDouble(((dynamic)Ani.Obj)[0].GetValue(((dynamic)Ani.Obj)[1])) + Delta);
                                 break;
                             }
                             case AniTypeSub.DoubleParam:
@@ -292,8 +288,8 @@ public static partial class ModAnimation
                             {
                                 ((dynamic)Ani.Obj).Width =
                                     new GridLength(
-                                        Conversions.ToDouble(
-                                            Math.Max(Operators.AddObject(((dynamic)Ani.Obj).Width.Value, Delta), 0)),
+                                        Convert.ToDouble(
+                                            Math.Max(Convert.ToDouble(((dynamic)Ani.Obj).Width.Value) + Delta, 0)),
                                         GridUnitType.Star);
                                 break;
                             }
@@ -322,36 +318,35 @@ public static partial class ModAnimation
                     var Delta = Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent);
                     Obj.Margin = new Thickness(
                         Obj.Margin.Left +
-                        ModBase.MathPercent(0d, Conversions.ToDouble(((dynamic)Ani.Value).Left), Delta),
-                        Obj.Margin.Top + ModBase.MathPercent(0d, Conversions.ToDouble(((dynamic)Ani.Value).Top), Delta),
+                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Left), Delta),
+                        Obj.Margin.Top + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Top), Delta),
                         Obj.Margin.Right +
-                        ModBase.MathPercent(0d, Conversions.ToDouble(((dynamic)Ani.Value).Left), Delta),
+                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Left), Delta),
                         Obj.Margin.Bottom +
-                        ModBase.MathPercent(0d, Conversions.ToDouble(((dynamic)Ani.Value).Top), Delta));
+                        ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Top), Delta));
                     Obj.Width = Math.Max(
-                        Obj.Width + ModBase.MathPercent(0d, Conversions.ToDouble(((dynamic)Ani.Value).Width), Delta),
-                        0d);
+                        Obj.Width + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Width), Delta), 0d);
                     Obj.Height =
                         Math.Max(
-                            Obj.Height + ModBase.MathPercent(0d, Conversions.ToDouble(((dynamic)Ani.Value).Height),
-                                Delta), 0d);
+                            Obj.Height + ModBase.MathPercent(0d, Convert.ToDouble(((dynamic)Ani.Value).Height), Delta), 0d);
                     break;
                 }
 
                 case AniType.TextAppear:
                 {
+                    var hideFlag = (bool)((dynamic)Ani.Value)[1];
+                    var textLength = ((dynamic)Ani.Value)[0].ToString().Length;
                     var TextCount = (int)Math.Round(
-                        (double)(Conversions.ToBoolean(((dynamic)Ani.Value)[1])
-                            ? ((dynamic)Ani.Value)[0].ToString().Length
-                            : 0) + Math.Round(
-                            ((dynamic)Ani.Value)[0].ToString().Length *
-                            (Conversions.ToBoolean(((dynamic)Ani.Value)[1]) ? -1 : 1) *
+                        (double)(hideFlag ? textLength : 0) + Math.Round(
+                            textLength *
+                            (hideFlag ? -1 : 1) *
                             Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, 0d)));
-                    var NewText = Strings.Mid(Conversions.ToString(((dynamic)Ani.Value)[0]), 1, TextCount);
+                    var originalText = ((dynamic)Ani.Value)[0].ToString();
+                    var NewText = originalText.Substring(0, Math.Min(TextCount, originalText.Length));
                     // 添加乱码
-                    if (TextCount < ((dynamic)Ani.Value)[0].ToString().Length)
+                    if (TextCount < originalText.Length)
                     {
-                        var NextText = Strings.Mid(Conversions.ToString(((dynamic)Ani.Value)[0]), TextCount + 1, 1);
+                        var NextText = originalText.Substring(TextCount, 1);
                         if (Convert.ToInt32(Convert.ToChar(NextText)) >= Convert.ToInt32(Convert.ToChar(128)))
                             NewText += Encoding.GetEncoding("GB18030").GetString(new[]
                             {
@@ -388,7 +383,7 @@ public static partial class ModAnimation
                         Obj.RenderTransform = new ScaleTransform(1d, 1d);
                     }
 
-                    var Delta = ModBase.MathPercent(0d, Conversions.ToDouble(Ani.Value),
+                    var Delta = ModBase.MathPercent(0d, (double)Ani.Value,
                         Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent));
                     ((ScaleTransform)Obj.RenderTransform).ScaleX =
                         Math.Max(((ScaleTransform)Obj.RenderTransform).ScaleX + Delta, 0d);
@@ -406,7 +401,7 @@ public static partial class ModAnimation
                         Obj.RenderTransform = new RotateTransform(0d);
                     }
 
-                    var Delta = ModBase.MathPercent(0d, Conversions.ToDouble(Ani.Value),
+                    var Delta = ModBase.MathPercent(0d, (double)Ani.Value,
                         Ani.Ease.GetDelta(Ani.TimeFinished / (double)Ani.TimeTotal, Ani.TimePercent));
                     ((RotateTransform)Obj.RenderTransform).Angle = ((RotateTransform)Obj.RenderTransform).Angle + Delta;
                     break;
@@ -1004,12 +999,10 @@ public static partial class ModAnimation
             ChangeRect = new ModBase.MyRect(-0.5d * Value, -0.5d * Value, Value, Value);
         else
             ChangeRect = new ModBase.MyRect(
-                Conversions.ToDouble(
-                    Operators.MultiplyObject(Operators.MultiplyObject(-0.5d, ((dynamic)Obj).ActualWidth), Value)),
-                Conversions.ToDouble(
-                    Operators.MultiplyObject(Operators.MultiplyObject(-0.5d, ((dynamic)Obj).ActualHeight), Value)),
-                Conversions.ToDouble(Operators.MultiplyObject(((dynamic)Obj).ActualWidth, Value)),
-                Conversions.ToDouble(Operators.MultiplyObject(((dynamic)Obj).ActualHeight, Value)));
+                Convert.ToDouble(-0.5d * ((dynamic)Obj).ActualWidth * Value),
+                Convert.ToDouble(-0.5d * ((dynamic)Obj).ActualHeight * Value),
+                Convert.ToDouble(((dynamic)Obj).ActualWidth * Value),
+                Convert.ToDouble(((dynamic)Obj).ActualHeight * Value));
         return new AniData
         {
             TypeMain = AniType.Scale, TimeTotal = Time, Ease = Ease ?? new AniEaseLinear(), Obj = Obj,
