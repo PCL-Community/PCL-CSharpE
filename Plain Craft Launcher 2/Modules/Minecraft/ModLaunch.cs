@@ -1607,6 +1607,7 @@ public static class ModLaunch
             new FetchParam
             {
                 Method = "POST",
+                Content = RefreshInfo.ToString(Newtonsoft.Json.Formatting.None),
                 Headers = new Dictionary<string, string> { { "Accept-Language", "zh-CN" } },
                 ContentType = "application/json"
             }
