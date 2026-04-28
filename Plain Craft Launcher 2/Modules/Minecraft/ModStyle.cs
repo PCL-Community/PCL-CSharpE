@@ -4,7 +4,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.UI.Controls;
 
@@ -53,7 +52,7 @@ internal static class ModStyle
 
         public void Dispose()
         {
-            if (Conversions.ToBoolean(_isDisposed))
+            if ((bool)_isDisposed)
                 return;
             _isDisposed = true;
             // 资源释放
@@ -191,7 +190,7 @@ internal static class ModStyle
 
             foreach (var c in text)
             {
-                if (Conversions.ToString(c) == "§") // 下一字符是格式化代码
+                if (c.ToString() == "§") // 下一字符是格式化代码
                 {
                     isColorCode = true;
                     continue;
@@ -250,8 +249,7 @@ internal static class ModStyle
                             }
                         }
 
-                    if (!string.IsNullOrEmpty(curRun.Text) && Conversions.ToString(c) != "k" &&
-                        Conversions.ToString(c) != "K") // 遇到格式代码但是有文本，重开一个Run
+                    if (!string.IsNullOrEmpty(curRun.Text) && c.ToString() != "k" && c.ToString() != "K") // 遇到格式代码但是有文本，重开一个Run
                     {
                         curRun = new TimerRun();
                         lab.Inlines.Add(curRun);
@@ -266,11 +264,11 @@ internal static class ModStyle
                 else if (IsRandomText)
                 {
                     // 随机模式下，添加随机字符
-                    curRun.Text += Conversions.ToString(randomChars[random.Next(randomChars.Length)]);
+                    curRun.Text += randomChars[random.Next(randomChars.Length)].ToString();
                 }
                 else
                 {
-                    curRun.Text += Conversions.ToString(c);
+                    curRun.Text += c.ToString();
                 }
 
                 if (isColorCode)
