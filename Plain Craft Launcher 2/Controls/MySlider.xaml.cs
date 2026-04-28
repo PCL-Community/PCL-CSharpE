@@ -143,6 +143,8 @@ public partial class MySlider
 
     private void DragStart(object sender, MouseButtonEventArgs e)
     {
+        CaptureMouse();
+        MouseMove += OnDragMouseMove;
         e.Handled = true; // 防止 ScrollViewer 失焦问题
         ModMain.DragControl = this;
         RefreshColor();
@@ -166,9 +168,16 @@ public partial class MySlider
         if (!(NewValue == Value)) Value = NewValue;
         RefreshPopup();
     }
-
+    
+    private void OnDragMouseMove(object sender, MouseEventArgs e)
+    {
+        DragDoing();
+    }
+    
     public void DragStop()
     {
+        MouseMove -= OnDragMouseMove;
+        if (IsMouseCaptured) ReleaseMouseCapture();
         RefreshColor();
         ModAnimation.AniStart(
             new[]
