@@ -1,7 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 
 namespace PCL;
@@ -35,17 +33,17 @@ public partial class PageSetupGameManage
     public void Reload()
     {
         // 下载
-        SliderDownloadThread.Value = Conversions.ToInteger(Config.Download.ThreadLimit);
-        SliderDownloadSpeed.Value = Conversions.ToInteger(Config.Download.SpeedLimit);
-        ComboDownloadSource.SelectedIndex = Conversions.ToInteger(Config.Download.FileSource);
-        ComboDownloadVersion.SelectedIndex = Conversions.ToInteger(Config.Download.VersionListSource);
+        SliderDownloadThread.Value = Config.Download.ThreadLimit;
+        SliderDownloadSpeed.Value = Config.Download.SpeedLimit;
+        ComboDownloadSource.SelectedIndex = Config.Download.FileSource;
+        ComboDownloadVersion.SelectedIndex = Config.Download.VersionListSource;
         CheckDownloadAutoSelectVersion.Checked = (bool?)Config.Download.AutoSelectInstance;
         CheckFixAuthlib.Checked = (bool?)Config.Download.FixAuthLib;
 
         // Mod 与整合包
-        ComboDownloadTranslateV2.SelectedIndex = Conversions.ToInteger(Config.Download.Comp.NameFormatV2);
-        ComboDownloadMod.SelectedIndex = Conversions.ToInteger(Config.Download.Comp.CompSourceSolution);
-        ComboModLocalNameStyle.SelectedIndex = Conversions.ToInteger(Config.Download.Comp.UiCompNameSolution);
+        ComboDownloadTranslateV2.SelectedIndex = Config.Download.Comp.NameFormatV2;
+        ComboDownloadMod.SelectedIndex = Config.Download.Comp.CompSourceSolution;
+        ComboModLocalNameStyle.SelectedIndex = Config.Download.Comp.UiCompNameSolution;
         CheckDownloadIgnoreQuilt.Checked = (bool?)Config.Download.Comp.IgnoreQuilt;
         CheckDownloadClipboard.Checked = (bool?)Config.Download.Comp.ReadClipboard;
 
@@ -100,27 +98,20 @@ public partial class PageSetupGameManage
     // 滑动条
     private void SliderLoad()
     {
-        SliderDownloadThread.GetHintText = new Func<object, object>(v => Operators.AddObject(v, 1));
+        SliderDownloadThread.GetHintText = new Func<object, object>(v => (int)v + 1);
         SliderDownloadSpeed.GetHintText = new Func<object, object>(v =>
         {
-            switch (v)
+            int value = (int)v;
+            switch (value)
             {
-                case var @case when Operators.ConditionalCompareObjectLessEqual(@case, 14, false):
-                {
-                    return $"{Operators.MultiplyObject(Operators.AddObject(v, 1), 0.1d):F1} M/s";
-                }
-                case var case1 when Operators.ConditionalCompareObjectLessEqual(case1, 31, false):
-                {
-                    return $"{Operators.MultiplyObject(Operators.SubtractObject(v, 11), 0.5d):F1} M/s";
-                }
-                case var case2 when Operators.ConditionalCompareObjectLessEqual(case2, 41, false):
-                {
-                    return Operators.ConcatenateObject(Operators.SubtractObject(v, 21), " M/s");
-                }
+                case <= 14:
+                    return $"{(value + 1) * 0.1:F1} M/s";
+                case <= 31:
+                    return $"{(value - 11) * 0.5:F1} M/s";
+                case <= 41:
+                    return $"{value - 21} M/s";
                 default:
-                {
                     return "无限制";
-                }
             }
         });
     }

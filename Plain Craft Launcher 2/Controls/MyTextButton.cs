@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -56,7 +55,7 @@ public class MyTextButton : Label
 
     public string Text
     {
-        get => Conversions.ToString(GetValue(TextProperty));
+        get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
     }
 

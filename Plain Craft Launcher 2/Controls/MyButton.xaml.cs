@@ -3,7 +3,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -26,7 +25,7 @@ public partial class MyButton
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyButton), new PropertyMetadata((sender, e) =>
         {
-            if (sender is not null) ((MyButton)sender).LabText.Text = Conversions.ToString(e.NewValue);
+            if (sender is not null) ((MyButton)sender).LabText.Text = (string)e.NewValue;
         }));
 
     // 属性穿透
@@ -63,7 +62,7 @@ public partial class MyButton
 
     public string Text
     {
-        get => Conversions.ToString(GetValue(TextProperty));
+        get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
     } // 显示文本
 

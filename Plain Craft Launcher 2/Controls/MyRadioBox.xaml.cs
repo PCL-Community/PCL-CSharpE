@@ -4,7 +4,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Shapes;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -33,7 +32,7 @@ public partial class MyRadioBox : IMyRadio
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyRadioBox), new PropertyMetadata((sender, e) =>
         {
-            if (sender is not null) ((MyRadioBox)sender).LabText.Text = Conversions.ToString(e.NewValue);
+            if (sender is not null) ((MyRadioBox)sender).LabText.Text = (string)e.NewValue;
         }));
 
     private bool AllowMouseDown = true;
@@ -60,7 +59,7 @@ public partial class MyRadioBox : IMyRadio
     // 自定义属性
     public bool Checked
     {
-        get => Conversions.ToBoolean(GetValue(CheckedProperty));
+        get => (bool)GetValue(CheckedProperty);
         set => SetChecked(value, false);
     }
 
@@ -68,7 +67,7 @@ public partial class MyRadioBox : IMyRadio
 
     public string Text
     {
-        get => Conversions.ToString(GetValue(TextProperty));
+        get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
     } // 内容
 

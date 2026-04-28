@@ -1,7 +1,6 @@
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Utils;

@@ -5,7 +5,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.UI.Controls;
 
 namespace PCL;
@@ -95,7 +94,7 @@ public class MyCard : AnimatedBackgroundGrid
 
     public string Title
     {
-        get => Conversions.ToString(GetValue(TitleProperty));
+        get => (string)GetValue(TitleProperty);
         set
         {
             SetValue(TitleProperty, value);
@@ -210,7 +209,7 @@ public class MyCard : AnimatedBackgroundGrid
             ModAnimation.AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject4", 90),
             ModAnimation.AaOpacity(MainChrome, DropShadowHoverOpacity - MainChrome.Opacity, 90)
         });
-        if (Conversions.ToBoolean(!IsAnimating))
+        if (!IsAnimating)
             ModAnimation.AniStart(AniList, "MyCard Mouse " + Uuid);
     }
 
@@ -228,7 +227,7 @@ public class MyCard : AnimatedBackgroundGrid
             ModAnimation.AaColor(MainChrome, MyDropShadow.ColorProperty, "ColorObject1", 90),
             ModAnimation.AaOpacity(MainChrome, DropShadowIdleOpacity - MainChrome.Opacity, 90)
         });
-        if (Conversions.ToBoolean(!IsAnimating))
+        if (!IsAnimating)
             ModAnimation.AniStart(AniList, "MyCard Mouse " + Uuid);
     }
 

@@ -1,4 +1,3 @@
-using Microsoft.VisualBasic.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -38,7 +37,7 @@ public partial class MySearchBox : MyCard
 
     public Visibility SearchButtonVisibility
     {
-        get => (Visibility)Conversions.ToByte(BtnSearch.Visibility == Visibility.Visible);
+        get => BtnSearch.Visibility;
         set
         {
             BtnClear.Margin = new Thickness(0d, 0d, value == Visibility.Visible ? 70 : 10, 0d);

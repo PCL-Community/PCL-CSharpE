@@ -3,7 +3,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -20,7 +19,7 @@ public partial class MyExtraTextButton
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyExtraTextButton), new PropertyMetadata((sender, e) =>
         {
-            if (sender is not null) ((MyExtraTextButton)sender).LabText.Text = Conversions.ToString(e.NewValue);
+            if (sender is not null) ((MyExtraTextButton)sender).LabText.Text = (string)e.NewValue;
         }));
 
     private string _Logo = "";
@@ -76,7 +75,7 @@ public partial class MyExtraTextButton
 
     public string Text
     {
-        get => Conversions.ToString(GetValue(TextProperty));
+        get => (string)GetValue(TextProperty);
         set
         {
             if (value == null) return;

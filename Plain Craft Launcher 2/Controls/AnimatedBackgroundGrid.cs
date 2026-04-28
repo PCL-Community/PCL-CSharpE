@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -38,7 +37,7 @@ public class AnimatedBackgroundGrid : Grid
     protected bool IsAnimating
     {
         get => _isAnimating;
-        private set => _isAnimating = Conversions.ToBoolean(value);
+        private set => _isAnimating = value;
     }
 
     public SolidColorBrush BackgroundBrush

@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -193,7 +192,7 @@ public partial class MySlider
         if (GetHintText is null)
             return;
         Popup.IsOpen = true;
-        TextHint.Text = Conversions.ToString(GetHintText.DynamicInvoke(Value));
+        TextHint.Text = GetHintText.DynamicInvoke(Value)?.ToString() ?? "";
         var typeface = new Typeface(TextHint.FontFamily, TextHint.FontStyle, TextHint.FontWeight, TextHint.FontStretch);
         var formattedText = new FormattedText(TextHint.Text, Thread.CurrentThread.CurrentCulture,
             TextHint.FlowDirection, typeface, TextHint.FontSize, TextHint.Foreground, ModBase.DPI);

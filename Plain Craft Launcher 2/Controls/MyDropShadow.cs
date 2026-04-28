@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -40,7 +39,7 @@ public class MyDropShadow : Decorator
     /// </summary>
     public double ShadowRadius
     {
-        get => Conversions.ToDouble(GetValue(ShadowRadiusProperty));
+        get => (double)GetValue(ShadowRadiusProperty);
         set => SetValue(ShadowRadiusProperty, value);
     }
 

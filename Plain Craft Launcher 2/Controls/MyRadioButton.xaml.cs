@@ -5,7 +5,6 @@ using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -33,7 +32,7 @@ public partial class MyRadioButton
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyRadioButton), new PropertyMetadata((sender, e) =>
         {
-            if (sender is MyRadioButton rb && rb.LabText != null) rb.LabText.Text = Conversions.ToString(e.NewValue);
+            if (sender is MyRadioButton rb && rb.LabText != null) rb.LabText.Text = (string)e.NewValue;
         }));
 
     private bool _Checked; // 是否选中
@@ -52,7 +51,7 @@ public partial class MyRadioButton
         Loaded += (_, _) =>
         {
             if (LabText != null)
-                LabText.Text = Conversions.ToString(GetValue(TextProperty));
+                LabText.Text = (string)GetValue(TextProperty);
         };
 
         MouseLeftButtonUp += (_, _) => Radiobox_MouseUp();

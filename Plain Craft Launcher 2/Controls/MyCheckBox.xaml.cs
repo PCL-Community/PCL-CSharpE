@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -39,7 +38,7 @@ public partial class MyCheckBox
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyCheckBox), new PropertyMetadata((sender, e) =>
         {
-            if (!(sender == null)) ((MyCheckBox)sender).LabText.Text = Conversions.ToString(e.NewValue);
+            if (sender is not null) ((MyCheckBox)sender).LabText.Text = (string)e.NewValue;
         }));
 
     private bool? _previousState = false; // 上一次的勾选状态
@@ -74,7 +73,7 @@ public partial class MyCheckBox
 
     public bool IsThreeState
     {
-        get => Conversions.ToBoolean(GetValue(IsThreeStateProperty));
+        get => (bool)GetValue(IsThreeStateProperty);
         set => SetValue(IsThreeStateProperty, value);
     } // 是否为三态复选框
 
@@ -82,7 +81,7 @@ public partial class MyCheckBox
 
     public string Text
     {
-        get => Conversions.ToString(GetValue(TextProperty));
+        get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
     } // 内容
 

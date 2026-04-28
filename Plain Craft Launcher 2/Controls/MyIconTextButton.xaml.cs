@@ -4,7 +4,6 @@ using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -31,7 +30,7 @@ public partial class MyIconTextButton
     public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string),
         typeof(MyIconTextButton), new PropertyMetadata((sender, e) =>
         {
-            if (!(sender == null)) ((MyIconTextButton)sender).LabText.Text = Conversions.ToString(e.NewValue);
+            if (sender is not null) ((MyIconTextButton)sender).LabText.Text = (string)e.NewValue;
         }));
 
     public static readonly DependencyProperty ColorTypeProperty = DependencyProperty.Register("ColorType",
@@ -83,13 +82,13 @@ public partial class MyIconTextButton
 
     public string Text
     {
-        get => Conversions.ToString(GetValue(TextProperty));
+        get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
     } // 内容
 
     public ColorState ColorType
     {
-        get => (ColorState)Conversions.ToInteger(GetValue(ColorTypeProperty));
+        get => (ColorState)GetValue(ColorTypeProperty);
         set
         {
             if (ColorType == value)

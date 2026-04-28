@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 
 namespace PCL;
@@ -33,12 +32,11 @@ public class MyMenuItem : MenuItem
         {
             var IconControl = (Path)GetTemplateChild("Icon");
             if (IconControl is not null)
-                IconControl.Data = (Geometry)new GeometryConverter().ConvertFromString(Conversions.ToString(Icon));
+                IconControl.Data = (Geometry)new GeometryConverter().ConvertFromString(Icon.ToString());
             // 对父级设置透明度
         }
 
-        ((ContextMenu)Parent).Opacity = Conversions.ToDouble(
-            Operators.AddObject(Operators.DivideObject(Config.Preference.Theme.WindowOpacity, 1000), 0.4d));
+        ((ContextMenu)Parent).Opacity = Config.Preference.Theme.WindowOpacity / 1000.0 + 0.4;
     }
 
     private void RefreshColor()

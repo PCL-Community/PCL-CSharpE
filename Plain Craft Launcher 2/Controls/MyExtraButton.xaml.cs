@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -145,9 +144,7 @@ public partial class MyExtraButton
         if (IsLeftMouseHeld)
         {
             ModBase.Log("[Control] 按下附加按钮" +
-                        (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(ToolTip, "", false))
-                            ? ""
-                            : "：" + ToolTip));
+                        (ToolTip is null or "" ? "" : "：" + ToolTip));
             Click?.Invoke(sender, e);
             e.Handled = true;
             Button_LeftMouseUp();
@@ -159,9 +156,7 @@ public partial class MyExtraButton
         if (IsRightMouseHeld)
         {
             ModBase.Log("[Control] 右键按下附加按钮" +
-                        (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(ToolTip, "", false))
-                            ? ""
-                            : "：" + ToolTip));
+                        (ToolTip is null or "" ? "" : "：" + ToolTip));
             RightClick?.Invoke(sender, e);
             e.Handled = true;
             Button_RightMouseUp();

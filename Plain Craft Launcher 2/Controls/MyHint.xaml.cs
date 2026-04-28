@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
-using Microsoft.VisualBasic.CompilerServices;
+
 using PCL.Core.App;
 using PCL.Core.UI.Theme;
 using System.Windows.Controls;
@@ -33,7 +33,7 @@ public partial class MyHint
         typeof(MyHint), new PropertyMetadata("", (d, e) =>
         {
             var f = (MyHint)d;
-            f.LabText.Text = Conversions.ToString(e.NewValue);
+            f.LabText.Text = (string)e.NewValue;
         }));
 
     private Themes _ColorType = Themes.Red;
@@ -90,7 +90,7 @@ public partial class MyHint
 
     public string Text
     {
-        get => Conversions.ToString(GetValue(TextProperty));
+        get => (string)GetValue(TextProperty);
         set => SetValue(TextProperty, value);
     }
 

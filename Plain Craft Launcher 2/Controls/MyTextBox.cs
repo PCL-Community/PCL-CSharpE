@@ -4,7 +4,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using FluentValidation;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -19,7 +18,7 @@ public class MyTextBox : TextBox
         typeof(string), typeof(MyTextBox),
         new PropertyMetadata("",
             (d, e) => d.SetValue(IsValidatedPropertyKey,
-                string.IsNullOrEmpty(Conversions.ToString(e.NewValue)))));
+                string.IsNullOrEmpty((string)e.NewValue))));
 
     private static readonly DependencyPropertyKey IsValidatedPropertyKey =
         DependencyProperty.RegisterReadOnly("IsValidated", typeof(bool), typeof(MyTextBox), new PropertyMetadata(true));
@@ -106,14 +105,14 @@ public class MyTextBox : TextBox
     /// </summary>
     public string ValidateResult
     {
-        get => Conversions.ToString(GetValue(ValidateResultProperty));
+        get => (string)GetValue(ValidateResultProperty);
         set => SetValue(ValidateResultProperty, value);
     }
 
     /// <summary>
     ///     是否通过了输入验证。
     /// </summary>
-    public bool IsValidated => Conversions.ToBoolean(GetValue(IsValidatedProperty));
+    public bool IsValidated => (bool)GetValue(IsValidatedProperty);
 
     /// <summary>
     ///     输入验证的规则。
@@ -130,7 +129,7 @@ public class MyTextBox : TextBox
 
     public string HintText
     {
-        get => Conversions.ToString(GetValue(HintTextProperty));
+        get => (string)GetValue(HintTextProperty);
         set => SetValue(HintTextProperty, value);
     }
 

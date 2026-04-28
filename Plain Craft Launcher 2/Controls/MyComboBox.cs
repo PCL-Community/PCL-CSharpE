@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -15,7 +14,7 @@ public class MyComboBox : ComboBox
         {
             var c = (MyComboBox)d;
             if (c.TextBox is not null)
-                c.TextBox.HintText = Conversions.ToString(e.NewValue);
+                c.TextBox.HintText = (string)e.NewValue;
         }));
 
     private string _Text;
@@ -50,7 +49,7 @@ public class MyComboBox : ComboBox
 
     public string HintText
     {
-        get => Conversions.ToString(GetValue(HintTextProperty));
+        get => (string)GetValue(HintTextProperty);
         set => SetValue(HintTextProperty, value);
     }
 
@@ -132,9 +131,8 @@ public class MyComboBox : ComboBox
         int Time;
         if (IsEnabled)
         {
-            if (Conversions.ToBoolean(IsMouseDown || IsDropDownOpen ||
-                                      (IsEditable && ((MyTextBox)Template.FindName("PART_EditableTextBox", this))
-                                          .IsFocused)))
+            if (IsMouseDown || IsDropDownOpen ||
+                (IsEditable && ((MyTextBox)Template.FindName("PART_EditableTextBox", this)).IsFocused))
             {
                 ForeColorName = "ColorBrush3";
                 BackColorName = "ColorBrush7";

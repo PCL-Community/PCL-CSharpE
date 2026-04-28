@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -72,7 +71,7 @@ public class MyScrollViewer : ScrollViewer
     {
         RealOffset = VerticalOffset;
         if (ModMain.FrmMain is not null &&
-            (Conversions.ToBoolean(e.VerticalChange) || Conversions.ToBoolean(e.ViewportHeightChange)))
+            (e.VerticalChange != 0 || e.ViewportHeightChange != 0))
             ModMain.FrmMain.BtnExtraBack.ShowRefresh();
     }
 

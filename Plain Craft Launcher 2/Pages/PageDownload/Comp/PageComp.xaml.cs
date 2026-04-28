@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Markup;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -154,7 +153,7 @@ public partial class PageComp
 
     public bool SupportCurseForge
     {
-        get => Conversions.ToBoolean(GetValue(SupportCurseForgeProperty));
+        get => (bool)GetValue(SupportCurseForgeProperty);
         set => SetValue(SupportCurseForgeProperty, value);
     }
 
@@ -163,7 +162,7 @@ public partial class PageComp
 
     public bool SupportModrinth
     {
-        get => Conversions.ToBoolean(GetValue(SupportModrinthProperty));
+        get => (bool)GetValue(SupportModrinthProperty);
         set => SetValue(SupportModrinthProperty, value);
     }
 
@@ -264,7 +263,7 @@ public partial class PageComp
             MyComboBoxItem GetTargetItemByName(string Name)
             {
                 foreach (MyComboBoxItem Item in ComboSearchLoader.Items)
-                    if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(Item.Content, Name, false)))
+                    if (string.Equals(Item.Content?.ToString(), Name, StringComparison.OrdinalIgnoreCase))
                         return Item;
                 return (MyComboBoxItem)ComboSearchLoader.Items[0];
             }
