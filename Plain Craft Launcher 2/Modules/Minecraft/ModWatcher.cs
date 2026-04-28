@@ -3,8 +3,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Media;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Logging;
 
@@ -55,12 +53,12 @@ public static class ModWatcher
         HasRunningMinecraft = false;
         ModMain.FrmMain.BtnExtraShutdown.ShowRefresh();
         // 音乐播放
-        if (Conversions.ToBoolean(Config.Preference.Music.StopInGame))
+        if (Config.Preference.Music.StopInGame)
             ModBase.RunInUi(() =>
             {
                 if (ModMusic.MusicResume()) ModBase.Log("[Music] 已根据设置，在结束后开始音乐播放");
             });
-        else if (Conversions.ToBoolean(Config.Preference.Music.StartInGame))
+        else if (Config.Preference.Music.StartInGame)
             ModBase.RunInUi(() =>
             {
                 if (ModMusic.MusicPause()) ModBase.Log("[Music] 已根据设置，在结束后暂停音乐播放");
@@ -71,22 +69,17 @@ public static class ModWatcher
         // 启动器可见性
         switch (Config.Launch.LauncherVisibility)
         {
-            case var @case when Operators.ConditionalCompareObjectEqual(@case, 2, false):
-            {
+            case LauncherVisibility.HideAndExit:
                 // 直接关闭
                 if (TriggerLauncherShutdown)
                     ModBase.RunInUi(() => ModMain.FrmMain.EndProgram(false));
                 else
                     ModBase.RunInUi(() => ModMain.FrmMain.Hidden = false);
-
                 break;
-            }
-            case var case1 when Operators.ConditionalCompareObjectEqual(case1, 3, false):
-            {
+            case LauncherVisibility.HideAndReopen:
                 // 恢复
                 ModBase.RunInUi(() => ModMain.FrmMain.Hidden = false);
                 break;
-            }
         }
     }
 
@@ -593,9 +586,7 @@ public static class ModWatcher
                     WatcherLog($"Minecraft 窗口已加载：{MinecraftWindowName}（{MinecraftWindowHandle.ToInt64()}）");
                     IsWindowFinished = true;
                     // 最大化
-                    if (Conversions.ToBoolean(
-                            Operators.ConditionalCompareObjectEqual(Config.Launch.GameWindowMode, 4,
-                                false)))
+                    if (Config.Launch.GameWindowMode == GameWindowSizeMode.Maximized)
                         // 如果最大化导致屏幕渲染大小不对，那是 MC 的 Bug，不是我的 Bug
                         // ……虽然我很想这样说，但总有人反馈，算了
                         ModBase.RunInNewThread(() =>

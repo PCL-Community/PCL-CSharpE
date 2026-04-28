@@ -1,6 +1,5 @@
 using System.IO;
 using System.Windows;
- 
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;

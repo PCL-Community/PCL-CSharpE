@@ -3,8 +3,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.UI;
@@ -127,31 +125,20 @@ public partial class PageSetupLauncherMisc
             (int)v > 29
                 ? "关闭"
                 : Math.Round(Convert.ToDouble(v) / 10 + 0.1d, 1) + "x");
-        SliderAniFPS.GetHintText = new Func<object, string>(v => $"{Operators.AddObject(v, 1)} FPS");
+        SliderAniFPS.GetHintText = new Func<object, string>(v => $"{Convert.ToInt32(v) + 1} FPS");
         // y = 10x + 50 (0 <= x <= 5, 50 <= y <= 100)
         // y = 50x - 150 (5 < x <= 13, 100 < y <= 500)
         // y = 100x - 800 (13 < x <= 28, 500 < y <= 2000)
         SliderMaxLog.GetHintText = new Func<object, object>(v =>
         {
-            switch (v)
+            var val = Convert.ToInt32(v);
+            return val switch
             {
-                case var @case when Operators.ConditionalCompareObjectLessEqual(@case, 5, false):
-                {
-                    return Operators.AddObject(Operators.MultiplyObject(v, 10), 50);
-                }
-                case var case1 when Operators.ConditionalCompareObjectLessEqual(case1, 13, false):
-                {
-                    return Operators.SubtractObject(Operators.MultiplyObject(v, 50), 150);
-                }
-                case var case2 when Operators.ConditionalCompareObjectLessEqual(case2, 28, false):
-                {
-                    return Operators.SubtractObject(Operators.MultiplyObject(v, 100), 800);
-                }
-                default:
-                {
-                    return "无限制";
-                }
-            }
+                <= 5 => val * 10 + 50,
+                <= 13 => val * 50 - 150,
+                <= 28 => val * 100 - 800,
+                _ => "无限制"
+            };
         });
     }
 

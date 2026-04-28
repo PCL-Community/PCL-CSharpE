@@ -3,8 +3,6 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
 using fNbt;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
@@ -482,7 +480,7 @@ public static class ModLocalComp
             {
                 if (_Description is null && value is not null && value.Count() > 2)
                 {
-                    _Description = value.Trim(Conversions.ToChar("\n"));
+                    _Description = value.Trim('\n');
                     // 优化显示：若以 [a-zA-Z0-9] 结尾，加上小数点句号
                     if (_Description.ToLower().LastIndexOfAny("qwertyuiopasdfghjklzxcvbnm0123456789".ToCharArray()) ==
                         _Description.Count() - 1)
@@ -1780,7 +1778,7 @@ public static class ModLocalComp
                     var Cached = ModBase.ReadIni(ModBase.PathTemp + @"Cache\CompHash.ini", CacheKey);
                     if (!string.IsNullOrEmpty(Cached) && Cached.RegexCheck(@"^\d+$")) // #5062
                     {
-                        _CurseForgeHash = Conversions.ToUInteger(Cached);
+                        _CurseForgeHash = uint.Parse(Cached);
                         return (uint)_CurseForgeHash;
                     }
 
@@ -1989,8 +1987,7 @@ public static class ModLocalComp
                         foreach (var File in DirInfo.EnumerateFiles("*", SearchOption.AllDirectories))
                             try
                             {
-                                if (Conversions.ToBoolean(
-                                        LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType)))
+                                if (LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType))
                                     ModList.Add(new LocalCompFile(File.FullName));
                             }
                             catch (Exception ex)
@@ -2017,8 +2014,7 @@ public static class ModLocalComp
                                           (PageInstanceLeft.Instance.Info.VanillaName ?? "")))
                                         continue;
 
-                                if (Conversions.ToBoolean(
-                                        LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType)))
+                                if (LocalCompFile.IsCompFile(File.FullName, Loader.Input.CompType))
                                     ModList.Add(new LocalCompFile(File.FullName));
                             }
                             catch (Exception ex)
@@ -2116,13 +2112,13 @@ public static class ModLocalComp
                 $"[Mod] 共有 {ModList.Count} 个 Mod，其中 {ModUpdateList.Where(m => m.Comp is null).Count()} 个需要联网获取信息，{ModUpdateList.Where(m => m.Comp is not null).Count()} 个需要更新信息");
 
             // 排序
-            ModList = ModList.Sort((Left, Right) =>
+            ModList.Sort((Left, Right) =>
             {
                 if (Left.State == LocalCompFile.LocalFileStatus.Unavailable !=
                     (Right.State == LocalCompFile.LocalFileStatus.Unavailable))
-                    return Left.State == LocalCompFile.LocalFileStatus.Unavailable;
+                    return Left.State == LocalCompFile.LocalFileStatus.Unavailable ? 1 : -1;
 
-                return Conversions.ToBoolean(~Right.FileName.CompareTo(Left.FileName));
+                return Right.FileName.CompareTo(Left.FileName);
             });
 
             // 回设

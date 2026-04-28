@@ -4,8 +4,6 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.IO.Net.Http.Client;
@@ -391,10 +389,7 @@ public class ModSetup : IConfigScope
                 ModMain.FrmSetupUI.PanCustomLocal.Visibility = Visibility.Visible;
                 ModMain.FrmSetupUI.PanCustomNet.Visibility = Visibility.Collapsed;
                 ModMain.FrmSetupUI.HintCustom.Visibility = Visibility.Visible;
-                ModMain.FrmSetupUI.HintCustomWarn.Visibility =
-                    Conversions.ToBoolean(States.Hint.UntrustedHomepage)
-                        ? Visibility.Collapsed
-                        : Visibility.Visible;
+                ModMain.FrmSetupUI.HintCustomWarn.Visibility = States.Hint.UntrustedHomepage ? Visibility.Collapsed : Visibility.Visible;
                 ModMain.FrmSetupUI.HintCustom.Text =
                     $"从 PCL 文件夹下的 Custom.xaml 读取主页内容。{"\r\n"}你可以手动编辑该文件，向主页添加文本、图片、常用网站、快捷启动等功能。";
                 CustomEventService.SetEventType(ModMain.FrmSetupUI.HintCustom, CustomEvent.EventType.None);
@@ -406,10 +401,7 @@ public class ModSetup : IConfigScope
                 ModMain.FrmSetupUI.PanCustomLocal.Visibility = Visibility.Collapsed;
                 ModMain.FrmSetupUI.PanCustomNet.Visibility = Visibility.Visible;
                 ModMain.FrmSetupUI.HintCustom.Visibility = Visibility.Visible;
-                ModMain.FrmSetupUI.HintCustomWarn.Visibility =
-                    Conversions.ToBoolean(States.Hint.UntrustedHomepage)
-                        ? Visibility.Collapsed
-                        : Visibility.Visible;
+                ModMain.FrmSetupUI.HintCustomWarn.Visibility = States.Hint.UntrustedHomepage ? Visibility.Collapsed : Visibility.Visible;
                 ModMain.FrmSetupUI.HintCustom.Text =
                     $"从指定网址联网获取主页内容。服主也可以用于动态更新服务器公告。{"\r\n"}如果你制作了稳定运行的联网主页，可以点击这条提示投稿，若合格即可加入预设！";
                 CustomEventService.SetEventType(ModMain.FrmSetupUI.HintCustom, CustomEvent.EventType.打开网页);
@@ -454,7 +446,7 @@ public class ModSetup : IConfigScope
     {
         ModMain.FrmSetupUI.PanBlurValue.Visibility = Value ? Visibility.Visible : Visibility.Collapsed;
         if (Value)
-            UiBlurValue(Conversions.ToInteger(Config.Preference.Blur.Radius));
+            UiBlurValue(Config.Preference.Blur.Radius);
         else
             UiBlurValue(0);
     }
@@ -591,7 +583,7 @@ public class ModSetup : IConfigScope
     public void UiLogoLeft(bool Value)
     {
         ModMain.FrmMain.PanTitleMain.ColumnDefinitions[0].Width = new GridLength(
-            Value && Operators.ConditionalCompareObjectEqual(Config.Preference.WindowTitleType, 0, false) ? 0 : 1,
+            Value && Config.Preference.WindowTitleType == LauncherTitleType.None ? 0 : 1,
             GridUnitType.Star);
     }
 
@@ -775,7 +767,7 @@ public class ModSetup : IConfigScope
     {
         if (!string.IsNullOrEmpty(value))
         {
-            var password = Conversions.ToString(Config.Network.HttpProxy.CustomPassword);
+            var password = Config.Network.HttpProxy.CustomPassword;
             HttpProxyManager.Instance.Credentials = new NetworkCredential(value, password);
         }
         else
@@ -786,7 +778,7 @@ public class ModSetup : IConfigScope
 
     public void SystemHttpProxyCustomPassword(string value)
     {
-        var username = Conversions.ToString(Config.Network.HttpProxy.CustomUsername);
+        var username = Config.Network.HttpProxy.CustomUsername;
         if (!string.IsNullOrEmpty(username))
             HttpProxyManager.Instance.Credentials = new NetworkCredential(username, value);
         else

@@ -12,8 +12,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using Dapper;
 using Microsoft.Data.Sqlite;
-using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Logging;
@@ -1864,7 +1862,7 @@ public static class ModComp
             {
                 var jsonObject = (JObject)await 
                     Requester.FetchJsonAsync($"https://mod.mcimirror.top/translate/{from}/{Id}");
-                if (Conversions.ToBoolean(((dynamic)jsonObject).ContainsKey("translated")))
+                if (jsonObject.ContainsKey("translated"))
                 {
                     result = jsonObject["translated"].ToString();
                     ModBase.WriteIni(CacheFilePath, DescHash, ModBase.Base64Encode(result));
@@ -3097,7 +3095,7 @@ public static class ModComp
                     // TODO: 移除龙猫写的直接下载，换用提醒用户手动下载相关模组
                     if (string.IsNullOrWhiteSpace(Url))
                         Url =
-                            $"https://edge.forgecdn.net/files/{Conversions.ToInteger(Id.Substring(0, 4))}/{Conversions.ToInteger(Id.Substring(4))}/{FileName}";
+                            $"https://edge.forgecdn.net/files/{int.Parse(Id[..4])}/{int.Parse(Id[4..])}/{FileName}";
                     Url = Url.Replace(FileName, WebUtility.UrlEncode(FileName)); // 对文件名进行编码
                     Url = Url.Replace("+", "%20"); // 修正被编码成 + 的空格，CurseForge 会对 + 号也进行编码
                     DownloadUrls = ModDownload.DlSourceModDownloadGet(HandleCurseForgeDownloadUrls(Url)); // 添加镜像源
@@ -3568,35 +3566,14 @@ public static class ModComp
             var ChineseName = proj.TranslatedName.BeforeFirst(" (").BeforeFirst(" - ").Replace(@"\", "＼")
                 .Replace("/", "／").Replace("|", "｜").Replace(":", "：").Replace("<", "＜").Replace(">", "＞")
                 .Replace("*", "＊").Replace("?", "？").Replace("\"", "").Replace("： ", "：");
-            switch (Config.Download.Comp.NameFormatV2)
+            FileName = Config.Download.Comp.NameFormatV2 switch
             {
-                case var @case when Operators.ConditionalCompareObjectEqual(@case, 0, false):
-                {
-                    FileName = $"【{ChineseName}】{file.FileName}";
-                    break;
-                }
-                case var case1 when Operators.ConditionalCompareObjectEqual(case1, 1, false):
-                {
-                    FileName = $"[{ChineseName}] {file.FileName}";
-                    break;
-                }
-                case var case2 when Operators.ConditionalCompareObjectEqual(case2, 2, false):
-                {
-                    FileName = $"{ChineseName}-{file.FileName}";
-                    break;
-                }
-                case var case3 when Operators.ConditionalCompareObjectEqual(case3, 3, false):
-                {
-                    FileName = $"{file.FileName}-{ChineseName}";
-                    break;
-                }
-
-                default:
-                {
-                    FileName = file.FileName;
-                    break;
-                }
-            }
+                0 => $"【{ChineseName}】{file.FileName}",
+                1 => $"[{ChineseName}] {file.FileName}",
+                2 => $"{ChineseName}-{file.FileName}",
+                3 => $"{file.FileName}-{ChineseName}",
+                _ => file.FileName
+            };
         }
 
         if (file.Type == CompType.Mod)
