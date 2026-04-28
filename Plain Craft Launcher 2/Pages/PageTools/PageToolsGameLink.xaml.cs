@@ -669,6 +669,7 @@ public partial class PageToolsGameLink
         else if (ModMain.MyMsgBox("你确定要退出登录吗？", "退出登录", "确定", "取消") == 1)
         {
             States.Link.NaidRefreshTokenConfig.Reset();
+            States.Link.NaidRefreshToken = "";
             LabNatayarkUserName.Text = "点击登录 Natayark 账户";
             ModBase.Log("[Link] 已退出登录 Natayark Network");
             ModMain.Hint("已退出登录！", ModMain.HintType.Finish, false);
