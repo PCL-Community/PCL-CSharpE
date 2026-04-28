@@ -15,14 +15,28 @@ jobs:
         include:
           - configuration: Release
             architecture: x64
+            language: CSharp
+            project_file: "Plain Craft Launcher 2/Plain Craft Launcher 2.csproj"
           - configuration: Release
             architecture: ARM64
+            language: CSharp
+            project_file: "Plain Craft Launcher 2/Plain Craft Launcher 2.csproj"
+          - configuration: Release
+            architecture: x64
+            language: VisualBasic
+            project_file: "Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj"
+          - configuration: Release
+            architecture: ARM64
+            language: VisualBasic
+            project_file: "Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj"
       fail-fast: false
 
     uses: ./.github/workflows/reusable-build.yml
     with:
       configuration: ${{ matrix.configuration }}
       architecture: ${{ matrix.architecture }}
+      language: ${{ matrix.language }}
+      project_file: ${{ matrix.project_file }}
     secrets: inherit
 
   changelog:
@@ -62,18 +76,26 @@ jobs:
         include:
           - configuration: Release
             architecture: x64
+            language: CSharp
           - configuration: Release
             architecture: ARM64
+            language: CSharp
+          - configuration: Release
+            architecture: x64
+            language: VisualBasic
+          - configuration: Release
+            architecture: ARM64
+            language: VisualBasic
     steps:
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
-          name: PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}
+          name: PCL2_CE_${{ matrix.language }}_${{ matrix.configuration }}_${{ matrix.architecture }}
           path: ./artifact
 
       - name: Rename binaries
         run: |
-          mv "./artifact/Plain Craft Launcher 2.exe" "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
+          mv "./artifact/Plain Craft Launcher 2.exe" "PCL2_CE_${{ matrix.language == 'VisualBasic' && 'VisualBasic_' || '' }}${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v6
@@ -83,20 +105,20 @@ jobs:
 
       - name: Sign the binary
         run: |
-          gpg --detach-sign --armor "PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
+          gpg --detach-sign --armor "PCL2_CE_${{ matrix.language == 'VisualBasic' && 'VisualBasic_' || '' }}${{ matrix.configuration }}_${{ matrix.architecture }}.exe"
 
       - name: Upload binary and signature to Release
         uses: softprops/action-gh-release@v2.5.0
         with:
           files: |
-            PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe
-            PCL2_CE_${{ matrix.configuration }}_${{ matrix.architecture }}.exe.asc
+            PCL2_CE_${{ matrix.language == 'VisualBasic' && 'VisualBasic_' || '' }}${{ matrix.configuration }}_${{ matrix.architecture }}.exe
+            PCL2_CE_${{ matrix.language == 'VisualBasic' && 'VisualBasic_' || '' }}${{ matrix.configuration }}_${{ matrix.architecture }}.exe.asc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trigger MirrorChyanUploading
         run: |
-          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_uploading.yml -f channel=stable -f arch=${{ matrix.architecture == 'x64' && 'x64' || 'arm64' }}
+          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_uploading.yml -f channel=stable -f arch=${{ matrix.architecture == 'x64' && 'x64' || 'arm64' }} -f lang=${{ matrix.language == 'VisualBasic' && 'vb' || 'csharp' }}
           gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_release_note.yml
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
