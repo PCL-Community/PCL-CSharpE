@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Core.Utils.Exts;
@@ -206,7 +205,7 @@ public partial class MyLocalCompItem
                     (int)Math.Round(Time * 0.3d)));
                 Ani.Add(ModAnimation.AaDouble(
                     i => ColumnPaddingRight.Width =
-                        new GridLength(Conversions.ToDouble(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i))),
+                        new GridLength(Math.Max(0, ColumnPaddingRight.Width.Value + (double)i)),
                     5 + Buttons.Count() * 25 - ColumnPaddingRight.Width.Value, (int)Math.Round(Time * 0.3d),
                     (int)Math.Round(Time * 0.7d)));
             }

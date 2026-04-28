@@ -3,7 +3,6 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.Logging;
 using PCL.Core.UI;
 using PCL.Core.Utils;
@@ -695,11 +694,9 @@ public class CrashAnalyzer
                 AppendReason(CrashReason.低版本Forge与高版本Java不兼容);
             if (LogMc.Contains("1282: Invalid operation"))
                 AppendReason(CrashReason.光影或资源包导致OpenGL1282错误);
-            if (LogMc.Contains(
-                    "signer information does not match signer information of other classes in the same package"))
+            if (LogMc.Contains("signer information does not match signer information of other classes in the same package"))
                 AppendReason(CrashReason.文件或内容校验失败,
-                    (LogMc.RegexSeek("(?<=class \")[^']+(?=\"'s signer information)") ?? "").TrimEnd(
-                        Conversions.ToChar("\r\n")));
+                    (LogMc.RegexSeek("(?<=class \")[^']+(?=\"'s signer information)") ?? "").TrimEnd('\r', '\n'));
             if (LogMc.Contains("Maybe try a lower resolution resourcepack?"))
                 AppendReason(CrashReason.材质过大或显卡配置不足);
             if (LogMc.Contains(
@@ -830,10 +827,8 @@ public class CrashAnalyzer
                     new[]
                     {
                         TryAnalyzeModName(
-                            (LogCrash.RegexSeek(@"(?<=Failed loading config file .+ for modid )[^\n]+") ?? "").TrimEnd(
-                                Conversions.ToChar("\r\n"))).First(),
-                        (LogCrash.RegexSeek("(?<=Failed loading config file ).+(?= of type)") ?? "").TrimEnd(
-                            Conversions.ToChar("\r\n"))
+                            (LogCrash.RegexSeek(@"(?<=Failed loading config file .+ for modid )[^\n]+") ?? "").TrimEnd('\r', '\n')).First(),
+                        (LogCrash.RegexSeek("(?<=Failed loading config file ).+(?= of type)") ?? "").TrimEnd('\r', '\n')
                     });
         }
     }
@@ -887,9 +882,7 @@ public class CrashAnalyzer
             // 常规信息
             if (LogMc.Contains("An exception was thrown, the game will display an error screen and halt."))
                 AppendReason(CrashReason.Forge报错,
-                    LogMc.RegexSeek(
-                            @"(?<=the game will display an error screen and halt.[\n\r]+[^\n]+?Exception: )[\s\S]+?(?=\n\tat)")
-                        ?.Trim(Conversions.ToChar("\r\n")));
+                    (LogMc.RegexSeek(@"(?<=the game will display an error screen and halt.[\n\r]+[^\n]+?Exception: )[\s\S]+?(?=\n\tat)")?.Trim('\r', '\n')) ?? "");
             if (LogMc.Contains("A potential solution has been determined:"))
                 AppendReason(CrashReason.Fabric报错并给出解决方案,
                     (LogMc.RegexSeek(@"(?<=A potential solution has been determined:\n)(\s+ - [^\n]+\n)+") ?? "")
@@ -951,7 +944,7 @@ public class CrashAnalyzer
                     TryAnalyzeModName(
                         (LogMc.RegexSeek("(?<=Failed to create mod instance. ModID: )[^,]+") ??
                          LogMc.RegexSeek(@"(?<=Failed to create mod instance. ModId )[^\n]+(?= for )") ?? "")
-                        .TrimEnd(Conversions.ToChar("\r\n"))));
+                        .TrimEnd('\r', '\n')));
             // 注意：Fabric 的 Warnings were found! 不一定是崩溃原因，它可能是单纯的警报
         }
 
@@ -1281,7 +1274,7 @@ public class CrashAnalyzer
                                 FileEncoding = EncodingDetector.DetectEncoding(ModBase.ReadFileBytes(OutputFile));
                             var FileContent = ModBase.ReadFile(OutputFile, FileEncoding);
                             FileContent = ModMinecraft.FilterAccessToken(FileContent,
-                                Conversions.ToChar(FileName == "启动脚本.bat" ? "F" : "*"));
+                                FileName == "启动脚本.bat" ? 'F' : '*');
                             FileContent = ModMinecraft.FilterUserName(FileContent, '*');
                             ModBase.WriteFile(TempFolder + @"Report\" + FileName, FileContent, Encoding: FileEncoding);
                             ModBase.Log($"[Crash] 导出文件：{FileName}，编码：{FileEncoding.HeaderName}");

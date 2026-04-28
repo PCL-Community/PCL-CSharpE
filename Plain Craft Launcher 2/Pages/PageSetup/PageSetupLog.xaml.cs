@@ -3,7 +3,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Windows;
 using System.Windows.Input;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.UI;
@@ -27,7 +26,7 @@ public partial class PageSetupLog
         get
         {
             var logs = LogService.Logger.CurrentLogFiles;
-            return logs.Select(item => Path.GetFullPath(Conversions.ToString(item))).ToList();
+            return logs.Select(item => Path.GetFullPath(item)).ToList();
         }
     }
 
@@ -80,7 +79,7 @@ public partial class PageSetupLog
             ele.Click += (sender, e) =>
             {
                 var s = (MyListItem)sender;
-                var file = Conversions.ToString(s.Tag);
+                var file = (string)s.Tag;
                 Basics.OpenPath(file);
             };
             PanList.Children.Add(ele);

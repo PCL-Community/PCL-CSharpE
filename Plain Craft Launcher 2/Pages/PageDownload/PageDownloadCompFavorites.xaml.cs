@@ -4,7 +4,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.UI;
 using PCL.Network;
 using PCL.Network.Loaders;
@@ -55,7 +54,7 @@ public partial class PageDownloadCompFavorites
             }
 
             return ModComp.CompFavorites.FavoritesList
-                .Where(e => Operators.ConditionalCompareObjectEqual(e.Id, SelectedItem.Tag, false)).First();
+                .First(e => string.Equals(e.Id, SelectedItem.Tag?.ToString(), StringComparison.OrdinalIgnoreCase));
         }
     }
 
@@ -696,7 +695,7 @@ public partial class PageDownloadCompFavorites
                 SelectedItemList.Remove(Item);
             if (SearchResult.Contains(Item))
                 SearchResult.Remove(Item);
-            CurrentFavTarget.Favs.Remove(Conversions.ToString(((ModComp.CompProject)Item.Tag).Id));
+            CurrentFavTarget.Favs.Remove(((ModComp.CompProject)Item.Tag).Id);
             ModComp.CompFavorites.Save();
             if (!CompItemList.Any())
                 ModMain.FrmDownloadCompFavorites.PageLoaderRestart();

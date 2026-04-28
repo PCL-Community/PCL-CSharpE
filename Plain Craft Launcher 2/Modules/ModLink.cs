@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.Link.EasyTier;
@@ -38,7 +37,7 @@ public static class ModLink
 
         if (LobbyInfoProvider.RequiresLogin)
         {
-            if (string.IsNullOrWhiteSpace(Conversions.ToString(States.Link.NaidRefreshToken)))
+            if (string.IsNullOrWhiteSpace(States.Link.NaidRefreshToken))
             {
                 ModMain.Hint("请先前往联机设置并登录至 Natayark Network 再进行联机！", ModMain.HintType.Critical);
                 return false;
@@ -84,8 +83,7 @@ public static class ModLink
             }
         }
 
-        if (string.IsNullOrWhiteSpace(Conversions.ToString(Config.Link.Username)) &&
-            string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
+        if (string.IsNullOrWhiteSpace(Config.Link.Username) && string.IsNullOrWhiteSpace(NatayarkProfileManager.NaidProfile.Username))
         {
             ModMain.Hint("请先前往设置输入一个用户名，或登录至 Natayark Network 再进行联机！", ModMain.HintType.Critical);
             return false;
@@ -220,7 +218,7 @@ public static class ModLink
                 var infos = new List<Tuple<int, int>>();
                 var ports = PortFinder.GetProcessPort(int.Parse(pid));
                 foreach (var port in ports)
-                    infos.Add(new Tuple<int, int>(port, Conversions.ToInteger(pid)));
+                    infos.Add(new Tuple<int, int>(port, int.Parse(pid)));
                 lookupList.AddRange(infos);
             }
 

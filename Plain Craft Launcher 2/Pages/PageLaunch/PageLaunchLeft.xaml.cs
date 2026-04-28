@@ -4,7 +4,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.Utils;
 using PCL.Network;
@@ -108,7 +107,7 @@ public partial class PageLaunchLeft
             }
 
             ModBase.Log("[Launch] Minecraft 文件夹：" + ModMinecraft.McFolderSelected);
-            if (Conversions.ToBoolean(Config.Debug.AddRandomDelay))
+            if (Config.Debug.AddRandomDelay)
                 Thread.Sleep(RandomUtils.NextInt(500, 3000));
             // 自动整合包安装
             if (PackInstallPath is not null)
@@ -410,7 +409,7 @@ public partial class PageLaunchLeft
             }
 
             LabLaunchingDownload.Text = ModBase.GetString(ModNet.NetManager.Speed) + "/s";
-            var ShouldShowHint = Conversions.ToBoolean(Config.Preference.ShowLaunchingHint);
+            var ShouldShowHint = Config.Preference.ShowLaunchingHint;
             // 进度改变动画
             var AnimList = new List<ModAnimation.AniData>
             {
@@ -566,7 +565,7 @@ public partial class PageLaunchLeft
         ModLaunch.McLaunchProcess = null;
         ModLaunch.McLaunchWatcher = null;
 
-        var ShouldShowHint = Conversions.ToBoolean(Config.Preference.ShowLaunchingHint);
+        var ShouldShowHint = Config.Preference.ShowLaunchingHint;
         if (ShouldShowHint)
             LabLaunchingHint.Text = PageLaunchRight.GetRandomHint(true, true);
         else

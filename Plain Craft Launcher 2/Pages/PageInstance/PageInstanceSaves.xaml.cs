@@ -5,7 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.VisualBasic.FileIO;
 
 namespace PCL;
@@ -289,7 +288,7 @@ public partial class PageInstanceSaves : IRefreshable
                         ModLaunch.McLaunchStart(LaunchOptions);
                         ModMain.FrmMain.PageChange(new FormMain.PageStackData { Page = FormMain.PageType.Launch });
                     };
-                    if (Conversions.ToBoolean(QuickPlayFeature))
+                    if ((bool)QuickPlayFeature)
                         worldItem.Buttons = new[] { BtnOpen, BtnDelete, BtnCopy, BtnInfo, BtnLaunch };
                     else
                         worldItem.Buttons = new[] { BtnOpen, BtnDelete, BtnCopy, BtnInfo };
@@ -337,7 +336,7 @@ public partial class PageInstanceSaves : IRefreshable
 
             if (ModBase.ModeDebug)
             {
-                if (Conversions.ToBoolean(QuickPlayFeature))
+                if ((bool)QuickPlayFeature)
                     ModBase.Log("[World] 该实例支持存档快捷启动", ModBase.LogLevel.Debug);
                 else
                     ModBase.Log("[World] 该实例不支持存档快捷启动", ModBase.LogLevel.Debug);

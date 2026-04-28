@@ -1,5 +1,4 @@
 using System.Net.Http;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
 using PCL.Core.IO.Net.Http.Client.Request;
@@ -19,7 +18,7 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
 
     public bool IsAvailable()
     {
-        return !string.IsNullOrWhiteSpace(Conversions.ToString(Config.Update.MirrorChyanKey));
+        return !string.IsNullOrWhiteSpace(Config.Update.MirrorChyanKey);
     }
 
     public VersionDataModel GetLatestVersion(UpdateChannel channel, UpdateArch arch)
@@ -81,9 +80,8 @@ public class UpdatesMirrorChyanModel : IUpdateSource // Mirror 酱的更新格�
     private string GetUrl(UpdateChannel channel, UpdateArch arch)
     {
         var ReqUrl = MirrorChyanBaseUrl;
-        var CDKey = Conversions.ToString(Config.Update.MirrorChyanKey);
         ReqUrl = ReqUrl.Replace("{cid}", MyCid);
-        ReqUrl = ReqUrl.Replace("{cdk}", CDKey);
+        ReqUrl = ReqUrl.Replace("{cdk}", Config.Update.MirrorChyanKey);
         ReqUrl = ReqUrl.Replace("{arch}", arch.ToString());
         ReqUrl = ReqUrl.Replace("{channel}", channel.ToString());
         return ReqUrl;

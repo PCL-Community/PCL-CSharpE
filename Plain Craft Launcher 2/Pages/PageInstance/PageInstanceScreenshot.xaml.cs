@@ -4,7 +4,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.VisualBasic.FileIO;
 using PCL.Core.App;
 using SearchOption = System.IO.SearchOption;
@@ -269,7 +268,7 @@ public partial class PageInstanceScreenshot : IRefreshable
 
     private string GetPathFromSender(MyIconTextButton sender)
     {
-        return Conversions.ToString(sender.Tag);
+        return (string)sender.Tag;
     }
 
     private void BtnOpen_Click(MyIconTextButton sender, EventArgs e)

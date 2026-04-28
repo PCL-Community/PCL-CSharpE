@@ -6,7 +6,6 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using FluentValidation;
-using Microsoft.VisualBasic.CompilerServices;
 using PCL.Core.App;
 using PCL.Core.UI;
 using PCL.Core.Utils.Validate;
@@ -799,7 +798,7 @@ public partial class PageDownloadCompDetail
         var supportedLoaders =
             new HashSet<ModComp.CompLoaderType>(Enum.GetValues(typeof(ModComp.CompLoaderType))
                 .Cast<ModComp.CompLoaderType>());
-        var ignoreQuilt = Conversions.ToBoolean(Config.Download.Comp.IgnoreQuilt);
+        var ignoreQuilt = Config.Download.Comp.IgnoreQuilt;
         var hasMultipleLoaders = _project.ModLoaders.Count > 1;
 
         // 2. 核心数据归类 (使用 Dictionary 配合 HashSet 去重)

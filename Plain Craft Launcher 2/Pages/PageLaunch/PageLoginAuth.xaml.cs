@@ -1,8 +1,8 @@
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.VisualBasic.CompilerServices;
 using Newtonsoft.Json.Linq;
+using PCL.Core.App;
 using PCL.Core.IO.Net.Http.Client.Request;
 using PCL.Core.Minecraft.Yggdrasil;
 using PCL.Core.Utils;
@@ -169,27 +169,20 @@ public partial class PageLoginAuth
 
     private void Btn_Click(object sender, EventArgs e)
     {
-        if (Conversions.ToBoolean(Operators.ConditionalCompareObjectEqual(BtnLink.Content, "注册账号", false)))
+        if (string.Equals(BtnLink.Content?.ToString(), "注册账号", StringComparison.OrdinalIgnoreCase))
         {
-            ModBase.OpenWebsite(Conversions.ToString(ModMinecraft.McInstanceSelected is not null
-                ? ModBase.Setup.Get("VersionServerAuthRegister", ModMinecraft.McInstanceSelected)
-                : ""));
+            ModBase.OpenWebsite(Config.InstanceAuth.AuthRegisterAddress.ToString());
         }
         else
         {
-            var Website = Conversions.ToString(ModMinecraft.McInstanceSelected is not null
-                ? ModBase.Setup.Get("VersionServerAuthRegister", ModMinecraft.McInstanceSelected)
-                : "");
-            ModBase.OpenWebsite(Website.Replace("/auth/register", "/auth/forgot"));
+            ModBase.OpenWebsite(Config.InstanceAuth.AuthRegisterAddress.ToString().Replace("/auth/register", "/auth/forgot"));
         }
     }
 
     // 切换注册按钮可见性
     private void ReloadRegisterButton()
     {
-        var Address = Conversions.ToString(ModMinecraft.McInstanceSelected is not null
-            ? ModBase.Setup.Get("VersionServerAuthRegister", ModMinecraft.McInstanceSelected)
-            : "");
+        var Address = Config.InstanceAuth.AuthRegisterAddress.ToString();
         BtnLink.Visibility = new HttpValidator().Validate(Address).IsValid
             ? Visibility.Visible
             : Visibility.Collapsed;

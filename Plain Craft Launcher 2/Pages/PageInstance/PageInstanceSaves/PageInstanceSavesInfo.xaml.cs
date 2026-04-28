@@ -3,7 +3,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using fNbt;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace PCL;
 
@@ -142,7 +141,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     {
                         try
                         {
-                            var newVal = Conversions.ToInteger(combo.SelectedValue);
+                            var newVal = (byte)combo.SelectedValue;
                             gameLevel.Get<NbtByte>("allowCommands").Value = (byte)newVal;
                             using (var fileStream = new FileStream(saveDatPath, FileMode.Create, FileAccess.Write,
                                        FileShare.None))
@@ -219,7 +218,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                     else
                         isHardcoreCheck = gameLevel.Get<NbtByte>("hardcore");
                         
-                    var isHardcoreMode = isHardcoreCheck.Value == Conversions.ToDouble("1");
+                    var isHardcoreMode = isHardcoreCheck.Value == 1;
 
                     var lockCheckBox = new MyCheckBox
                     {
@@ -240,7 +239,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         else
                             lockedElement = gameLevel.Get<NbtByte>("DifficultyLocked");
                         
-                        var isLocked = lockedElement is not null && lockedElement.Value == Conversions.ToDouble("1");
+                        var isLocked = lockedElement is not null && lockedElement.Value == 1;
                         lockCheckBox.Checked = isLocked;
                     }
 
@@ -258,7 +257,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         try
                         {
                             if (difficultyCombo.SelectedValue is null) return;
-                            var newDifficulty = Conversions.ToInteger(difficultyCombo.SelectedValue);
+                            var newDifficulty = (byte)difficultyCombo.SelectedValue;
                             if (gameLevel.Contains("difficulty_settings"))
                             {
                                 var newDifficultyString = GetDifficultyName(newDifficulty);
@@ -298,7 +297,7 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         try
                         {
                             if (difficultyCombo.SelectedValue is null) return;
-                            var newDifficulty = Conversions.ToInteger(difficultyCombo.SelectedValue);
+                            var newDifficulty = (byte)difficultyCombo.SelectedValue;
                             if (gameLevel.Contains("difficulty_settings"))
                             {
                                 var newDifficultyString = GetDifficultyName(newDifficulty);
@@ -445,8 +444,8 @@ public partial class PageInstanceSavesInfo : IRefreshable
                         ? gameLevel.Get<NbtCompound>("difficulty_settings").Get<NbtByte>("locked")
                         : gameLevel.Get<NbtByte>("DifficultyLocked");
                     var isDifficultyLocked =
-                        (lockedElement is not null && lockedElement.Value == Conversions.ToDouble("1")) ||
-                        isHardcore.Value == Conversions.ToDouble("1") ? "是" :
+                        (lockedElement is not null && lockedElement.Value == 1) ||
+                        isHardcore.Value == 1 ? "是" :
                         lockedElement is not null ? "否" : "获取失败";
                     if (Hintversion1_8.Visibility != Visibility.Visible)
                         AddInfoTable("困难度", $"{difficultyName} (是否已锁定难度：{isDifficultyLocked})");
