@@ -10,7 +10,6 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using FluentValidation;
 using Microsoft.VisualBasic;
-using Microsoft.VisualBasic.CompilerServices;
 using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using PCL.Core.App;
@@ -302,7 +301,7 @@ public static class ModMain
                 // 检查是否有重复提示
                 Border? DoubleStack = null;
                 foreach (Border stack in FrmMain.PanHint.Children)
-                    if (stack.Tag is object[] tagArray && Conversions.ToBoolean(tagArray[0]) &&
+                    if (stack.Tag is object[] tagArray && (bool)tagArray[0] &&
                                               (((TextBlock)stack.Child).Text ?? "") == (CurrentHint.Text ?? ""))
                         DoubleStack = stack;
                 // 获取渐变颜色
@@ -349,7 +348,7 @@ public static class ModMain
                                 ModAnimation.AaX(DoubleStack, -8, 50, 150, new ModAnimation.AniEaseInFluent()),
                                 ModAnimation.AaDouble(i =>
                                 {
-                                    Percent += Conversions.ToDouble(i);
+                                    Percent += (double)i;
                                     var Gradient = (LinearGradientBrush)DoubleStack.Background;
                                     Gradient.GradientStops[0].Color = TargetColor0 * Percent +
                                                                       new ModBase.MyColor(255d, 255d, 255d) *
@@ -367,8 +366,7 @@ public static class ModMain
                                     After: true),
                                 ModAnimation.AaCode(() => FrmMain.PanHint.Children.Remove(DoubleStack), After: true)
                             },
-                            Conversions.ToString(Operators.ConcatenateObject("Hint Hide ",
-                                doubleStackTag[1])));
+                            $"Hint Hide {doubleStackTag[1]}");
                     }
                 }
                 else
@@ -413,7 +411,7 @@ public static class ModMain
                         ModAnimation.AaOpacity(NewHintControl, 1d, 100),
                         ModAnimation.AaDouble(i =>
                         {
-                            Percent += Conversions.ToDouble(i);
+                            Percent += (double)i;
                             var Gradient = (LinearGradientBrush)NewHintControl.Background;
                             Gradient.GradientStops[0].Color = TargetColor0 * Percent +
                                                               new ModBase.MyColor(255d, 255d, 255d) * (1d - Percent);
@@ -466,7 +464,7 @@ public static class ModMain
                     ModAnimation.AaCode(() => controlTag[0] = false),
                     ModAnimation.AaHeight(Control, -26, 100, Ease: new ModAnimation.AniEaseOutFluent(), After: true),
                     ModAnimation.AaCode(() => FrmMain.PanHint.Children.Remove(Control), After: true)
-                }, Conversions.ToString(Operators.ConcatenateObject("Hint Hide ", controlTag[1])));
+                }, $"Hint Hide {controlTag[1]}");
         }
     }
 
@@ -639,9 +637,8 @@ public static class ModMain
                 }
             }
 
-            ModBase.Log(
-                Conversions.ToString(Operators.ConcatenateObject("[Control] 普通弹框返回：", Converter.Result ?? "null")));
-            return Conversions.ToInteger(Converter.Result);
+            ModBase.Log($"[Control] 普通弹框返回：{Converter.Result ?? "null"}");
+            return (int)Converter.Result;
         }
 
         // 不进行等待，直接返回
@@ -731,9 +728,8 @@ public static class ModMain
                 }
             }
 
-            ModBase.Log(
-                Conversions.ToString(Operators.ConcatenateObject("[Control] 普通弹框返回：", Converter.Result ?? "null")));
-            return Conversions.ToInteger(Converter.Result);
+            ModBase.Log($"[Control] 普通弹框返回：{Converter.Result ?? "null"}");
+            return (int)Converter.Result;
         }
 
         // 不进行等待，直接返回
@@ -809,7 +805,7 @@ public static class ModMain
             ComponentDispatcher.PopModal();
         }
 
-        ModBase.Log(Conversions.ToString(Operators.ConcatenateObject("[Control] 选择弹框返回：", Converter.Result ?? "null")));
+        ModBase.Log($"[Control] 选择弹框返回：{Converter.Result ?? "null"}");
         return (int?)Converter.Result;
     }
 
@@ -1014,7 +1010,7 @@ public static class ModMain
             ShowInSnapshot = (bool)(JsonData["ShowInSnapshot"] ?? ShowInSnapshot);
             Types = new List<string>();
             foreach (var NameOfType in (IEnumerable)(JsonData["Types"] ?? ModBase.GetJson("[]")))
-                Types.Add(Conversions.ToString(NameOfType));
+                Types.Add(NameOfType.ToString());
             // 加载事件信息
             if ((bool)(JsonData["IsEvent"] ?? false))
             {
